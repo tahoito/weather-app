@@ -1,0 +1,17 @@
+# 全体で無視するもの
+db_data/
+.env
+.env.local
+*.env
+
+# Laravel backend
+backend/vendor/
+backend/node_modules/
+backend/storage/*.key
+backend/.env
+backend/storage/logs/*.log
+
+# Next frontend
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
