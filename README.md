@@ -48,4 +48,9 @@ git checkout -b feature/機能名
 git push origin feature/機能名
 ```
 
+## アクセスURL
+フロント（Next.js）	http://localhost:3001
+バックエンド（Laravel API）	http://localhost:8000
+
+
 
