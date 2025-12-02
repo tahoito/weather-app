@@ -43,7 +43,13 @@ git pull origin main
 ```bash
 git checkout -b feature/機能名
 ```
-### 3.pushする
+### 3.コミットする
+```bash
+git add .
+git commit -m "わかりやすく書く"
+```
+
+### 4.pushする
 ```bash
 git push origin feature/機能名
 ```
