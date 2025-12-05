@@ -16,7 +16,7 @@ cp backend/.env.example backend/.env
 
 APP_KEY を作成：
 ```bash
-docker compose exec backend php artisan key:generate
+docker compose run backend php artisan key:generate
 ```
 
 📌 Frontend（Next.js）
