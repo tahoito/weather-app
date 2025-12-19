@@ -31,3 +31,4 @@ Thumbs.db
 !/storage/framework/sessions
 !/storage/framework/views
 !/storage/logs
+mysql_data

@@ -1,55 +1,42 @@
 services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: weather_backend
-    working_dir: /var/www/html
+  app:
+    build: ./frontend
     volumes:
-      - ./backend:/var/www/html
+      - ./frontend:/frontend
     ports:
-      - "8000:8000"
+      - 3001:3000
+
+  api:
+    build: ./backend
+    volumes:
+      - ./backend:/backend
+    ports:
+      - 8000:8000
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       DB_CONNECTION: mysql
       DB_HOST: db
       DB_PORT: 3306
-      DB_DATABASE: weather_app
-      DB_USERNAME: laravel
-      DB_PASSWORD: secret
-    command: >
-      sh -c "php artisan migrate && php artisan serve --host=0.0.0.0 --port=8000"
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: weather_frontend
-    working_dir: /app
-    volumes:
-      - ./frontend:/app
-    ports:
-      - "3001:3000"
-    environment:
-      NODE_ENV: development
-      CHOKIDAR_USEPOLLING: "true"
-    command: >
-      sh -c "npm install && npm run dev"
+      DB_DATABASE: dev
+      DB_USERNAME: root
+      DB_PASSWORD: password
 
   db:
-    image: mysql:8.0
-    container_name: weather_db
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: weather_app
-      MYSQL_USER: laravel
-      MYSQL_PASSWORD: secret
-    ports:
-      - "3310:3306"
+    image: mysql:8.4
     volumes:
-      - db_data:/var/lib/mysql
-
-volumes:
-  db_data:
+      - ./backend/mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: dev
+    ports:
+      - 3310:3306
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
