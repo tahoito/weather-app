@@ -2,7 +2,7 @@ services:
   app:
     build: ./frontend
     volumes:
-      - ./frontend:/frontend
+      - ./frontend:/front
     ports:
       - 3001:3000
 
