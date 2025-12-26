@@ -9,7 +9,7 @@ type Props = {
 
 export function SpotCard({ spot }: Props) {
   return (
-    <div className="bg-card-back rounded-lg p-2 shadow-[0_0_10px_0_rgba(0,0,0,0.3)]">
+    <div className="bg-card-back rounded-lg p-2 shadow-[0_0_6px_0_rgba(0,0,0,0.3)]">
       <img src={spot.imageUrl} alt={spot.name} className="rounded-md" />
 
       <div className="p-2">
@@ -39,7 +39,7 @@ export function SpotCard({ spot }: Props) {
           }}
         >
           <HeartIcon
-            className="w-4 h-4 hover:opacity-30" //   likeIds.includes(furniture.id) && "text-error", //   {clsx(
+            className="w-5 h-5 hover:opacity-30" //   likeIds.includes(furniture.id) && "text-error", //   {clsx(
             // )}
           />
         </button>
