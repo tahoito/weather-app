@@ -22,7 +22,7 @@ export function SpotCard({ spot }: Props) {
           {spot.tags.map((tag) => (
             <span
               key={tag}
-              className="text-[10px] px-2  rounded-full bg-card-tag border"
+              className="text-[10px] px-2  rounded-full bg-card-tag border border-[0.5px]"
             >
               {tag}
             </span>
