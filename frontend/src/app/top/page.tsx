@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CloudSunRainIcon } from "@/components/icon/cloud-sun-rain-icon";
 import { UmbrellaIcon } from "@/components/icon/umbrella-icon";
 import { DropletIcon } from "@/components/icon/droplet-icon";
 import { WindIcon } from "@/components/icon/wind-icon";
@@ -20,7 +19,6 @@ type WeatherInfo = {
 
 export default function Page() {
   const [weather, setWeather] = useState<WeatherInfo | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadWeather() {
@@ -56,7 +54,7 @@ export default function Page() {
           <div className="m-4">
             <p className="text-center mb-2">今日の天気</p>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 w-52">
               <div className="flex flex-col items-center">
                 {weather ? (
                   (() => {
@@ -80,24 +78,24 @@ export default function Page() {
                   <span className="text-6xl leading-none">
                     {weather?.temperature}
                   </span>
-                  <span className="text-2xl ml-1">℃</span>
+                  <span className="text-2xl">℃</span>
                 </div>
                 <p className="mt-1">現在</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 w-48 mx-auto mt-4">
-              <div className="flex justify-end items-center gap-2">
-                <UmbrellaIcon className="h-4 w-4" />
-                <span>{weather?.precipitation}%</span>
+            <div className="grid grid-cols-3 mx-auto mt-4 w-52">
+              <div className="flex justify-center items-center gap-1">
+                <UmbrellaIcon className="h-5 w-5" />
+                <span className="text-xs">{weather?.precipitation}%</span>
               </div>
-              <div className="flex justify-end items-center gap-2">
-                <DropletIcon className="h-4 w-4" />
-                <span>{weather?.humidity}%</span>
+              <div className="flex justify-center items-center gap-1">
+                <DropletIcon className="h-5 w-5" />
+                <span className="text-xs">{weather?.humidity}%</span>
               </div>
-              <div className="flex justify-end items-center gap-2">
-                <WindIcon className="h-4 w-4" />
-                <span>{weather?.windSpeed}m/s</span>
+              <div className="flex justify-center items-center gap-1">
+                <WindIcon className="h-5 w-5" />
+                <span className="text-xs">{weather?.windSpeed}m/s</span>
               </div>
             </div>
           </div>
@@ -105,7 +103,7 @@ export default function Page() {
       </div>
       <div className="bg-white rounded-xl p-4 shadow-[0_0_10px_0_rgba(0,0,0,0.3)]">
         <p className="text-center text-lg font-medium mb-4">
-          本日のおすすめスポット
+          今日のおすすめスポット
         </p>
         <div className="flex justify-center ">
           <div className="grid grid-cols-2 gap-2">
