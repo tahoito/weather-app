@@ -35,7 +35,7 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="bg-back min-h-screen">
+    <div className="bg-back min-h-screen [&>*]:text-fg ">
       <div className="flex items-center pt-15 text-[14px]">
         <div className="flex-1 flex justify-center gap-8">
           <p>現在のエリア</p>
@@ -50,7 +50,7 @@ export default function Page() {
       </div>
 
       <div className="flex justify-center mt-4 m-6">
-        <div className="bg-white w-84 min-h-48 rounded-xl flex justify-center shadow-[0_0_10px_0_rgba(0,0,0,0.3)]">
+        <div className="bg-white w-84 min-h-48 rounded-xl flex justify-center shadow-[0_0_6px_0_rgba(0,0,0,0.3)]">
           <div className="m-4">
             <p className="text-center mb-2">今日の天気</p>
 
@@ -101,7 +101,7 @@ export default function Page() {
           </div>
         </div>
       </div>
-      <div className="bg-white rounded-xl p-4 shadow-[0_0_10px_0_rgba(0,0,0,0.3)]">
+      <div className="bg-white rounded-xl p-4 shadow-[0_0_6px_0_rgba(0,0,0,0.3)]">
         <p className="text-center text-lg font-medium mb-4">
           今日のおすすめスポット
         </p>
