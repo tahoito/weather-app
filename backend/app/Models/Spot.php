@@ -20,4 +20,9 @@ class Spot extends Model
     {
         return $this->hasMany(Favorite::class);
     }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class);
+    }
 }
