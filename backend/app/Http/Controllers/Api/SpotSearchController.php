@@ -9,17 +9,34 @@ class SpotSearchController extends Controller
 {
     public function index(Request $request)
     {
-        $areaId = $request->area_id;
+        $area = $request->area;
+        $date = $request->date;
         $userId = auth()->id();
 
-        $spots = Spot::query()
-            ->where('area_id',$areaId)
+        $query = Spot::query();
+
+        if ($area){
+            $query->where('area',$area);
+        }
+
+        $spots = $query
             ->withCount([
                 'favorites as is_favorited' => function ($q) use ($userId) {
                     $q->where('user_id',$userId);
                 }
             ])
-            ->get();
+            ->get([
+                'id',
+                'name',
+                'area',
+                'lat',
+                'lon',
+                'image_url',
+                'tags',
+                'is_indoor',
+                'weather_ok'
+            ]);
+            
         return $spots;
     }
 }

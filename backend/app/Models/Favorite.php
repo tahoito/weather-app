@@ -23,6 +23,11 @@ class User extends Authenticatable
         return $this->hasMany(Favorite::class);
     }
 
+    public function spot()
+    {
+        return $this->belongsTo(Spot::class);
+    }
+
     protected $hidden = [
         'password',
         'remember_token',
