@@ -4,13 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Spot;
+
 
 class SpotSearchController extends Controller
 {
     public function index(Request $request)
     {
         $area = $request->area;
-        $date = $request->date;
         $userId = auth()->id();
 
         $query = Spot::query();
@@ -19,24 +20,34 @@ class SpotSearchController extends Controller
             $query->where('area',$area);
         }
 
-        $spots = $query
-            ->withCount([
+        if ($request->filled('tags')) {
+            $tags = $request->input('tags'); // tags[]=cafe&tags[]=date
+            $query->whereHas('tags', function ($q) use ($tags) {
+                $q->whereIn('slug', $tags);
+            });
+        }
+
+        if ($userId) {
+            $query->withCount([
                 'favorites as is_favorited' => function ($q) use ($userId) {
-                    $q->where('user_id',$userId);
+                    $q->where('user_id', $userId);
                 }
-            ])
-            ->get([
+            ]);
+        } else {
+            $query->selectRaw('0 as is_favorited');
+        }
+
+        $spots = $query->get([
                 'id',
                 'name',
                 'area',
                 'lat',
                 'lon',
                 'image_url',
-                'tags',
                 'is_indoor',
                 'weather_ok'
             ]);
-            
+
         return $spots;
     }
 }
