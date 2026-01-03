@@ -5,19 +5,25 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Spot;
-
+use App\Models\Favorite;
 
 class SpotSearchController extends Controller
 {
     public function index(Request $request)
     {
-        $area = $request->area;
-        $userId = auth()->id();
+        $query  = Spot::query();
+        $userId = auth()->id() ?? -1;
 
-        $query = Spot::query();
+        if ($request->filled('area')) {
+            $query->where('area', $request->area);
+        }
 
-        if ($area){
-            $query->where('area',$area);
+        if ($request->filled('is_indoor')) {
+            $query->where('is_indoor', $request->boolean('is_indoor'));
+        }
+
+        if ($request->filled('weather_ok')) {
+            $query->where('weather_ok', $request->boolean('weather_ok'));
         }
 
         if ($request->filled('tags')) {
@@ -27,35 +33,21 @@ class SpotSearchController extends Controller
             });
         }
 
-        if ($userId) {
-            $query->withCount([
-                'favorites as is_favorited' => function ($q) use ($userId) {
-                    $q->where('user_id', $userId);
-                }
-            ]);
-        } else {
-            $query->selectRaw('0 as is_favorited');
-        }
+        $query->withCount([
+            'favorites as is_favorited' => function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            }
+        ]);
 
-        if ($request->filled('is_indoor')){
-            $query->where('is_indoor', $request->is_indoor);
-        }
-
-        if ($request->filled('weather-ok')){
-            $query->where('weather_ok', $request->weather_ok);
-        }
-
-        $spots = $query->get([
-                'id',
-                'name',
-                'area',
-                'lat',
-                'lon',
-                'image_url',
-                'is_indoor',
-                'weather_ok'
-            ]);
-
-        return $spots;
+        return $query->get([
+            'id',
+            'name',
+            'area',
+            'lat',
+            'lon',
+            'image_url',
+            'is_indoor',
+            'weather_ok',
+        ]);
     }
 }
