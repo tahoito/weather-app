@@ -37,6 +37,14 @@ class SpotSearchController extends Controller
             $query->selectRaw('0 as is_favorited');
         }
 
+        if ($request->filled('is_indoor')){
+            $query->where('is_indoor', $request->is_indoor);
+        }
+
+        if ($request->filled('weather-ok')){
+            $query->where('weather_ok', $request->weather_ok);
+        }
+
         $spots = $query->get([
                 'id',
                 'name',
