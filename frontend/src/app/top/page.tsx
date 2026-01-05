@@ -8,6 +8,7 @@ import { PencilLineIcon } from "@/components/icon/pencil-line-icon";
 import { SpotCard } from "@/components/spot-card";
 import { dummySpots } from "@/data/dummySpots";
 import { weatherCodeMap } from "@/types/spot";
+import { NavigationBar } from "@/components/navigation-bar";
 
 type WeatherInfo = {
   precipitation: number;
@@ -19,6 +20,9 @@ type WeatherInfo = {
 
 export default function Page() {
   const [weather, setWeather] = useState<WeatherInfo | null>(null);
+  const fmt = (v?: number, suffix = "") => (typeof v === "number" ? `${v}${suffix}` : "--");
+  const [spots, setSpots] = useState(dummySpots);
+  const [spotsLoading, setSpotsLoading] = useState(false);
 
   useEffect(() => {
     async function loadWeather() {
@@ -33,9 +37,20 @@ export default function Page() {
     }
     loadWeather();
   }, []);
+  
+
+  useEffect(() => {
+    async function load() {
+      const res = await fetch("/api/spots/recommended?area=meieki");
+      if (!res.ok) return;
+      const data = await res.json();
+      setSpots(data);
+    }
+    load();
+  }, []);
 
   return (
-    <div className="bg-back min-h-screen [&>*]:text-fg ">
+    <div className="bg-back min-h-screen pb-20 [&>*]:text-fg ">
       <div className="flex items-center pt-15 text-[14px]">
         <div className="flex-1 flex justify-center gap-8">
           <p>現在のエリア</p>
@@ -87,15 +102,15 @@ export default function Page() {
             <div className="grid grid-cols-3 mx-auto mt-4 w-52">
               <div className="flex justify-center items-center gap-1">
                 <UmbrellaIcon className="h-5 w-5" />
-                <span className="text-xs">{weather?.precipitation}%</span>
+                <span className="text-xs">{fmt(weather?.precipitation, "%")}</span>
               </div>
               <div className="flex justify-center items-center gap-1">
                 <DropletIcon className="h-5 w-5" />
-                <span className="text-xs">{weather?.humidity}%</span>
+                <span className="text-xs">{fmt(weather?.humidity,"%")}</span>
               </div>
               <div className="flex justify-center items-center gap-1">
                 <WindIcon className="h-5 w-5" />
-                <span className="text-xs">{weather?.windSpeed}m/s</span>
+                <span className="text-xs">{fmt(weather?.windSpeed,"m/s")}</span>
               </div>
             </div>
           </div>
@@ -107,12 +122,13 @@ export default function Page() {
         </p>
         <div className="flex justify-center ">
           <div className="grid grid-cols-2 gap-2">
-            {dummySpots.map((spot) => (
+            {spots.map((spot) => (
               <SpotCard key={spot.id} spot={spot} />
             ))}
           </div>
         </div>
       </div>
+      <NavigationBar />
     </div>
   );
 }
