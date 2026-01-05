@@ -5,6 +5,8 @@ services:
       - ./frontend:/front
     ports:
       - 3001:3000
+    environment:
+      BACKEND_URL: http://api:8000
 
   api:
     build: ./backend
