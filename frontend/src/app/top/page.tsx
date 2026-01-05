@@ -8,6 +8,7 @@ import { PencilLineIcon } from "@/components/icon/pencil-line-icon";
 import { SpotCard } from "@/components/spot-card";
 import { dummySpots } from "@/data/dummySpots";
 import { weatherCodeMap } from "@/types/spot";
+import { NavigationBar } from "@/components/navigation-bar";
 
 type WeatherInfo = {
   precipitation: number;
@@ -49,7 +50,7 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="bg-back min-h-screen [&>*]:text-fg ">
+    <div className="bg-back min-h-screen pb-20 [&>*]:text-fg ">
       <div className="flex items-center pt-15 text-[14px]">
         <div className="flex-1 flex justify-center gap-8">
           <p>現在のエリア</p>
@@ -127,6 +128,7 @@ export default function Page() {
           </div>
         </div>
       </div>
+      <NavigationBar />
     </div>
   );
 }
