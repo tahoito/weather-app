@@ -18,19 +18,6 @@ export async function authLogin({
 }: AuthLoginRequest): Promise<AuthLoginResponse> {
   const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/login`;
 
-  // try {
-  //   const response = await axios.post<AuthLoginResponse>(apiUrl, auth, {
-  //     headers: { "Content-Type": "application/json" },
-  //   });
-  //   return response.data;
-  // } catch (err: any) {
-  //   console.error(err);
-  //   return {
-  //     success: false,
-  //     message: err.response?.data.message || "ログインに失敗しました",
-  //     authToken: "",
-  //   };
-  // }
   return axios
     .post<AuthLoginResponse>(apiUrl, {
       auth,
