@@ -39,10 +39,10 @@ export default function Page() {
       <div className="flex items-center pt-15 text-[14px]">
         <div className="flex-1 flex justify-center gap-8">
           <p>現在のエリア</p>
-          <p className="font-bold">名駅</p>
+          <p className="font-semibold text-base">名駅</p>
         </div>
         <div className="mr-6">
-          <button className="flex justify-center gap-2 w-20 px-2 rounded-full border border-sub text-sub">
+          <button className="flex justify-center gap-2 w-20 py-0.5 rounded-full border border-sub text-sub">
             <PencilLineIcon className="h-4 w-4" />
             変更
           </button>
@@ -102,7 +102,7 @@ export default function Page() {
         </div>
       </div>
       <div className="bg-white rounded-xl p-4 shadow-[0_0_6px_0_rgba(0,0,0,0.3)]">
-        <p className="text-center text-lg font-medium mb-4">
+        <p className="text-center text-lg font-semibold mb-8">
           今日のおすすめスポット
         </p>
         <div className="flex justify-center ">

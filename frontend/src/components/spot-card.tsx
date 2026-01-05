@@ -13,16 +13,16 @@ export function SpotCard({ spot }: Props) {
       <img src={spot.imageUrl} alt={spot.name} className="rounded-md" />
 
       <div className="p-2">
-        <p className="font-medium text-sm mt-1">{spot.name}</p>
-        <p className="text-xs ">{spot.area}</p>
-        <p className="text-xs mt-1 line-clamp-3">{spot.description}</p>
+        <p className="font-semibold text-base mt-1">{spot.name}</p>
+        <p className="text-sm ">{spot.area}</p>
+        <p className="text-sm mt-1 line-clamp-3">{spot.description}</p>
       </div>
       <div className="grid grid-cols-[5fr_1fr]">
         <div className="flex flex-wrap gap-1 mt-1">
           {spot.tags.map((tag) => (
             <span
               key={tag}
-              className="text-[10px] px-2  rounded-full bg-card-tag border border-[0.5px]"
+              className="text-xs py-1 px-2  rounded-full bg-card-tag border border-[0.5px]"
             >
               {tag}
             </span>
