@@ -13,6 +13,10 @@
   --color-back: #f6f1df;
   --color-card-back: #f8f6ee;
   --color-card-tag: #f9dc72;
+  --color-white: #f3f3f3;
+  --color-fg: #222222;
+  --color-favorite: #f3505d;
+  --color-holder: #777777;
 }
 
 @theme inline {
