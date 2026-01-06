@@ -11,10 +11,13 @@ export function SpotCard({ spot }: Props) {
   return (
     <div className="bg-card-back rounded-lg p-2 shadow-[0_0_6px_0_rgba(0,0,0,0.3)]">
       <img src={spot.imageUrl} alt={spot.name} className="rounded-md" />
-
       <div className="p-2">
-        <p className="font-semibold text-base mt-1">{spot.name}</p>
-        <p className="text-sm ">{spot.area}</p>
+        <div className="min-h-[68px]">
+          <p className="font-semibold text-base mt-1 line-clamp-2">
+            {spot.name}
+          </p>
+          <p className="text-sm">{spot.area}</p>
+        </div>
         <p className="text-sm mt-1 line-clamp-3">{spot.description}</p>
       </div>
       <div className="grid grid-cols-[5fr_1fr]">
