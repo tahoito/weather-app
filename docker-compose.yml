@@ -2,14 +2,17 @@ services:
   app:
     build: ./frontend
     volumes:
-      - ./frontend:/frontend
+      - ./frontend:/front
     ports:
       - 3001:3000
+    environment:
+      BACKEND_URL: http://api:8000
 
   api:
     build: ./backend
     volumes:
       - ./backend:/backend
+    working_dir: /backend
     ports:
       - 8000:8000
     depends_on:
@@ -22,6 +25,8 @@ services:
       DB_DATABASE: dev
       DB_USERNAME: root
       DB_PASSWORD: password
+    command: sh -lc "php artisan serve --host=0.0.0.0 --port=8000"
+
 
   db:
     image: mysql:8.4

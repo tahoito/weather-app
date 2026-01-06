@@ -2,6 +2,7 @@
 
 import { HeartIcon } from "./icon/heart-icon";
 import { Spot } from "@/types/spot";
+import { areaLabelMap } from "@/types/area";
 
 type Props = {
   spot: Spot;
