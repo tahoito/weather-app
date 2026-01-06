@@ -2,6 +2,8 @@
 
 import { HeartIcon } from "./icon/heart-icon";
 import { Spot } from "@/types/spot";
+import { areaLabelMap } from "@/types/area";
+
 
 type Props = {
   spot: Spot;
@@ -14,7 +16,7 @@ export function SpotCard({ spot }: Props) {
 
       <div className="p-2">
         <p className="font-semibold text-base mt-1">{spot.name}</p>
-        <p className="text-sm ">{spot.area}</p>
+        <p className="text-sm ">{areaLabelMap[spot.area] ?? spot.area}</p>
         <p className="text-sm mt-1 line-clamp-3">{spot.description}</p>
       </div>
       <div className="grid grid-cols-[5fr_1fr]">
