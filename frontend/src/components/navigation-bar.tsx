@@ -18,7 +18,7 @@ export function NavigationBar() {
     ];
 
     return (
-        <div className="fixed bottom-0 left-0 w-full h-18 bg-main flex items-center justify-between px-5">
+        <div className="fixed bottom-0 left-0 w-full h-18 bg-main flex items-center justify-between px-5 z-10000">
             {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href || (item.href === '/top' && pathname === '/');
