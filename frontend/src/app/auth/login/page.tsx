@@ -26,7 +26,6 @@ export default function Page() {
 
     if (res.success) {
       Cookies.set("authToken", res.authToken);
-      // location.href = "/";
       router.push("/sign-up-login");
     }
   };
@@ -34,10 +33,7 @@ export default function Page() {
   return (
     <div className="bg-back w-full h-full [&>*]:text-fg">
       <div className="mx-9 grid grid-rows-3 h-screen">
-        <Link
-          href="/sign-up-login"
-          className="absolute top-16 left-9 w-6 h-6 text-fg"
-        >
+        <Link href="/" className="absolute top-16 left-9 w-6 h-6 text-fg">
           <ArrowLeftIcon />
         </Link>
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -99,7 +95,7 @@ export default function Page() {
               ログイン
             </button>
             <Link
-              href="/sign-up-login/sign-up"
+              href="/auth/register"
               className="text-sm flex justify-center pt-3"
             >
               新規登録の方はこちら
