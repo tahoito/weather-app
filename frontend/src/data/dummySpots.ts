@@ -11,7 +11,7 @@ export const dummySpots: Spot[] = [
   },
   {
     id: 2,
-    name: "大須商店街",
+    name: "JRセントラルタワー",
     area: "大須",
     description: "食べ歩きやショッピングが楽しめる活気ある商店街。",
     imageUrl: "https://placehold.jp/300x200.png",
