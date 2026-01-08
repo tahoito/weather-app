@@ -37,10 +37,7 @@ export default function Page() {
 
   return (
     <div className="min-h-screen bg-back flex items-center justify-center">
-      <Link
-        href="/sign-up-login"
-        className="absolute top-16 left-9 w-6 h-6 text-fg"
-      >
+      <Link href="/" className="absolute top-16 left-9 w-6 h-6 text-fg">
         <ArrowLeftIcon />
       </Link>
       <form
@@ -132,10 +129,7 @@ export default function Page() {
           <button className="rounded-full bg-main text-sm font-medium p-3 shadow-[2px_3px_1px_rgba(0,0,0,0.20)]">
             新規登録
           </button>
-          <Link
-            href="/sign-up-login/login"
-            className="text-sm text-center pt-3"
-          >
+          <Link href="/auth/login" className="text-sm text-center pt-3">
             ログインの方はこちら
           </Link>
         </div>
