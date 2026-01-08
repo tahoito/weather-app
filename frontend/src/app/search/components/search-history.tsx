@@ -35,7 +35,7 @@ export function SearchHistory({ searchHistory, onSelectHistory, onRemoveHistory,
                     ))}
                 </ul>
             ) : (
-                <p className='text-sm text-holder py-4'>検索履歴がありません</p>
+                <p className='text-sm text-holder text-center py-4'>検索履歴がありません</p>
             )}
         </div>
     );
