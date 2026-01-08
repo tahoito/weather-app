@@ -25,4 +25,9 @@ class Spot extends Model
     {
         return $this->belongsToMany(Tag::class);
     }
+
+    public function openingHours(): HasMany
+    {
+        return $this->hasMany(SpotOpeningHour::class);
+    }
 }

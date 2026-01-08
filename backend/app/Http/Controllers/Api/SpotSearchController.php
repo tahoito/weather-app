@@ -15,7 +15,9 @@ class SpotSearchController extends Controller
         $userId = auth()->id() ?? -1;
 
         if ($request->filled('area')) {
-            $query->where('area', $request->area);
+            $areas = $request->input('area');
+            $areas = is_array($areas) ? $areas : [$areas];
+            $query->whereIn('area', $areas);
         }
 
         if ($request->filled('is_indoor')) {
@@ -27,9 +29,27 @@ class SpotSearchController extends Controller
         }
 
         if ($request->filled('tags')) {
-            $tags = $request->input('tags'); // tags[]=cafe&tags[]=date
+            $tags = $request->input('tags'); 
+            $tags = is_array($tags) ? $tags : [$tags];
             $query->whereHas('tags', function ($q) use ($tags) {
                 $q->whereIn('slug', $tags);
+            });
+        }
+
+        if ($request->filled('date') && ($request->filled('time'))) {
+            $date = $request->input('date'); 
+            $start = $request->input('start_time');
+            $end = $request->input('end_time');
+            $dow = (int) date('w', strtotime($date));
+
+            $query->whereHas('openingHours', function ($q) use ($dayOfWeek, $time) {
+                $q->where('day_of_week', $dow);
+                if ($start) {
+                    $q->where('open_time', '<=', $start);   
+                }
+                if ($end) {
+                    $q->where('close_time', '>=', $end);    
+                }
             });
         }
 
