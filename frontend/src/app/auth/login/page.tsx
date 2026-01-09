@@ -26,7 +26,8 @@ export default function Page() {
 
     if (res.success) {
       Cookies.set("authToken", res.authToken);
-      router.push("/sign-up-login");
+      localStorage.setItem("justEnteredApp", "true");
+      router.push("/top");
     }
   };
 
@@ -37,18 +38,18 @@ export default function Page() {
           <ArrowLeftIcon />
         </Link>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <h1 className="text-2xl font-medium flex justify-center pb-20 pt-48">
+          <h1 className="text-2xl font-semibold flex justify-center pb-20 pt-48">
             ログイン
           </h1>
           <div className="[&>*]:my-5">
             <div className="flex flex-col">
-              <label htmlFor="email" className="text-sm mx-3 my-1">
+              <label htmlFor="email" className="mx-3 my-1">
                 メールアドレス
               </label>
               <input
                 type="email"
                 placeholder="example@gmail.com"
-                className="border border-holder placeholder:text-xs rounded-xl bg-white p-3"
+                className="border border-holder rounded-xl bg-white p-3"
                 {...register("auth.email", {
                   required: "メールアドレスを入力してください",
                 })}
@@ -61,7 +62,7 @@ export default function Page() {
             </div>
 
             <div className="flex flex-col">
-              <label htmlFor="password" className="text-sm mx-3 my-1">
+              <label htmlFor="password" className="mx-3 my-1">
                 パスワード
               </label>
               <div className="relative">
@@ -69,7 +70,7 @@ export default function Page() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="パスワード"
-                  className="w-full border border-holder placeholder:text-xs rounded-xl bg-white p-3"
+                  className="w-full border border-holder rounded-xl bg-white p-3"
                   {...register("auth.password", {
                     required: "パスワードを入力してください",
                   })}
@@ -91,7 +92,7 @@ export default function Page() {
           </div>
 
           <div className="flex flex-col pt-28">
-            <button className="rounded-full bg-main text-sm font-medium p-3 shadow-[2px_3px_1px_rgba(0,0,0,0.20)]">
+            <button className="rounded-full bg-main font-semibold p-3 shadow-[1px_2px_1px_rgba(0,0,0,0.25)]">
               ログイン
             </button>
             <Link
