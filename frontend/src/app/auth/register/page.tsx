@@ -31,7 +31,8 @@ export default function Page() {
 
     if (res.success) {
       Cookies.set("authToken", res.authToken);
-      location.href = "/";
+      localStorage.setItem("justEnteredApp", "true");
+      router.push("/top");
     }
   };
 
