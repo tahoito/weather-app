@@ -8,9 +8,7 @@ import { PencilLineIcon } from "@/components/icon/pencil-line-icon";
 import { SpotCard } from "@/components/spot-card";
 import { dummySpots } from "@/data/dummySpots";
 import { weatherCodeMap } from "@/types/spot";
-import { areaLabelMap } from "@/types/area";
 import { NavigationBar } from "@/components/navigation-bar";
-import { X } from "lucide-react";
 
 type WeatherInfo = {
   precipitation: number;
@@ -22,13 +20,9 @@ type WeatherInfo = {
 
 export default function Page() {
   const [weather, setWeather] = useState<WeatherInfo | null>(null);
-  const fmt = (v?: number, suffix = "") =>
-    typeof v === "number" ? `${v}${suffix}` : "--";
+  const fmt = (v?: number, suffix = "") => (typeof v === "number" ? `${v}${suffix}` : "--");
   const [spots, setSpots] = useState(dummySpots);
-  const [Loading, setLoading] = useState(false);
-  const [isAreaModalOpen, setIsAreaModalOpen] = useState(false);
-  const areaLabels = Object.values(areaLabelMap);
-  const [currentArea, setCurrentArea] = useState("名駅");
+  const [spotsLoading, setSpotsLoading] = useState(false);
 
   useEffect(() => {
     async function loadWeather() {
@@ -43,6 +37,7 @@ export default function Page() {
     }
     loadWeather();
   }, []);
+  
 
   useEffect(() => {
     async function load() {
@@ -56,44 +51,16 @@ export default function Page() {
 
   return (
     <div className="bg-back min-h-screen pb-20 [&>*]:text-fg ">
-      <div className="flex items-center pt-15 ">
+      <div className="flex items-center pt-15 text-[14px]">
         <div className="flex-1 flex justify-center gap-8">
           <p>現在のエリア</p>
-          <p className="font-semibold text-base">{currentArea}</p>
+          <p className="font-semibold text-base">名駅</p>
         </div>
         <div className="mr-6">
-          <button
-            onClick={() => setIsAreaModalOpen(true)}
-            className="flex justify-center gap-2 w-20 py-0.5 rounded-full border border-sub text-sub"
-          >
+          <button className="flex justify-center gap-2 w-20 py-0.5 rounded-full border border-sub text-sub">
             <PencilLineIcon className="h-4 w-4" />
             変更
           </button>
-          {isAreaModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-              <div className="bg-white rounded-2xl p-6 pt-12 w-[320px] border relative">
-                <button
-                  onClick={() => setIsAreaModalOpen(false)}
-                  className="absolute top-3 right-3"
-                >
-                  <X />
-                </button>
-                <ul className="grid grid-cols-3 gap-2 gap-x-[15px] gap-y-[16px]">
-                  {areaLabels.map((label) => (
-                    <button
-                      className="w-20 px-2 py-1 rounded-full border bg-card-back shadow-[1px_2px_1px_rgba(0,0,0,0.20)]"
-                      onClick={() => {
-                        setCurrentArea(label);
-                        setIsAreaModalOpen(false);
-                      }}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -135,19 +102,15 @@ export default function Page() {
             <div className="grid grid-cols-3 mx-auto mt-4 w-52">
               <div className="flex justify-center items-center gap-1">
                 <UmbrellaIcon className="h-5 w-5" />
-                <span className="text-xs">
-                  {fmt(weather?.precipitation, "%")}
-                </span>
+                <span className="text-xs">{fmt(weather?.precipitation, "%")}</span>
               </div>
               <div className="flex justify-center items-center gap-1">
                 <DropletIcon className="h-5 w-5" />
-                <span className="text-xs">{fmt(weather?.humidity, "%")}</span>
+                <span className="text-xs">{fmt(weather?.humidity,"%")}</span>
               </div>
               <div className="flex justify-center items-center gap-1">
                 <WindIcon className="h-5 w-5" />
-                <span className="text-xs">
-                  {fmt(weather?.windSpeed, "m/s")}
-                </span>
+                <span className="text-xs">{fmt(weather?.windSpeed,"m/s")}</span>
               </div>
             </div>
           </div>
