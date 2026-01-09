@@ -34,7 +34,7 @@ export function SearchFormContainer({
 
     const [searchText, setSearchText] = useState<string>('');
     const [areaSlugs, setAreaSlugs] = useState<string[]>(['meieki']);
-    const [date, setDate] = useState<string>('');
+    const [date, setDate] = useState<string>(dateOptions[0]?.value || '');
     const [startTime, setStartTime] = useState<string>('');
     const [endTime, setEndTime] = useState<string>('');
     const [isAllDay, setIsAllDay] = useState<boolean>(false);
