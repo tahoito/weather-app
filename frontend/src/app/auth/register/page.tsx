@@ -45,18 +45,18 @@ export default function Page() {
         className="w-full max-w-md text-fg px-9 flex flex-col justify-center min-h-[70vh]"
       >
         <div className="flex flex-col">
-          <h1 className="text-2xl font-medium text-center mb-12">新規登録</h1>
+          <h1 className="text-2xl font-semibold text-center mb-12">新規登録</h1>
 
           <div className="gap-4 flex flex-col ">
             <div className="flex flex-col">
-              <label htmlFor="email" className="text-sm mx-3 mb-1">
+              <label htmlFor="email" className="mx-3 mb-1">
                 メールアドレス
               </label>
               <input
                 id="email"
                 type="email"
                 placeholder="example@gmail.com"
-                className="border border-holder placeholder:text-xs rounded-xl bg-white p-3"
+                className="border border-holder rounded-xl bg-white p-3"
                 {...register("auth.email", {
                   required: "メールアドレスを入力してください",
                 })}
@@ -69,7 +69,7 @@ export default function Page() {
             </div>
 
             <div className="flex flex-col">
-              <label htmlFor="password" className="text-sm mx-3 mb-1">
+              <label htmlFor="password" className="mx-3 mb-1">
                 パスワード
               </label>
               <div className="relative">
@@ -77,7 +77,7 @@ export default function Page() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="パスワード"
-                  className="w-full border border-holder placeholder:text-xs rounded-xl bg-white p-3"
+                  className="w-full border border-holder rounded-xl bg-white p-3"
                   {...register("auth.password", {
                     required: "パスワードを入力してください",
                   })}
@@ -93,7 +93,7 @@ export default function Page() {
             </div>
 
             <div className="flex flex-col">
-              <label htmlFor="confirmPassword" className="text-sm mx-3 mb-1">
+              <label htmlFor="confirmPassword" className="mx-3 mb-1">
                 パスワード確認
               </label>
               <div className="relative">
@@ -101,7 +101,7 @@ export default function Page() {
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="パスワード確認"
-                  className="w-full border border-holder placeholder:text-xs rounded-xl bg-white p-3"
+                  className="w-full border border-holder rounded-xl bg-white p-3"
                   {...register("confirmPassword", {
                     required: "確認用パスワードを入力してください",
                     validate: (value) =>
@@ -126,7 +126,7 @@ export default function Page() {
         </div>
 
         <div className="flex flex-col mt-24 justify-end">
-          <button className="rounded-full bg-main text-sm font-medium p-3 shadow-[2px_3px_1px_rgba(0,0,0,0.20)]">
+          <button className="rounded-full bg-main font-semibold p-3 shadow-[1px_2px_1px_rgba(0,0,0,0.25)]">
             新規登録
           </button>
           <Link href="/auth/login" className="text-sm text-center pt-3">
