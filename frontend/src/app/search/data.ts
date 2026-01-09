@@ -92,6 +92,81 @@ export function getTimeOptions(): TimeOption[] {
     return options;
 }
 
+export function getNearestTimeOption(timeOptions: TimeOption[]): string {
+    const now = new Date();
+    const currentHours = now.getHours();
+    const currentMinutes = now.getMinutes();
+
+    // 現在時刻を分単位で計算
+    const currentTotalMinutes = currentHours * 60 + currentMinutes;
+
+    // 30分刻みに丸める（切り上げ）
+    const roundedMinutes = Math.ceil(currentTotalMinutes / 30) * 30;
+
+    // 24時間を超える場合は翌日の00:00を返す
+    if (roundedMinutes >= 24 * 60) {
+        return '00:00';
+    }
+
+    // 丸めた時間をHH:MM形式に変換
+    const roundedHours = Math.floor(roundedMinutes / 60);
+    const roundedMins = roundedMinutes % 60;
+    const nearestTime = `${String(roundedHours).padStart(2, '0')}:${String(roundedMins).padStart(2, '0')}`;
+
+    // 時間オプションに存在するか確認し、存在すれば返す
+    const exists = timeOptions.some(option => option.value === nearestTime);
+    if (exists) {
+        return nearestTime;
+    }
+
+    // 存在しない場合は最初のオプションを返す（フォールバック）
+    return timeOptions[0]?.value || '';
+}
+
+/**
+ * 開始時間から1時間後の時間を取得する
+ * 30分刻みの時間オプションから、開始時間の1時間後に最も近い時間を返す
+ */
+export function getOneHourLaterTime(startTime: string, timeOptions: TimeOption[]): string {
+    if (!startTime) {
+        return '';
+    }
+
+    // 開始時間を分単位で計算
+    const [hours, minutes] = startTime.split(':').map(Number);
+    const startTotalMinutes = hours * 60 + minutes;
+
+    // 1時間後を計算
+    const oneHourLaterMinutes = startTotalMinutes + 60;
+
+    // 24時間を超える場合は翌日の00:00を返す
+    if (oneHourLaterMinutes >= 24 * 60) {
+        return '00:00';
+    }
+
+    // 30分刻みに丸める（切り上げ）
+    const roundedMinutes = Math.ceil(oneHourLaterMinutes / 30) * 30;
+
+    // 24時間を超える場合は翌日の00:00を返す
+    if (roundedMinutes >= 24 * 60) {
+        return '00:00';
+    }
+
+    // 丸めた時間をHH:MM形式に変換
+    const roundedHours = Math.floor(roundedMinutes / 60);
+    const roundedMins = roundedMinutes % 60;
+    const oneHourLaterTime = `${String(roundedHours).padStart(2, '0')}:${String(roundedMins).padStart(2, '0')}`;
+
+    // 時間オプションに存在するか確認し、存在すれば返す
+    const exists = timeOptions.some(option => option.value === oneHourLaterTime);
+    if (exists) {
+        return oneHourLaterTime;
+    }
+
+    // 存在しない場合は最初のオプションを返す（フォールバック）
+    return timeOptions[0]?.value || '';
+}
+
 export type SearchParams = {
     searchText: string;
     areaSlugs: string[];

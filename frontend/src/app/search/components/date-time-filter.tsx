@@ -39,7 +39,6 @@ export function DateTimeFilter({
                         onChange={(e) => setDate(e.target.value)}
                         className='w-full p-3 bg-white border border-fg rounded-[12px] mt-1 appearance-none'
                     >
-                        <option value="">選択してください</option>
                         {dateOptions.map((option) => (
                             <option key={option.value} value={option.value}>
                                 {option.label}
