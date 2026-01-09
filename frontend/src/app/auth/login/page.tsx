@@ -26,7 +26,8 @@ export default function Page() {
 
     if (res.success) {
       Cookies.set("authToken", res.authToken);
-      router.push("/sign-up-login");
+      localStorage.setItem("justEnteredApp", "true");
+      router.push("/top");
     }
   };
 
