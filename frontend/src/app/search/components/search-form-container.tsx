@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { AreaTag, PurposeTag, DateOption, TimeOption } from '../data';
+import { AreaTag, PurposeTag, DateOption, TimeOption, getNearestTimeOption, getOneHourLaterTime } from '../data';
 import { saveSearchHistory, removeSearchHistory, clearSearchHistory } from '../actions';
 import { SearchInput } from './search-input';
 import { FilterToggle } from './filter-toggle';
@@ -34,9 +34,10 @@ export function SearchFormContainer({
 
     const [searchText, setSearchText] = useState<string>('');
     const [areaSlugs, setAreaSlugs] = useState<string[]>(['meieki']);
-    const [date, setDate] = useState<string>('');
-    const [startTime, setStartTime] = useState<string>('');
-    const [endTime, setEndTime] = useState<string>('');
+    const [date, setDate] = useState<string>(dateOptions[0]?.value || '');
+    const initialStartTime = getNearestTimeOption(timeOptions);
+    const [startTime, setStartTime] = useState<string>(initialStartTime);
+    const [endTime, setEndTime] = useState<string>(getOneHourLaterTime(initialStartTime, timeOptions));
     const [isAllDay, setIsAllDay] = useState<boolean>(false);
     const [purposeSlug, setPurposeSlug] = useState<string>('date');
     const [indoor, setIndoor] = useState<'both' | 'outdoor' | 'indoor'>('both');

@@ -39,7 +39,6 @@ export function DateTimeFilter({
                         onChange={(e) => setDate(e.target.value)}
                         className='w-full p-3 bg-white border border-fg rounded-[12px] mt-1 appearance-none'
                     >
-                        <option value="">選択してください</option>
                         {dateOptions.map((option) => (
                             <option key={option.value} value={option.value}>
                                 {option.label}
@@ -93,7 +92,7 @@ export function DateTimeFilter({
                 className='flex items-center gap-2'
             >
                 <span className={`relative w-4 h-4 border border-fg rounded-full ${isAllDay
-                    ? "before:content-[''] before:absolute before:top-1/2 before:left-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:w-2 before:h-2 before:bg-fg before:rounded-full"
+                    ? "border-main before:content-[''] before:absolute before:top-1/2 before:left-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:w-2 before:h-2 before:bg-main before:rounded-full"
                     : ''
                     }`} ></span>
                 <p className='w-fit text-base'>終日</p>
