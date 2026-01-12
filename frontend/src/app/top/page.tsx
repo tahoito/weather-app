@@ -10,6 +10,7 @@ import { dummySpots } from "@/data/dummySpots";
 import { weatherCodeMap } from "@/types/spot";
 import { areaLabelMap } from "@/types/area";
 import { NavigationBar } from "@/components/navigation-bar";
+import { areaKeyMap } from "@/constants/areaKeyMap";
 import { X } from "lucide-react";
 
 type WeatherInfo = {
@@ -51,13 +52,15 @@ export default function Page() {
 
   useEffect(() => {
     async function load() {
-      const res = await fetch("/api/spots/recommended?area=meieki");
+      const areaParam = areaKeyMap[currentArea] ?? "meieki"; 
+      const res = await fetch(`/api/spots/recommended?area=${areaParam}`);
       if (!res.ok) return;
       const data = await res.json();
       setSpots(data);
     }
     load();
-  }, []);
+  }, [currentArea]);
+
 
   useEffect(() => {
     const justEntered = localStorage.getItem("justEnteredApp");
