@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { HeartIcon } from "./icon/heart-icon";
 import { Spot } from "@/types/spot";
 import { areaLabelMap } from "@/types/area";
@@ -10,7 +11,8 @@ type Props = {
 
 export function SpotCard({ spot }: Props) {
   return (
-    <div className="bg-card-back rounded-lg p-2 shadow-[0_0_6px_0_rgba(0,0,0,0.3)]">
+    <Link href= {`/detail/${spot.id}`}  
+          className="bg-card-back rounded-lg p-2 shadow-[0_0_6px_0_rgba(0,0,0,0.3)]">
       <img src={spot.thumbnailUrl} alt={spot.name} className="rounded-md" />
       <div className="p-2">
         <div className="min-h-[68px]">
@@ -34,12 +36,10 @@ export function SpotCard({ spot }: Props) {
         </div>
 
         <button
-          onClick={() => {
-            // if (likeIds.includes(furniture.id)) {
-            //   likeDestroyApi(furniture.id);
-            // } else {
-            //   likeStoreApi(furniture.id);
-            // }
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
           }}
         >
           <HeartIcon
@@ -48,6 +48,6 @@ export function SpotCard({ spot }: Props) {
           />
         </button>
       </div>
-    </div>
+    </Link>
   );
 }
