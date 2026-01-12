@@ -11,7 +11,7 @@ type Props = {
 export function SpotCard({ spot }: Props) {
   return (
     <div className="bg-card-back rounded-lg p-2 shadow-[0_0_6px_0_rgba(0,0,0,0.3)]">
-      <img src={spot.imageUrl} alt={spot.name} className="rounded-md" />
+      <img src={spot.thumbnailUrl} alt={spot.name} className="rounded-md" />
       <div className="p-2">
         <div className="min-h-[68px]">
           <p className="font-semibold text-base mt-1 line-clamp-2">
