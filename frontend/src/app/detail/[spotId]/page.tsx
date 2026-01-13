@@ -2,10 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { dummySpots } from "@/data/dummySpots";
-import { Spot } from "@/types/spot";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { NavigationBar } from "@/components/navigation-bar";
 import { ArrowLeftIcon } from "lucide-react";
 import { HeartIcon } from "lucide-react";
 import { MapPinIcon } from "lucide-react";
@@ -165,18 +163,17 @@ export default function Page() {
             </div>
             <div>
               <p>
-                <span>料金：</span>
+                <span>⚪︎料金・・・</span>
                 {spot.price}
               </p>
               <p>
-                <span>営業時間：</span>
+                <span>⚪︎営業時間・・・</span>
                 {spot.openingHours}
               </p>
             </div>
           </div>
         </div>
       </div>
-      <NavigationBar />
     </div>
   );
 }
