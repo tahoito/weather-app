@@ -8,7 +8,10 @@ import { PencilLineIcon } from "@/components/icon/pencil-line-icon";
 import { SpotCard } from "@/components/spot-card";
 import { dummySpots } from "@/data/dummySpots";
 import { weatherCodeMap } from "@/types/spot";
+import { areaLabelMap } from "@/types/area";
 import { NavigationBar } from "@/components/navigation-bar";
+import { areaKeyMap } from "@/constants/areaKeyMap";
+import { X } from "lucide-react";
 
 type WeatherInfo = {
   precipitation: number;
@@ -18,11 +21,20 @@ type WeatherInfo = {
   weatherCode: number;
 };
 
+// type AreaModalMode = "initial" | "change";
+
 export default function Page() {
   const [weather, setWeather] = useState<WeatherInfo | null>(null);
-  const fmt = (v?: number, suffix = "") => (typeof v === "number" ? `${v}${suffix}` : "--");
+  const fmt = (v?: number, suffix = "") =>
+    typeof v === "number" ? `${v}${suffix}` : "--";
   const [spots, setSpots] = useState(dummySpots);
-  const [spotsLoading, setSpotsLoading] = useState(false);
+  const [Loading, setLoading] = useState(false);
+  const [isAreaModalOpen, setIsAreaModalOpen] = useState(false);
+  const [areaModalMode, setAreaModalMode] = useState<"initial" | "change">(
+    "change"
+  );
+  const areaLabels = Object.values(areaLabelMap);
+  const [currentArea, setCurrentArea] = useState("名駅");
 
   useEffect(() => {
     async function loadWeather() {
@@ -37,30 +49,84 @@ export default function Page() {
     }
     loadWeather();
   }, []);
-  
 
   useEffect(() => {
     async function load() {
-      const res = await fetch("/api/spots/recommended?area=meieki");
+      const areaParam = areaKeyMap[currentArea] ?? "meieki"; 
+      const res = await fetch(`/api/spots/recommended?area=${areaParam}`);
       if (!res.ok) return;
       const data = await res.json();
       setSpots(data);
     }
     load();
+  }, [currentArea]);
+
+
+  useEffect(() => {
+    const justEntered = localStorage.getItem("justEnteredApp");
+
+    if (justEntered === "true") {
+      setAreaModalMode("initial");
+      setIsAreaModalOpen(true);
+      localStorage.removeItem("justEnteredApp");
+    }
   }, []);
 
   return (
     <div className="bg-back min-h-screen pb-20 [&>*]:text-fg ">
-      <div className="flex items-center pt-15 text-[14px]">
+      <div className="flex items-center pt-15">
         <div className="flex-1 flex justify-center gap-8">
           <p>現在のエリア</p>
-          <p className="font-semibold text-base">名駅</p>
+          <p className="font-semibold text-base">{currentArea}</p>
         </div>
         <div className="mr-6">
-          <button className="flex justify-center gap-2 w-20 py-0.5 rounded-full border border-sub text-sub">
+          <button
+            onClick={() => {
+              setAreaModalMode("change");
+              setIsAreaModalOpen(true);
+            }}
+            className="flex justify-center gap-2 w-20 py-0.5 rounded-full border border-sub text-sub"
+          >
             <PencilLineIcon className="h-4 w-4" />
             変更
           </button>
+          {isAreaModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+              <div
+                className={`bg-white rounded-2xl p-6 w-[320px] border relative text-sm ${
+                  areaModalMode === "change" ? "pt-12" : ""
+                }`}
+              >
+                {areaModalMode === "initial" ? (
+                  <p className="pb-6 text-base whitespace-nowrap text-center">
+                    設定するエリアを選択してください。
+                  </p>
+                ) : (
+                  <button
+                    onClick={() => setIsAreaModalOpen(false)}
+                    className="absolute top-3 right-3"
+                  >
+                    <X />
+                  </button>
+                )}
+                <ul className="grid grid-cols-3 gap-2 gap-x-[15px] gap-y-[16px]">
+                  {areaLabels.map((label) => (
+                    <li key={label}>
+                      <button
+                        className="w-20 px-2 py-1 rounded-full border bg-card-back shadow-[1px_2px_1px_rgba(0,0,0,0.20)]"
+                        onClick={() => {
+                          setCurrentArea(label);
+                          setIsAreaModalOpen(false);
+                        }}
+                      >
+                        {label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -102,15 +168,19 @@ export default function Page() {
             <div className="grid grid-cols-3 mx-auto mt-4 w-52">
               <div className="flex justify-center items-center gap-1">
                 <UmbrellaIcon className="h-5 w-5" />
-                <span className="text-xs">{fmt(weather?.precipitation, "%")}</span>
+                <span className="text-xs">
+                  {fmt(weather?.precipitation, "%")}
+                </span>
               </div>
               <div className="flex justify-center items-center gap-1">
                 <DropletIcon className="h-5 w-5" />
-                <span className="text-xs">{fmt(weather?.humidity,"%")}</span>
+                <span className="text-xs">{fmt(weather?.humidity, "%")}</span>
               </div>
               <div className="flex justify-center items-center gap-1">
                 <WindIcon className="h-5 w-5" />
-                <span className="text-xs">{fmt(weather?.windSpeed,"m/s")}</span>
+                <span className="text-xs">
+                  {fmt(weather?.windSpeed, "m/s")}
+                </span>
               </div>
             </div>
           </div>

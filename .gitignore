@@ -15,3 +15,4 @@ backend/storage/logs/*.log
 frontend/node_modules/
 frontend/.next/
 frontend/.env.local
+node_modules/
