@@ -8,9 +8,7 @@ import { PencilLineIcon } from "@/components/icon/pencil-line-icon";
 import { SpotCard } from "@/components/spot-card";
 import { dummySpots } from "@/data/dummySpots";
 import { weatherCodeMap } from "@/types/spot";
-import { areaLabelMap } from "@/types/area";
 import { NavigationBar } from "@/components/navigation-bar";
-import { areaKeyMap } from "@/constants/areaKeyMap";
 import { X } from "lucide-react";
 
 type WeatherInfo = {
@@ -21,6 +19,14 @@ type WeatherInfo = {
   weatherCode: number;
 };
 
+type Area = {
+  id: number;
+  name: string;
+  slug: string;
+  lat: number;
+  lon: number;
+};
+
 // type AreaModalMode = "initial" | "change";
 
 export default function Page() {
@@ -28,39 +34,13 @@ export default function Page() {
   const fmt = (v?: number, suffix = "") =>
     typeof v === "number" ? `${v}${suffix}` : "--";
   const [spots, setSpots] = useState(dummySpots);
-  const [Loading, setLoading] = useState(false);
+  const [spotsLoading, setSpotsLoading] = useState(false);
   const [isAreaModalOpen, setIsAreaModalOpen] = useState(false);
   const [areaModalMode, setAreaModalMode] = useState<"initial" | "change">(
     "change"
   );
-  const areaLabels = Object.values(areaLabelMap);
-  const [currentArea, setCurrentArea] = useState("名駅");
-
-  useEffect(() => {
-    async function loadWeather() {
-      try {
-        const res = await fetch("/api/weather?lat=32&lon=130");
-        if (!res.ok) {
-          return;
-        }
-        const data = await res.json();
-        setWeather(data);
-      } catch (e) {}
-    }
-    loadWeather();
-  }, []);
-
-  useEffect(() => {
-    async function load() {
-      const areaParam = areaKeyMap[currentArea] ?? "meieki"; 
-      const res = await fetch(`/api/spots/recommended?area=${areaParam}`);
-      if (!res.ok) return;
-      const data = await res.json();
-      setSpots(data);
-    }
-    load();
-  }, [currentArea]);
-
+  const [areas, setAreas] = useState<Area[]>([]);
+  const [currentArea, setCurrentArea] = useState<Area | null>(null);
 
   useEffect(() => {
     const justEntered = localStorage.getItem("justEnteredApp");
@@ -72,12 +52,71 @@ export default function Page() {
     }
   }, []);
 
+  useEffect(() => {
+    async function loadAreas() {
+      try {
+        const res = await fetch("http://localhost:8011/api/areas");
+        if (!res.ok) return;
+
+        const data: Area[] = await res.json();
+        setAreas(data);
+
+        // 仮：最初は名駅を選択
+        const meieki = data.find((a) => a.slug === "meieki");
+        if (meieki) {
+          setCurrentArea(meieki);
+        }
+      } catch (e) {}
+    }
+
+    loadAreas();
+  }, []);
+
+  useEffect(() => {
+    if (!currentArea) return;
+
+    async function loadWeather() {
+      try {
+        const res = await fetch(
+          `/api/weather?lat=${currentArea.lat}&lon=${currentArea.lon}`
+        );
+        if (!res.ok) return;
+
+        const data = await res.json();
+        setWeather(data);
+      } catch (e) {}
+    }
+
+    loadWeather();
+  }, [currentArea]);
+
+  // useEffect(() => {
+  //   if (!currentArea) return;
+
+  //   async function load() {
+  //     setSpotsLoading(true);
+
+  //     const res = await fetch(
+  //       `/api/spots/recommended?area=${currentArea.slug}`
+  //     );
+  //     if (!res.ok) return;
+
+  //     const data = await res.json();
+  //     setSpots(data);
+  //     setSpotsLoading(false);
+  //   }
+
+  //   load();
+  // }, [currentArea]);
+
   return (
     <div className="bg-back min-h-screen pb-20 [&>*]:text-fg ">
       <div className="flex items-center pt-15">
         <div className="flex-1 flex justify-center gap-8">
           <p>現在のエリア</p>
-          <p className="font-semibold text-base">{currentArea}</p>
+          <p className="font-semibold text-base">
+            {currentArea?.name ?? "読み込み中"}
+          </p>
         </div>
         <div className="mr-6">
           <button
@@ -110,16 +149,16 @@ export default function Page() {
                   </button>
                 )}
                 <ul className="grid grid-cols-3 gap-2 gap-x-[15px] gap-y-[16px]">
-                  {areaLabels.map((label) => (
-                    <li key={label}>
+                  {areas.map((area) => (
+                    <li key={area.id}>
                       <button
                         className="w-20 px-2 py-1 rounded-full border bg-card-back shadow-[1px_2px_1px_rgba(0,0,0,0.20)]"
                         onClick={() => {
-                          setCurrentArea(label);
+                          setCurrentArea(area);
                           setIsAreaModalOpen(false);
                         }}
                       >
-                        {label}
+                        {area.name}
                       </button>
                     </li>
                   ))}
