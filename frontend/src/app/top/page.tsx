@@ -55,17 +55,19 @@ export default function Page() {
   useEffect(() => {
     async function loadAreas() {
       try {
-        const res = await fetch("http://localhost:8011/api/areas");
+        const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+        const res = await fetch(`${base}/api/areas`);
         if (!res.ok) return;
 
-        const data: Area[] = await res.json();
+        const json = await res.json();
+        const data: Area[] = Array.isArray(json) ? json : json.data;
         setAreas(data);
 
-        // 仮：最初は名駅を選択
-        const meieki = data.find((a) => a.slug === "meieki");
-        if (meieki) {
-          setCurrentArea(meieki);
-        }
+
+
+        const savedSlug = localStorage.getItem("selectedAreaSlug");
+        const saved = savedSlug ? data.find(a => a.slug === savedSlug) : null;
+        setCurrentArea(saved ?? data[0]);
       } catch (e) {}
     }
 
