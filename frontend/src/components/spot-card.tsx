@@ -1,18 +1,23 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { HeartIcon } from "./icon/heart-icon";
 import { Spot } from "@/types/spot";
 import { areaLabelMap } from "@/types/area";
+import { FavoriteButton } from "@/components/favorite-button";
 
 type Props = {
   spot: Spot;
 };
 
 export function SpotCard({ spot }: Props) {
+  const [isFavorite, setIsFavorite] = useState(false);
   return (
-    <Link href= {`/detail/${spot.id}`}  
-          className="bg-card-back rounded-lg p-2 shadow-[0_0_6px_0_rgba(0,0,0,0.3)]">
+    <Link
+      href={`/detail/${spot.id}`}
+      className="bg-card-back rounded-lg p-2 shadow-[0_0_6px_0_rgba(0,0,0,0.3)]"
+    >
       <img src={spot.thumbnailUrl} alt={spot.name} className="rounded-md" />
       <div className="p-2">
         <div className="min-h-[68px]">
@@ -35,18 +40,13 @@ export function SpotCard({ spot }: Props) {
           ))}
         </div>
 
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          <HeartIcon
-            className="w-5 h-5 hover:opacity-30" //   likeIds.includes(furniture.id) && "text-error", //   {clsx(
-            // )}
+        <div>
+          <FavoriteButton
+            isFavorite={isFavorite}
+            onToggle={() => setIsFavorite((v) => !v)}
+            iconClassName="w-5 h-5"
           />
-        </button>
+        </div>
       </div>
     </Link>
   );
