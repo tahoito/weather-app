@@ -111,7 +111,7 @@ export default function Page() {
 
             <div className="absolute top-0 right-0">
               <div className="border rounded-lg bg-white p-2 flex flex-col items-center gap-0.5">
-                <MapPinIcon className="w-6 h-6 fill-sub" />
+                <MapPinIcon className="w-6 h-6  text-sub" />
                 <p className="text-sm leading-none">マップ</p>
               </div>
             </div>
@@ -163,11 +163,11 @@ export default function Page() {
             </div>
             <div>
               <p>
-                <span>⚪︎料金・・・</span>
+                <span className="mr-4">料金：</span>
                 {spot.price}
               </p>
               <p>
-                <span>⚪︎営業時間・・・</span>
+                <span className="mr-4">営業時間：</span>
                 {spot.openingHours}
               </p>
             </div>
