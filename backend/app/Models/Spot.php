@@ -12,6 +12,15 @@ class Spot extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'image_urls' => 'array',
+        'tags_json' => 'array',
+        'weather_suitability' => 'array',
+        'highlights' => 'array',
+        'is_indoor' => 'boolean',
+        'weather_ok' => 'boolean',
+    ];
+
     public function area(){
         return $this->belongsTo(Area::class);
     }

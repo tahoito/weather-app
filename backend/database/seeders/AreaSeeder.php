@@ -14,7 +14,7 @@ class AreaSeeder extends Seeder
     public function run(): void
     {
         $areas = [
-            ['name' => '名駅',     'slug' => 'meieki', 'lat' => 35.1709, 'lon' => 136.8815],
+            ['name' => '名駅',     'slug' => 'meieki',          'lat' => 35.1709, 'lon' => 136.8815],
             ['name' => '大須',     'slug' => 'osu',            'lat' => 35.1595, 'lon' => 136.9056],
             ['name' => '金山',     'slug' => 'kanayama',       'lat' => 35.1429, 'lon' => 136.9016],
             ['name' => '栄',       'slug' => 'sakae',          'lat' => 35.1682, 'lon' => 136.9066],

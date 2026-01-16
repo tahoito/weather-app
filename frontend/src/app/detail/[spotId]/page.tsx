@@ -31,7 +31,7 @@ export default function Page() {
       setCurrentIndex((prev) =>
         prev === spot.imageUrls.length - 1 ? 0 : prev + 1
       );
-    }, 4000); // ← 4秒ごと
+    }, 4000); 
 
     return () => clearInterval(interval);
   }, [spot.imageUrls.length]);
@@ -65,12 +65,10 @@ export default function Page() {
             const diff = touchStartX - touchEndX;
             if (Math.abs(diff) > 50) {
               if (diff > 0) {
-                // 左にスワイプ → 次
                 setCurrentIndex((prev) =>
                   Math.min(prev + 1, spot.imageUrls.length - 1)
                 );
               } else {
-                // 右にスワイプ → 前
                 setCurrentIndex((prev) => Math.max(prev - 1, 0));
               }
             }
@@ -126,14 +124,11 @@ export default function Page() {
           <p>{spot.detail}</p>
         </div>
         <div className="flex justify-end gap-2">
-          {spot.tags.map((tag) => (
-            <span
-              key={tag}
-              className="text-sm py-2.5 px-4 rounded-full bg-main"
-            >
-              {tag}
+          {spot.tags && (
+            <span className="text-sm py-2.5 px-4 rounded-full bg-main">
+              {spot.tags}
             </span>
-          ))}
+          )}
         </div>
         <div className="[&>*]:mt-7">
           <div className="relative border rounded-2xl p-4 pt-6">

@@ -63,17 +63,18 @@ export default function Page() {
   useEffect(() => {
     async function loadAreas() {
       try {
-        const res = await fetch("http://localhost:8011/api/areas");
+        const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+        const res = await fetch(`${base}/api/areas`);
         if (!res.ok) return;
 
-        const data: Area[] = await res.json();
+        const json = await res.json();
+        const data: Area[] = Array.isArray(json) ? json : json.data;
         setAreas(data);
 
-        // 仮：最初は名駅を選択
-        const meieki = data.find((a) => a.slug === "meieki");
-        if (meieki) {
-          setCurrentArea(meieki);
-        }
+        const savedSlug = localStorage.getItem("selectedAreaSlug");
+        const saved = savedSlug ? data.find(a => a.slug === savedSlug) : null;
+        setCurrentArea(saved ?? data[0]);
+        
       } catch (e) {}
     }
 
@@ -147,14 +148,26 @@ export default function Page() {
   }, [currentArea, areas]);
 
   useEffect(() => {
-    async function loadFavorites() {
-      const res = await fetch("http://localhost:8011/api/favorites");
-      if (!res.ok) return;
+  async function loadFavorites() {
+    try {
+      const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+      if (!base) {
+        console.error("NEXT_PUBLIC_API_BASE_URL が未設定");
+        return;
+      }
+
+      const res = await fetch(`${base}/api/favorites`, { cache: "no-store" });
+      if (!res.ok) {
+        console.error("favorites取得失敗", res.status);
+        return;
+      }
 
       const data = await res.json();
-      setFavoriteIds(data.map((f: any) => f.spot_id));
+      setFavoriteIds(data.map((f: any) => Number(f.spot_id)));
+    } catch (e) {
+      console.error("favorites fetch error:", e);
     }
-
+  }
     loadFavorites();
   }, []);
 
@@ -204,6 +217,7 @@ export default function Page() {
                         className="w-20 px-2 py-1 rounded-full border bg-card-back shadow-[1px_2px_1px_rgba(0,0,0,0.20)]"
                         onClick={() => {
                           setCurrentArea(area);
+                          localStorage.setItem("selectedAreaSlug", area.slug);
                           setIsAreaModalOpen(false);
                         }}
                       >
