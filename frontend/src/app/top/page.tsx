@@ -48,6 +48,7 @@ export default function Page() {
   );
   const [areas, setAreas] = useState<Area[]>([]);
   const [currentArea, setCurrentArea] = useState<Area | null>(null);
+  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
 
   useEffect(() => {
     const justEntered = localStorage.getItem("justEnteredApp");
@@ -144,6 +145,18 @@ export default function Page() {
 
     loadSpots();
   }, [currentArea, areas]);
+
+  useEffect(() => {
+    async function loadFavorites() {
+      const res = await fetch("http://localhost:8011/api/favorites");
+      if (!res.ok) return;
+
+      const data = await res.json();
+      setFavoriteIds(data.map((f: any) => f.spot_id));
+    }
+
+    loadFavorites();
+  }, []);
 
   return (
     <div className="bg-back min-h-screen pb-20 [&>*]:text-fg ">
@@ -268,7 +281,11 @@ export default function Page() {
         <div className="flex justify-center ">
           <div className="grid grid-cols-2 gap-2">
             {spots.map((spot) => (
-              <SpotCard key={spot.id} spot={spot} />
+              <SpotCard
+                key={spot.id}
+                spot={spot}
+                initialIsFavorite={favoriteIds.includes(spot.id)}
+              />
             ))}
           </div>
         </div>

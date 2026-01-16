@@ -2,17 +2,37 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { HeartIcon } from "./icon/heart-icon";
 import { Spot } from "@/types/spot";
-import { areaLabelMap } from "@/types/area";
 import { FavoriteButton } from "@/components/favorite-button";
 
 type Props = {
   spot: Spot;
+  initialIsFavorite: boolean;
 };
 
-export function SpotCard({ spot }: Props) {
-  const [isFavorite, setIsFavorite] = useState(false);
+export function SpotCard({ spot, initialIsFavorite }: Props) {
+  const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
+
+  const toggleFavorite = async () => {
+    try {
+      if (isFavorite) {
+        await fetch(`http://localhost:8011/api/favorites/${spot.id}`, {
+          method: "DELETE",
+        });
+        setIsFavorite(false);
+      } else {
+        await fetch(`http://localhost:8011/api/favorites`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ spot_id: spot.id }),
+        });
+        setIsFavorite(true);
+      }
+    } catch (e) {
+      console.error("お気に入り切替失敗", e);
+    }
+  };
+
   return (
     <Link
       href={`/detail/${spot.id}`}
@@ -43,7 +63,7 @@ export function SpotCard({ spot }: Props) {
         <div>
           <FavoriteButton
             isFavorite={isFavorite}
-            onToggle={() => setIsFavorite((v) => !v)}
+            onToggle={toggleFavorite}
             iconClassName="w-5 h-5"
           />
         </div>
