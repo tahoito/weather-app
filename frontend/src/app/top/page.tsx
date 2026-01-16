@@ -6,7 +6,6 @@ import { DropletIcon } from "@/components/icon/droplet-icon";
 import { WindIcon } from "@/components/icon/wind-icon";
 import { PencilLineIcon } from "@/components/icon/pencil-line-icon";
 import { SpotCard } from "@/components/spot-card";
-import { dummySpots } from "@/data/dummySpots";
 import { weatherCodeMap } from "@/types/spot";
 import { NavigationBar } from "@/components/navigation-bar";
 import { X } from "lucide-react";
@@ -27,13 +26,21 @@ type Area = {
   lon: number;
 };
 
-// type AreaModalMode = "initial" | "change";
+type Spot = {
+  id: number;
+  name: string;
+  area: string;
+  description: string;
+  image_url: string;
+  tags: string[];
+};
 
 export default function Page() {
   const [weather, setWeather] = useState<WeatherInfo | null>(null);
   const fmt = (v?: number, suffix = "") =>
     typeof v === "number" ? `${v}${suffix}` : "--";
-  const [spots, setSpots] = useState(dummySpots);
+  // const [spots, setSpots] = useState(dummySpots);
+  const [spots, setSpots] = useState<Spot[]>([]);
   const [spotsLoading, setSpotsLoading] = useState(false);
   const [isAreaModalOpen, setIsAreaModalOpen] = useState(false);
   const [areaModalMode, setAreaModalMode] = useState<"initial" | "change">(
@@ -108,6 +115,35 @@ export default function Page() {
 
   //   load();
   // }, [currentArea]);
+
+  useEffect(() => {
+    if (!currentArea || areas.length === 0) return;
+
+    async function loadSpots() {
+      try {
+        const res = await fetch(
+          `/api/spots/recommended?area=${currentArea.slug}`
+        );
+        if (!res.ok) {
+          console.error("スポット取得失敗", res.status);
+          return;
+        }
+
+        const data: Spot[] = await res.json();
+
+        const mappedSpots = data.map((spot) => ({
+          ...spot,
+          areaName: areas.find((a) => a.slug === spot.area)?.name || spot.area,
+        }));
+
+        setSpots(mappedSpots);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    loadSpots();
+  }, [currentArea, areas]);
 
   return (
     <div className="bg-back min-h-screen pb-20 [&>*]:text-fg ">
