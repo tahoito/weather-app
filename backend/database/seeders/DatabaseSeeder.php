@@ -26,9 +26,6 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $this->call([AreaSeeder::class,]);
-
-        $this->call(SpotSeeder::class);
-
+        $this->call([AreaSeeder::class, SpotSeeder::class,]);
     }
 }
