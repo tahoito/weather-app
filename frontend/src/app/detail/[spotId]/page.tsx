@@ -9,6 +9,7 @@ import { HeartIcon } from "lucide-react";
 import { MapPinIcon } from "lucide-react";
 import { StarIcon } from "lucide-react";
 import { MapPinSimpleIcon } from "@/components/icon/map-pin-simple-icon";
+import { FavoriteButton } from "@/components/favorite-button";
 
 export default function Page() {
   const [spots, setSpots] = useState(dummySpots);
@@ -17,6 +18,7 @@ export default function Page() {
   const spot = dummySpots.find((s) => s.id === spotId);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   if (!spot) {
     return <div>スポットが見つかりません</div>;
@@ -36,14 +38,17 @@ export default function Page() {
 
   return (
     <div className="bg-back w-full h-full">
-      <div className="mx-9 pt-10 pb-24">
+      <div className="mx-9 pt-16 pb-24">
         <div>
-          <Link href="/top" className="absolute top-16 left-9 w-7 h-7">
-            <ArrowLeftIcon />
+          <Link href="/top" className="absolute top-15 left-9">
+            <ArrowLeftIcon className="w-7 h-7" />
           </Link>
-          <button onClick={() => {}}>
-            <HeartIcon className="w-7 h-7 absolute top-16 right-9 w-6 h-6" />
-          </button>
+          <FavoriteButton
+            isFavorite={isFavorite}
+            onToggle={() => setIsFavorite((v) => !v)}
+            className="absolute top-15 right-9"
+            iconClassName="w-7 h-7"
+          />
         </div>
         <div className="text-center mb-4">
           <p className="font-semibold">{spot.name}</p>
