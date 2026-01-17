@@ -23,6 +23,15 @@ export default function Page() {
 
   const onSubmit: SubmitHandler<FormInput> = async (data) => {
     const res = await authLogin(data);
+    console.log("LOGIN response:", res);
+
+    if (res.success) {
+      Cookies.set("authToken", res.authToken);
+      router.push("/top");
+      return;
+    }
+
+    alert(res.message); 
   };
 
   return (

@@ -34,6 +34,24 @@ Route::post('/sign-up-login/signup', function (Request $request){
 
 
 Route::post('/sign-up-login/login', function (Request $request){
+    $validated = $request->validate([
+        'auth.email' => ['required','email'],
+        'auth.password' => ['required'],
+    ]);
+
+    $email = $validated['auth']['email'];
+    $password = $validated['auth']['password'];
+
+    $user = User::where('email',$email)->first();
+
+    if (!$user || !Hash::check($password, $user->password)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'メールアドレスかパスワードが違います',
+            'authToken' => '',
+        ],401);
+    }
+
     return response()->json([
         'success' => true,
         'message' => 'ok',
