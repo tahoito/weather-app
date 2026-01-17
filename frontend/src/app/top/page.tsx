@@ -6,7 +6,6 @@ import { DropletIcon } from "@/components/icon/droplet-icon";
 import { WindIcon } from "@/components/icon/wind-icon";
 import { PencilLineIcon } from "@/components/icon/pencil-line-icon";
 import { SpotCard } from "@/components/spot-card";
-import { dummySpots } from "@/data/dummySpots";
 import { weatherCodeMap } from "@/types/spot";
 import { NavigationBar } from "@/components/navigation-bar";
 import { X } from "lucide-react";
@@ -27,13 +26,24 @@ type Area = {
   lon: number;
 };
 
-// type AreaModalMode = "initial" | "change";
+type Spot = {
+  id: number;
+  name: string;
+  area: string;
+  description: string;
+  image_url: string;
+  tags?: string[];
+  is_indoor?: boolean;
+  weather_ok?: boolean;
+  areaName?: string;
+};
 
 export default function Page() {
   const [weather, setWeather] = useState<WeatherInfo | null>(null);
   const fmt = (v?: number, suffix = "") =>
     typeof v === "number" ? `${v}${suffix}` : "--";
-  const [spots, setSpots] = useState(dummySpots);
+  // const [spots, setSpots] = useState(dummySpots);
+  const [spots, setSpots] = useState<Spot[]>([]);
   const [spotsLoading, setSpotsLoading] = useState(false);
   const [isAreaModalOpen, setIsAreaModalOpen] = useState(false);
   const [areaModalMode, setAreaModalMode] = useState<"initial" | "change">(
@@ -41,31 +51,32 @@ export default function Page() {
   );
   const [areas, setAreas] = useState<Area[]>([]);
   const [currentArea, setCurrentArea] = useState<Area | null>(null);
+  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
 
   useEffect(() => {
-    const justEntered = localStorage.getItem("justEnteredApp");
-
-    if (justEntered === "true") {
+    const shouldShow = localStorage.getItem("showAreaModal") === "true";
+    if (shouldShow) {
       setAreaModalMode("initial");
       setIsAreaModalOpen(true);
-      localStorage.removeItem("justEnteredApp");
+      localStorage.removeItem("showAreaModal");
     }
   }, []);
 
   useEffect(() => {
     async function loadAreas() {
       try {
-        const res = await fetch("http://localhost:8011/api/areas");
+        const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+        const res = await fetch(`${base}/api/areas`);
         if (!res.ok) return;
 
-        const data: Area[] = await res.json();
+        const json = await res.json();
+        const data: Area[] = Array.isArray(json) ? json : json.data;
         setAreas(data);
 
-        // 仮：最初は名駅を選択
-        const meieki = data.find((a) => a.slug === "meieki");
-        if (meieki) {
-          setCurrentArea(meieki);
-        }
+        const savedSlug = localStorage.getItem("selectedAreaSlug");
+        const saved = savedSlug ? data.find(a => a.slug === savedSlug) : null;
+        setCurrentArea(saved ?? data[0]);
+        
       } catch (e) {}
     }
 
@@ -108,6 +119,66 @@ export default function Page() {
 
   //   load();
   // }, [currentArea]);
+
+  useEffect(() => {
+    if (!currentArea || areas.length === 0 || !weather) return;
+
+    async function loadSpots() {
+      try {
+        const qs = new URLSearchParams({
+          area: currentArea.slug,
+          pop: String(weather.precipitation),
+          wind: String(weather.windSpeed),
+          temp: String(weather.temperature),
+          humidity: String(weather.humidity),
+          limit: "10",
+        });
+
+        const res = await fetch(`/api/spots/recommended?${qs.toString()}`);
+        if (!res.ok) {
+          console.error("スポット取得失敗", res.status);
+          return;
+        }
+
+        const json = await res.json();
+        const data: Spot[] = Array.isArray(json) ? json : json.data;
+
+        const mappedSpots = data.map((spot) => ({
+          ...spot,
+          areaName: areas.find((a) => a.slug === spot.area)?.name ||spot.area,
+        }));
+        setSpots(mappedSpots);
+
+      } catch (err) {
+        console.error("loadSpots error:", err);
+      }  
+    }
+    loadSpots();
+  }, [currentArea, areas, weather]);
+
+  useEffect(() => {
+  async function loadFavorites() {
+    try {
+      const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+      if (!base) {
+        console.error("NEXT_PUBLIC_API_BASE_URL が未設定");
+        return;
+      }
+
+      const res = await fetch(`${base}/api/favorites`, { cache: "no-store" });
+      if (!res.ok) {
+        console.error("favorites取得失敗", res.status);
+        return;
+      }
+
+      const data = await res.json();
+      setFavoriteIds(data.map((f: any) => Number(f.spot_id)));
+    } catch (e) {
+      console.error("favorites fetch error:", e);
+    }
+  }
+    loadFavorites();
+  }, []);
 
   return (
     <div className="bg-back min-h-screen pb-20 [&>*]:text-fg ">
@@ -155,6 +226,7 @@ export default function Page() {
                         className="w-20 px-2 py-1 rounded-full border bg-card-back shadow-[1px_2px_1px_rgba(0,0,0,0.20)]"
                         onClick={() => {
                           setCurrentArea(area);
+                          localStorage.setItem("selectedAreaSlug", area.slug);
                           setIsAreaModalOpen(false);
                         }}
                       >
@@ -179,7 +251,7 @@ export default function Page() {
                 {weather ? (
                   (() => {
                     const weatherInfo = weatherCodeMap[weather.weatherCode];
-                    if (!weatherInfo) return <p className="mt-1">情報なし</p>;
+                    if (!weatherInfo) return;
                     const IconComponent = weatherInfo.Icon;
                     return (
                       <>
@@ -232,7 +304,11 @@ export default function Page() {
         <div className="flex justify-center ">
           <div className="grid grid-cols-2 gap-2">
             {spots.map((spot) => (
-              <SpotCard key={spot.id} spot={spot} />
+              <SpotCard
+                key={spot.id}
+                spot={spot}
+                initialIsFavorite={favoriteIds.includes(spot.id)}
+              />
             ))}
           </div>
         </div>

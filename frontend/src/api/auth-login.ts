@@ -1,5 +1,7 @@
 import axios from "axios";
 
+const api = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export type AuthLoginRequest = {
   auth: {
     email: string;
@@ -9,26 +11,28 @@ export type AuthLoginRequest = {
 
 export type AuthLoginResponse = {
   success: boolean;
-  message: string[];
+  message: string;
   authToken: string;
 };
 
 export async function authLogin({
   auth,
 }: AuthLoginRequest): Promise<AuthLoginResponse> {
-  const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/login`;
-
-  return axios
-    .post<AuthLoginResponse>(apiUrl, {
-      auth,
-    })
-    .then((res) => res.data)
-    .catch((err) => {
-      console.log(err);
-      return {
-        success: false,
-        message: err.response?.data.messages || [],
-        authToken: "",
-      };
-    });
+  try { 
+    const res = await axios.post<AuthLoginResponse>(
+      `${api}/api/sign-up-login/login`,
+      { auth },
+      { headers: { "Content-Type": "application/json" } }
+    );
+    return res.data;
+  }catch(err: any) {
+    console.log("LOGIN STATUS:", err.response?.status);
+    console.log("LOGIN DATA:", err.response?.data);
+    console.log("LOGIN ERRORS:", err.response?.data?.errors);
+    return {
+      success: false,
+      message: err.response?.data?.messages || "ログインに失敗しました",
+      authToken: "",
+    };
+  }
 }
