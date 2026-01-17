@@ -10,6 +10,7 @@ import { MapPinIcon } from "lucide-react";
 import { StarIcon } from "lucide-react";
 import { MapPinSimpleIcon } from "@/components/icon/map-pin-simple-icon";
 import { FavoriteButton } from "@/components/favorite-button";
+import { purposeTags } from "@/app/search/data"; 
 
 export default function Page() {
   const [spots, setSpots] = useState(dummySpots);
@@ -19,6 +20,8 @@ export default function Page() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
+  const displayTag =
+  purposeTags.find((p) => p.slug === spot.tag)?.label ?? spot.tag;
 
   if (!spot) {
     return <div>スポットが見つかりません</div>;
@@ -121,12 +124,12 @@ export default function Page() {
           </div>
           <p className="text-xl">{spot.area}</p>
           <p>屋内</p>
-          <p>{spot.detail}</p>
+          <p>{spot.description}</p>
         </div>
         <div className="flex justify-end gap-2">
-          {spot.tags && (
+          {spot.tag && (
             <span className="text-sm py-2.5 px-4 rounded-full bg-main">
-              {spot.tags}
+              {displayTag}
             </span>
           )}
         </div>

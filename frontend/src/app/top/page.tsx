@@ -86,19 +86,25 @@ export default function Page() {
   useEffect(() => {
     if (!currentArea) return;
 
+    const controller = new AbortController();
+
     async function loadWeather() {
       try {
         const res = await fetch(
-          `/api/weather?lat=${currentArea.lat}&lon=${currentArea.lon}`
+          `/api/weather/current?lat=${currentArea.lat}&lon=${currentArea.lon}`,
+          { signal: controller.signal, cache: "no-store" }
         );
         if (!res.ok) return;
 
         const data = await res.json();
         setWeather(data);
-      } catch (e) {}
+      } catch (e:any) {
+        if (e?.name !== "AbortError") console.error(e);
+      }
     }
 
     loadWeather();
+    return () => controller.abort();
   }, [currentArea]);
 
   // useEffect(() => {
@@ -134,27 +140,31 @@ export default function Page() {
           limit: "10",
         });
 
-        const res = await fetch(`/api/spots/recommended?${qs.toString()}`);
-        if (!res.ok) {
-          console.error("スポット取得失敗", res.status);
-          return;
-        }
-
+        const res = await fetch(`/api/spots/recommended?${qs.toString()}`, {
+          cache: "no-store",
+        });
+        if (!res.ok) return;
+      
         const json = await res.json();
         const data: Spot[] = Array.isArray(json) ? json : json.data;
 
-        const mappedSpots = data.map((spot) => ({
+        setSpots(
+          data.map((spot) => ({
           ...spot,
           areaName: areas.find((a) => a.slug === spot.area)?.name ||spot.area,
-        }));
-        setSpots(mappedSpots);
-
+        }))
+      );
       } catch (err) {
         console.error("loadSpots error:", err);
       }  
     }
     loadSpots();
-  }, [currentArea, areas, weather]);
+  }, [currentArea?.slug,
+     areas.length,
+     weather?.precipitation,
+     weather?.humidity,
+     weather?.windSpeed,
+     weather?.temperature,]);
 
   useEffect(() => {
   async function loadFavorites() {

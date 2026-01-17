@@ -31,4 +31,9 @@ class Spot extends Model
     {
         return $this->hasMany(Favorite::class);
     }
+
+    public function openingHours(): HasMany
+    {
+        return $this->hasMany(SpotOpeningHour::class);
+    }
 }
