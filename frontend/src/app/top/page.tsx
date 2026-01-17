@@ -86,16 +86,21 @@ export default function Page() {
   useEffect(() => {
     if (!currentArea) return;
 
+    const controller = new AbortController();
+
     async function loadWeather() {
       try {
         const res = await fetch(
-          `/api/weather?lat=${currentArea.lat}&lon=${currentArea.lon}`
+          `/api/weather?lat=${currentArea.lat}&lon=${currentArea.lon}`,
+          { signal: controller.signal }
         );
         if (!res.ok) return;
 
         const data = await res.json();
         setWeather(data);
-      } catch (e) {}
+      } catch (e:any) {
+        if (e?.name !== "AbortError") console.error(e);
+      }
     }
 
     loadWeather();

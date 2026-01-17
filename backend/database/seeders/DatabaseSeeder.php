@@ -18,18 +18,6 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-<<<<<<< HEAD
-        User::updateOrCreate([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-
-        $this->call([
-            AreaSeeder::class,
-            SpotSeeder::class,
-            SpotOpeningHourSeeder::class,
-        ]);
-=======
         User::updateOrCreate(
             ['email' => 'test@example.com'],
             [
@@ -39,6 +27,5 @@ class DatabaseSeeder extends Seeder
         );
 
         $this->call([AreaSeeder::class, SpotSeeder::class,]);
->>>>>>> main
     }
 }
