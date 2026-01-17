@@ -1,24 +1,29 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Route;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\AreaController;
 use App\Http\Controllers\Api\SpotSearchController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\SpotController;
 
+
 Route::post('/sign-up-login/signup', function (Request $request){
     $validated = $request->validate([
-        'email' => ['required', 'email', 'max:255', 'unique:user,email'],
-        'password' => ['required', 'min:8'],
+        'auth.email' => ['required', 'email', Rule::unique('users', 'email')],
+        'auth.password' => ['required', 'min:8'],
     ]);
 
     $user = User::create([
         'name' => 'No Name',
-        'email' => $validated['email'],
-        'password' => Hash::make($validated['password']),
+        'email' => $validated['auth']['email'],
+        'password' => Hash::make($validated['auth']['password']),
     ]);
+
 
     return response()->json([
         'success' => true,
@@ -26,6 +31,7 @@ Route::post('/sign-up-login/signup', function (Request $request){
         'authToken' => 'dummy-token',
     ]);
 });
+
 
 Route::post('/sign-up-login/login', function (Request $request){
     return response()->json([
