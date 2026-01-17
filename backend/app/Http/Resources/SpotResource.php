@@ -9,15 +9,13 @@ class SpotResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $tags = [];
+        $tag = null;
 
-        if (!empty($this->tags_json)) {
-            $tags = is_array($this->tags_json) ? $this->tags_json : [];
-        } elseif (!empty($this->tags)) {
-            $tags = array_values(array_filter(array_map(
-                'trim',
-                preg_split('/[,\s]+/', (string) $this->tags)
-            )));
+        if (!empty($this->tag_json)) {
+            $tag = trim((string) $this->tag_json[0]);
+        } elseif (!empty($this->tag)) {
+            $first = preg_split('/[,\s]+/', (string) $this->tag)[0] ?? null;
+            $tag = $first !== null ? trim((string) $first) : null;
         }
 
 
@@ -31,7 +29,7 @@ class SpotResource extends JsonResource
             'image_url' => $this->image_url ? : 'https://placehold.co/300x200?text=No+Image',
             'is_indoor' => (bool) ($this->is_indoor ?? false),
             'weather_ok' => (bool) ($this->weather_ok ?? false),
-            'tags' => $tags,
+            'tag' => $tag,
         ];
     }
 }

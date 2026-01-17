@@ -82,6 +82,8 @@ export function SearchFormContainer({
         );
     };
 
+
+
     const handleSearch = async () => {
         const params = new URLSearchParams();
 
@@ -96,13 +98,10 @@ export function SearchFormContainer({
                 params.append('query', searchText.trim());
             }
 
-            if (activeFilter === 'area') {
-                if (areaSlugs.length > 0) {
-                    areaSlugs.forEach(slug => {
-                        params.append('area', slug);
-                    });
-                }
-            }
+            if (areaSlugs.length > 0) {
+                areaSlugs.forEach(slug => params.append('area', slug)
+            );
+    }
 
             if (activeFilter === 'date') {
                 if (date) {

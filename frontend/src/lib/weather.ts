@@ -19,26 +19,16 @@ export async function fetchWeatherByLatLon(
 
   const url = `https://wxtech.weathernews.com/api/v1/ss1wx?lat=${latNum}&lon=${lonNum}`;
 
-  let res: Response;
-  try {
-    res = await fetch(url, {
+  const res = await fetch(url, {
       headers: { "X-API-Key": process.env.WEATHER_API_KEY! },
+      cache: "no-store",
     });
-  } catch (err) {
-    throw new Error("Failed to fetch weather API: " + String(err));
-  }
 
   if (!res.ok) {
-    const errText = await res.text();
     throw new Error(`API request failed with status ${res.status}`);
   }
 
-  let data: any;
-  try {
-    data = await res.json();
-  } catch (err) {
-    throw new Error("Failed to parse API response JSON");
-  }
+  const data: any = await res.json();
 
   const wxdata = data.wxdata?.[0];
   const current = wxdata?.srf?.[0];
@@ -55,4 +45,55 @@ export async function fetchWeatherByLatLon(
     temperature: current.temp,
     weatherCode: current.wx ?? 0,
   };
+}
+
+
+export type ForecastHour = {
+    time: string;
+    weatherCode: number;
+    precipitation: number;
+    temperature: number;
+};
+
+export type ForecastDay = {
+    date: string;
+    hourly: ForecastHour[];
+};
+
+export type ForecastResponse = {
+    forecasts: ForecastDay[];
+}
+
+export async function fetchForecastByLatLon(
+    lat: string,
+    lon: string,
+): Promise<ForecastResponse>{
+    const latNum = Number(lat);
+    const lonNum = Number(lon);
+
+    if (isNaN(latNum) || isNaN(lonNum)) {
+        throw new Error("lat or lon is not a valid number");
+    }
+
+    const url = `https://wxtech.weathernews.com/api/v1/ss1wx?lat=${latNum}&lon=${lonNum}`;
+
+    const res = await fetch(url, {
+        headers: { "X-API-Key": process.env.WEATHER_API_KEY! },
+        cache: "no-store",
+    });
+
+    if (!res.ok) {
+        throw new Error(`API request failed with status ${res.status}`);
+    }
+
+    const data: any = await res.json();
+    const wxdata = data.wxdata?.[0];
+
+    const forecastsRaw = wxdata?.forecasts;
+    if (!Array.isArray(forecastsRaw)) {
+        throw new Error("Forecast data is missing(forecasts)");
+
+    }
+
+    return { forecasts: forecastsRaw };
 }

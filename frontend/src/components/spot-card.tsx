@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Spot } from "@/types/spot";
 import { FavoriteButton } from "@/components/favorite-button";
+import { purposeTags } from "@/app/search/data";
 
 type Props = {
   spot: Spot;
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export function SpotCard({ spot, initialIsFavorite }: Props) {
+  const displayTag = purposeTags.find((p)=>p.slug === spot.tag)?.label ?? spot.tag;
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
 
   const toggleFavorite = async () => {
@@ -33,6 +35,7 @@ export function SpotCard({ spot, initialIsFavorite }: Props) {
     }
   };
 
+
   return (
     <Link
       href={`/detail/${spot.id}`}
@@ -50,14 +53,11 @@ export function SpotCard({ spot, initialIsFavorite }: Props) {
       </div>
       <div className="grid grid-cols-[5fr_1fr]">
         <div className="flex flex-wrap gap-1 mt-1">
-          {spot.tags.map((tag) => (
-            <span
-              key={tag}
-              className="text-xs py-1 px-2  rounded-full bg-card-tag border border-[0.5px]"
-            >
-              {tag}
+          {spot.tag && (
+            <span className="text-xs py-1 px-2  rounded-full bg-card-tag border border-[0.5px]">
+              {displayTag}
             </span>
-          ))}
+          )}
         </div>
 
         <div>

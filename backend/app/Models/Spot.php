@@ -17,7 +17,6 @@ class Spot extends Model
         'lon' => 'float',
         'is_indoor' => 'boolean',
         'image_urls' => 'array',
-        'tags_json' => 'array',
         'weather_suitability' => 'array',
         'highlights' => 'array',
         'is_indoor' => 'boolean',
@@ -33,8 +32,8 @@ class Spot extends Model
         return $this->hasMany(Favorite::class);
     }
 
-    public function tags()
+    public function openingHours(): HasMany
     {
-        return $this->belongsToMany(Tag::class);
+        return $this->hasMany(SpotOpeningHour::class);
     }
 }

@@ -25,6 +25,8 @@ export default function Page() {
         end_time: searchParams.get('end_time') ?? undefined,
     };
 
+    const isIndoorParam = searchParams.get("is_indoor");
+
     // 表示用ラベル生成
     const areaLabel = params.area
         ?.map(slug => areaTags.find(a => a.slug === slug)?.label)
@@ -47,12 +49,20 @@ export default function Page() {
             ? `${params.start_time} ~ ${params.end_time}`
             : undefined;
 
+    const indoorLabel = 
+        isIndoorParam === "true"
+            ? "屋内"
+            : isIndoorParam === "false"
+            ? "屋外"
+            : undefined;
+
     const conditionLabel = [
         params.query,
         areaLabel,
         purposeLabel,
         dateLabel,
         timeLabel,
+        indoorLabel,
     ]
         .filter(Boolean)
         .join(' / ');
@@ -79,25 +89,56 @@ export default function Page() {
             try {
                 setLoading(true);
 
-                const query = buildQuery(params);
+                const apiParams = {
+                    query: params.query,
+                    area: params.area,
+                    tag: params.purpose,
+                    is_indoor:
+                        isIndoorParam === null
+                            ? undefined
+                            : isIndoorParam === "true"
+                            ? "1"
+                            : "0",
+                    weather_ok: undefined,
+                };
+
+                const query = buildQuery(apiParams);
                 const res = await fetch(
                     `http://localhost:8000/api/spots/search?${query}`
                 );
-                if (!res.ok) throw new Error('fetch failed');
 
-                const raw = await res.json();
+                
+                const text = await res.text();
+                let raw: any = null;
 
-                const normalized: Spot[] = raw.map((spot: any) => ({
+                try {
+                    raw = text ? JSON.parse(text) : null;
+                    } catch {
+                    raw = null;
+                }
+
+                if (!res.ok) {
+                    console.error("API error payload:", raw ?? text);
+                    throw new Error("fetch failed");
+                }
+
+                const items = 
+                    Array.isArray(raw) 
+                        ? raw 
+                        : Array.isArray(raw?.data)
+                            ? raw.data 
+                            : Array.isArray(raw?.data?.data)
+                                ? raw.data.data
+                                : [];
+
+                const normalized: Spot[] = items.map((spot: any) => ({
                     id: spot.id,
                     name: spot.name,
                     area: spot.area,
                     description: spot.description,
                     imageUrl: spot.image_url,
-                    tags: spot.tags
-                        ? spot.tags.split(',').map((t: string) => t.trim())
-                        : [],
+                    tag: spot.tag,
                 }));
-
                 setSpots(normalized);
             } catch (e) {
                 console.error(e);
@@ -150,7 +191,10 @@ export default function Page() {
 
                     {!loading &&
                         spots.map(spot => (
-                            <SpotCard key={spot.id} spot={spot} />
+                            <SpotCard 
+                                key={spot.id} 
+                                spot={spot}
+                                initialIsFavorite = {Boolean((spot as any).is_favorite)} />
                         ))}
                 </div>
             </div>
