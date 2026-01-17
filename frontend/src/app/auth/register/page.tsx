@@ -31,7 +31,7 @@ export default function Page() {
 
     if (res.success) {
       Cookies.set("authToken", res.authToken);
-      localStorage.setItem("justEnteredApp", "true");
+      localStorage.setItem("showAreaModal", "true");
       router.push("/top");
     }
   };

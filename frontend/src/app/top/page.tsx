@@ -54,12 +54,11 @@ export default function Page() {
   const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
 
   useEffect(() => {
-    const justEntered = localStorage.getItem("justEnteredApp");
-
-    if (justEntered === "true") {
+    const shouldShow = localStorage.getItem("showAreaModal") === "true";
+    if (shouldShow) {
       setAreaModalMode("initial");
       setIsAreaModalOpen(true);
-      localStorage.removeItem("justEnteredApp");
+      localStorage.removeItem("showAreaModal");
     }
   }, []);
 
