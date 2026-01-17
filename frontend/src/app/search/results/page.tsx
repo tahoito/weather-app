@@ -91,16 +91,34 @@ export default function Page() {
                 const res = await fetch(
                     `http://localhost:8000/api/spots/search?${query}`
                 );
-                if (!res.ok) throw new Error('fetch failed');
 
-                const raw = await res.json();
-                const items = Array.isArray(raw) ? raw : raw.data ?? [];
+                console.log("status", res.status);
+                const text = await res.text();
+                console.log("body", text);
 
-                console.log("raw", raw);
-                console.log("raw first", Array.isArray(raw) ? raw[0] : raw?.data?.[0]);
+                let raw: any = null;
 
+                try {
+                    raw = text ? JSON.parse(text) : null;
+                    } catch {
+                    raw = null;
+                }
 
-                const normalized: Spot[] = raw.map((spot: any) => ({
+                if (!res.ok) {
+                    console.error("API error payload:", raw ?? text);
+                    throw new Error("fetch failed");
+                }
+
+                const items = 
+                    Array.isArray(raw) 
+                        ? raw 
+                        : Array.isArray(raw?.data)
+                            ? raw.data 
+                            : Array.isArray(raw?.data?.data)
+                                ? raw.data.data
+                                : [];
+
+                const normalized: Spot[] = items.map((spot: any) => ({
                     id: spot.id,
                     name: spot.name,
                     area: spot.area,
@@ -160,7 +178,10 @@ export default function Page() {
 
                     {!loading &&
                         spots.map(spot => (
-                            <SpotCard key={spot.id} spot={spot} />
+                            <SpotCard 
+                                key={spot.id} 
+                                spot={spot}
+                                initialIsFavorite = {Boolean((spot as any).is_favorite)} />
                         ))}
                 </div>
             </div>

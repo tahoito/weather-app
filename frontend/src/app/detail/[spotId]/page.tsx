@@ -121,12 +121,12 @@ export default function Page() {
           </div>
           <p className="text-xl">{spot.area}</p>
           <p>屋内</p>
-          <p>{spot.detail}</p>
+          <p>{spot.description}</p>
         </div>
         <div className="flex justify-end gap-2">
-          {spot.tags && (
+          {spot.tag && (
             <span className="text-sm py-2.5 px-4 rounded-full bg-main">
-              {spot.tags}
+              {spot.tag}
             </span>
           )}
         </div>

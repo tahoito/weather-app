@@ -11,9 +11,6 @@ class SpotSearchController extends Controller
 {
     public function index(Request $request)
     {
-        dd('SpotSearchController hit');
-
-        
         $query  = Spot::query();
         $userId = auth()->id() ?? -1;
 
@@ -32,25 +29,24 @@ class SpotSearchController extends Controller
         }
 
         if ($request->filled('tag')) {
-            $query->whereHas('tag', $request->input('tag'));
+            $tag = $request->string('tag')->toString();
+            $query->where('tag', $tag);
         }
 
-        if ($request->filled('date') && ($request->filled('time'))) {
-            $date = $request->input('date'); 
+        if ($request->filled('date') && ($request->filled('start_time') || $request->filled('end_time'))) {
+            $date  = $request->input('date');
             $start = $request->input('start_time');
-            $end = $request->input('end_time');
-            $dow = (int) date('w', strtotime($date));
+            $end   = $request->input('end_time');
+            $dow   = (int) date('w', strtotime($date));
 
-            $query->whereHas('openingHours', function ($q) use ($dayOfWeek, $time) {
+            $query->whereHas('openingHours', function ($q) use ($dow, $start, $end) {
                 $q->where('day_of_week', $dow);
-                if ($start) {
-                    $q->where('open_time', '<=', $start);   
-                }
-                if ($end) {
-                    $q->where('close_time', '>=', $end);    
-                }
+
+                if ($start) $q->where('open_time', '<=', $start);
+                if ($end)   $q->where('close_time', '>=', $end);
             });
         }
+
 
         $query->withCount([
             'favorites as is_favorited' => function ($q) use ($userId) {
