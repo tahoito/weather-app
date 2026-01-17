@@ -3,112 +3,132 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\SpotResource;
 use Illuminate\Http\Request;
 use App\Models\Spot;
 
 class SpotController extends Controller
 {
-    //     public function recommended(Request $request)
-    // {
-    //     $area = $request->query('area'); // meieki など
-    //     $limit = (int) $request->query('limit', 4);
 
-    //     $query = Spot::query();
+    public function index(Request $request)
+    {
+        $validated = $request->validate([
+            'area' => ['nullable','string'],
+            'is_indoor' => ['nullable'],
+            'weather_ok' => ['nullable'],
+        ]);
 
-    //     if ($area) {
-    //         $query->where('area', $area);
-    //     }
+        $q = Spot::query()->with(['area','tags']);
 
-    //     $spots = $query
-    //         ->orderByDesc('created_at')
-    //         ->limit($limit)
-    //         ->get();
+        if (!empty($validated['area'])) {
+            $q->where('area', $validated['area']);
+        }
 
-    //     return response()->json(
-    //         $spots->map(fn($s) => [
-    //             'id' => $s->id,
-    //             'name' => $s->name,
-    //             'area' => $s->area ?? '',
-    //             'description' => $s->description ?? '',
-    //             'imageUrl' => $s->image_url ?: 'https://placehold.co/300x200?text=No+Image',
-    //             // spots.tags が "友達, ゆったり" みたいな文字列なら配列化
-    //             'tags' => $s->tags
-    //                 ? array_values(array_filter(array_map('trim', preg_split('/[,\s]+/', $s->tags))))
-    //                 : [],
-    //         ])
-    //     );
-    // }
+        if ($request->filled('is_indoor')){
+            $q->where('is_indoor',filter_var($request->input('is_indoor'),  FILTER_VALIDATE_BOOLEAN));
+        }
 
-    // public function recommended(Request $request)
-    // {
-    //     $area = $request->query('area'); // meieki
-    //     $limit = (int) $request->query('limit', 4);
+        if ($request->filled('weather_ok')){
+            $q->where('weather_ok',filter_var($request->input('weather_ok'),FILTER_VALIDATE_BOOLEAN));
+        }
 
-    //     $query = Spot::with(['area', 'tags']);
+        $spots = $q->select(['id','name','lat','lon','area','description','image_url','is_indoor','weather_ok'])
+            ->whereNotNull('lat')
+            ->whereNotNull('lon')
+            ->orderBy('id')
+            ->get();
 
-    //     // if ($area) {
-    //     //     $query->whereHas('area', function ($q) use ($area) {
-    //     //         $q->where('slug', $area);
-    //     //     });
-    //     // }
-    //     if ($area) {
-    //         $query->where('area', $area);
-    //     }
+        return SpotResource::collection($spots);
+    }
 
+    public function show(Spot $spot)
+    {
+        return new SpotResource($spot);
+    }
 
-    //     $spots = $query
-    //         ->orderByDesc('created_at')
-    //         ->limit($limit)
-    //         ->get();
+    public function inBounds(Request $request)
+    {
+        $south = (float) $request->query('south');
+        $west = (float) $request->query('west');
+        $north = (float) $request->query('north');
+        $east = (float) $request->query('east');
 
-    //     return response()->json(
-    //         $spots->map(fn($s) => [
-    //             'id' => $s->id,
-    //             'name' => $s->name,
-    //             // 'area' => $s->area?->name ?? '',
-    //             // 'area' => $s->area,
-    //             'area' => is_object($s->area) ? $s->area->name : $s->area,
-    //             'description' => $s->description ?? '',
-    //             'image_url' => $s->image_url ?: 'https://placehold.co/300x200?text=No+Image',
-    //             // 'tags' => $s->tags->pluck('name')->values(),
-    //             'tags' => $s->relationLoaded('tags')
-    //                 ? $s->tags->pluck('name')->values()
-    //                 : [],
+        $q = Spot::query()
+            ->select(['id','name','lat','lon','area'])
+            ->whereBetween('lat',[$south, $north])
+            ->whereBetween('lon',[$west, $east])
+            ->whereNotNull('lat')
+            ->whereNotNull('lon');
+        
+        if ($request->filled('area')) {
+            $q->where('area', $request->string('area'));
+        }
 
-    //         ])
-    //     );
-    // }
+        if ($request->filled('is_indoor')) {
+            $q->where('is_indoor', filter_var($request->input('is_indoor'), FILTER_VALIDATE_BOOLEAN));
+        }
+        return SpotResource::collection($q->orderBy('id')->get());
+    }
 
     public function recommended(Request $request)
     {
-        $area = $request->query('area'); // meieki
+        $area = $request->query('area'); 
+        $weather = $request->query('weather','clear');
         $limit = (int) $request->query('limit', 4);
 
-        $query = Spot::with(['area', 'tags']);
+        $temp = $request->has('temp') ? (float) $request->query('temp') : null;
+        $pop = $request->has('pop') ? (int) $request->query('pop') : null;
+        $wind = $request->has('wind') ? (float) $request->query('wind') : null;
+        $humidity = $request->has('humidity') ? (int) $request->query('humidity') : null;
 
-        if ($area) {
-            $query->where('area', $area); // カラムに直接絞る
+        $indoorScore = 0;
+
+        if ($pop !== null) {
+            if ($pop >= 80) $indoorScore += 50;
+            elseif ($pop >= 60) $indoorScore += 35;
+            elseif ($pop >= 40) $indoorScore += 15;
         }
 
-        $spots = $query
-            ->orderByDesc('created_at')
-            ->limit($limit)
-            ->get();
+        if ($wind !== null) {
+            if ($wind >= 10) $indoorScore += 25;
+            elseif ($wind >= 8) $indoorScore += 15;
+            elseif ($wind >= 6) $indoorScore += 8;
+        }
 
-        return response()->json(
-            $spots->map(fn($s) => [
-                'id' => $s->id,
-                'name' => $s->name,
-                // 'area' => is_object($s->area) ? $s->area->name : $s->area,
-                'area' => $s->area?->name ?? $s->area,
-                'description' => $s->description ?? '',
-                'image_url' => $s->image_url ?: 'https://placehold.co/300x200?text=No+Image',
-                'tags' => is_iterable($s->tags)
-                    ? collect($s->tags)->pluck('name')->values()
-                    : (is_string($s->tags)
-                        ? array_values(array_filter(array_map('trim', preg_split('/[,\s]+/', $s->tags))))
-                        : []),
-            ])
-        );
+        if ($temp !== null) {
+            if ($temp <= 7) $indoorScore += 15;
+            elseif ($temp <= 10) $indoorScore += 10;
+
+            if ($temp >= 32) $indoorScore += 15;
+            elseif ($temp >= 30) $indoorScore += 10;
+        }
+
+        if ($humidity != null) {
+            if ($humidity >= 85) $indoorScore += 10;
+            elseif ($humidity >= 60) $indoorScore += 5;
+        }
+
+        $q = Spot::query();
+
+        if ($indoorScore >= 50) {
+            $q->orderByDesc('is_indoor');
+        }else {
+            $q->orderBy('is_indoor');
+        }
+
+        $q->orderByDesc('weather_ok')->orderByDesc('created_at');
+
+        $spots = $q->limit($limit)->get();
+
+        $mode = $indoorScore >= 50 ? 'indoor' : 'outdoor';
+
+        $spots = $q->limit($limit)->get();
+
+        return SpotResource::collection($spots)->additional([
+            'meta' => [
+                'indoor_score' => $indoorScore,
+                'mode' => $mode,
+            ],
+        ]);
     }
 }

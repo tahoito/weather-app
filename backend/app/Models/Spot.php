@@ -13,6 +13,9 @@ class Spot extends Model
     protected $guarded = [];
 
     protected $casts = [
+        'lat' => 'float',
+        'lon' => 'float',
+        'is_indoor' => 'boolean',
         'image_urls' => 'array',
         'tags_json' => 'array',
         'weather_suitability' => 'array',

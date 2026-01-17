@@ -32,7 +32,10 @@ type Spot = {
   area: string;
   description: string;
   image_url: string;
-  tags: string[];
+  tags?: string[];
+  is_indoor?: boolean;
+  weather_ok?: boolean;
+  areaName?: string;
 };
 
 export default function Page() {
@@ -119,33 +122,40 @@ export default function Page() {
   // }, [currentArea]);
 
   useEffect(() => {
-    if (!currentArea || areas.length === 0) return;
+    if (!currentArea || areas.length === 0 || !weather) return;
 
     async function loadSpots() {
       try {
-        const res = await fetch(
-          `/api/spots/recommended?area=${currentArea.slug}`
-        );
+        const qs = new URLSearchParams({
+          area: currentArea.slug,
+          pop: String(weather.precipitation),
+          wind: String(weather.windSpeed),
+          temp: String(weather.temperature),
+          humidity: String(weather.humidity),
+          limit: "10",
+        });
+
+        const res = await fetch(`/api/spots/recommended?${qs.toString()}`);
         if (!res.ok) {
           console.error("スポット取得失敗", res.status);
           return;
         }
 
-        const data: Spot[] = await res.json();
+        const json = await res.json();
+        const data: Spot[] = Array.isArray(json) ? json : json.data;
 
         const mappedSpots = data.map((spot) => ({
           ...spot,
-          areaName: areas.find((a) => a.slug === spot.area)?.name || spot.area,
+          areaName: areas.find((a) => a.slug === spot.area)?.name ||spot.area,
         }));
-
         setSpots(mappedSpots);
-      } catch (err) {
-        console.error(err);
-      }
-    }
 
+      } catch (err) {
+        console.error("loadSpots error:", err);
+      }  
+    }
     loadSpots();
-  }, [currentArea, areas]);
+  }, [currentArea, areas, weather]);
 
   useEffect(() => {
   async function loadFavorites() {
@@ -242,7 +252,7 @@ export default function Page() {
                 {weather ? (
                   (() => {
                     const weatherInfo = weatherCodeMap[weather.weatherCode];
-                    if (!weatherInfo) return <p className="mt-1">情報なし</p>;
+                    if (!weatherInfo) return;
                     const IconComponent = weatherInfo.Icon;
                     return (
                       <>

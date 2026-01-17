@@ -14,3 +14,6 @@ Route::post('/favorites',[FavoriteController::class,'store']);
 Route::delete('/favorites/{spot}',[FavoriteController::class,'destroy']);
 Route::get('/tags', [TagController::class,'index']);
 Route::get('/spots/recommended', [SpotController::class, 'recommended']);
+Route::get('/spots',[SpotController::class,'index']);
+Route::get('/spot/{spot}',[SpotController::class,'show']);
+Route::get('/spots/in-bounds',[SpotController::class,'inBounds']);
