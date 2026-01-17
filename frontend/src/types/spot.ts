@@ -22,9 +22,10 @@ export type Spot = {
   id: number;
   name: string;
   area: string;
+  areaName?: string;
   description: string;
-  imageUrl: string;
-  tags: SpotTag[];
+  image_url: string;
+  tags: string[];
 };
 
 export const weatherCodeMap: Record<

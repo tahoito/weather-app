@@ -1,7 +1,7 @@
 import { NavigationBar } from "@/components/navigation-bar";
 import { areaTags, purposeTags, getDateOptions, getTimeOptions } from './data';
 import { getSearchHistory } from './actions';
-import { SearchFormContainer } from "./components/search-form-container";
+import { SearchFormContainer } from "./_components/search-form-container";
 
 export default async function Page() {
     const initialSearchHistory = await getSearchHistory();
