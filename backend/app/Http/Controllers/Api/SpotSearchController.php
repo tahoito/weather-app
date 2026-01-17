@@ -14,6 +14,14 @@ class SpotSearchController extends Controller
         $query  = Spot::query();
         $userId = auth()->id() ?? -1;
 
+        if ($request->filled('query')) {
+            $q = $request->input('query');
+            $query->where(function($w) use ($q) {
+                $w->where('name','like',"%{$q}%")
+                    ->orWhere('description','like',"%{$q}%");
+            });
+        }
+
         if ($request->filled('area')) {
             $areas = $request->input('area');
             $areas = is_array($areas) ? $areas : [$areas];

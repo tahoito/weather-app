@@ -107,10 +107,8 @@ export default function Page() {
                     `http://localhost:8000/api/spots/search?${query}`
                 );
 
-                console.log("status", res.status);
+                
                 const text = await res.text();
-                console.log("body", text);
-
                 let raw: any = null;
 
                 try {
