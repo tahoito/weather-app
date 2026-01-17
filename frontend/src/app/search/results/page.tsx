@@ -96,13 +96,17 @@ export default function Page() {
                 const raw = await res.json();
                 const items = Array.isArray(raw) ? raw : raw.data ?? [];
 
+                console.log("raw", raw);
+                console.log("raw first", Array.isArray(raw) ? raw[0] : raw?.data?.[0]);
+
+
                 const normalized: Spot[] = raw.map((spot: any) => ({
                     id: spot.id,
                     name: spot.name,
                     area: spot.area,
                     description: spot.description,
                     imageUrl: spot.image_url,
-                    tag: spot.tag ?? null,
+                    tag: spot.tag,
                 }));
                 setSpots(normalized);
             } catch (e) {

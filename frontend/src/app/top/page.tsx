@@ -32,7 +32,7 @@ type Spot = {
   area: string;
   description: string;
   image_url: string;
-  tags?: string[];
+  tag: string;
   is_indoor?: boolean;
   weather_ok?: boolean;
   areaName?: string;

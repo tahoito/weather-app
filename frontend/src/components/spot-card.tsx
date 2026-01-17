@@ -33,6 +33,9 @@ export function SpotCard({ spot, initialIsFavorite }: Props) {
     }
   };
 
+  console.log("spot", spot);
+
+
   return (
     <Link
       href={`/detail/${spot.id}`}
@@ -50,14 +53,11 @@ export function SpotCard({ spot, initialIsFavorite }: Props) {
       </div>
       <div className="grid grid-cols-[5fr_1fr]">
         <div className="flex flex-wrap gap-1 mt-1">
-          {spot.tags.map((tag) => (
-            <span
-              key={tag}
-              className="text-xs py-1 px-2  rounded-full bg-card-tag border border-[0.5px]"
-            >
-              {tag}
+          {spot.tag && (
+            <span className="text-xs py-1 px-2  rounded-full bg-card-tag border border-[0.5px]">
+              {spot.tag}
             </span>
-          ))}
+          )}
         </div>
 
         <div>

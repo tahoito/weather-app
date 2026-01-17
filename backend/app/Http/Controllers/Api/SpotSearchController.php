@@ -11,6 +11,9 @@ class SpotSearchController extends Controller
 {
     public function index(Request $request)
     {
+        dd('SpotSearchController hit');
+
+        
         $query  = Spot::query();
         $userId = auth()->id() ?? -1;
 
@@ -28,12 +31,8 @@ class SpotSearchController extends Controller
             $query->where('weather_ok', $request->boolean('weather_ok'));
         }
 
-        if ($request->filled('tags')) {
-            $tags = $request->input('tags'); 
-            $tags = is_array($tags) ? $tags : [$tags];
-            $query->whereHas('tags', function ($q) use ($tags) {
-                $q->whereIn('slug', $tags);
-            });
+        if ($request->filled('tag')) {
+            $query->whereHas('tag', $request->input('tag'));
         }
 
         if ($request->filled('date') && ($request->filled('time'))) {
@@ -68,6 +67,7 @@ class SpotSearchController extends Controller
             'image_url',
             'is_indoor',
             'weather_ok',
+            'tag',
         ]);
     }
 }

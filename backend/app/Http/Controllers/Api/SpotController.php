@@ -18,7 +18,7 @@ class SpotController extends Controller
             'weather_ok' => ['nullable'],
         ]);
 
-        $q = Spot::query()->with(['area','tags']);
+        $q = Spot::query()->with(['area','tag']);
 
         if (!empty($validated['area'])) {
             $q->where('area', $validated['area']);
@@ -32,7 +32,7 @@ class SpotController extends Controller
             $q->where('weather_ok',filter_var($request->input('weather_ok'),FILTER_VALIDATE_BOOLEAN));
         }
 
-        $spots = $q->select(['id','name','lat','lon','area','description','image_url','is_indoor','weather_ok'])
+        $spots = $q->select(['id','name','lat','lon','area','description','image_url','is_indoor','weather_ok','tag'])
             ->whereNotNull('lat')
             ->whereNotNull('lon')
             ->orderBy('id')
@@ -54,7 +54,7 @@ class SpotController extends Controller
         $east = (float) $request->query('east');
 
         $q = Spot::query()
-            ->select(['id','name','lat','lon','area'])
+            ->select(['id','name','lat','lon','area','tag'])
             ->whereBetween('lat',[$south, $north])
             ->whereBetween('lon',[$west, $east])
             ->whereNotNull('lat')
