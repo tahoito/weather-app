@@ -91,7 +91,7 @@ export default function Page() {
     async function loadWeather() {
       try {
         const res = await fetch(
-          `/api/weather?lat=${currentArea.lat}&lon=${currentArea.lon}`,
+          `/api/weather/current?lat=${currentArea.lat}&lon=${currentArea.lon}`,
           { signal: controller.signal, cache: "no-store" }
         );
         if (!res.ok) return;
