@@ -21,7 +21,7 @@ class SpotSearchController extends Controller
         }
 
         if ($request->filled('is_indoor')) {
-            $query->where('is_indoor', $request->boolean('is_indoor'));
+            $query->where('is_indoor', (int) $request->input('is_indoor'));
         }
 
         if ($request->filled('weather_ok')) {

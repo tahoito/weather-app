@@ -25,6 +25,8 @@ export default function Page() {
         end_time: searchParams.get('end_time') ?? undefined,
     };
 
+    const isIndoorParam = searchParams.get("is_indoor");
+
     // 表示用ラベル生成
     const areaLabel = params.area
         ?.map(slug => areaTags.find(a => a.slug === slug)?.label)
@@ -47,12 +49,20 @@ export default function Page() {
             ? `${params.start_time} ~ ${params.end_time}`
             : undefined;
 
+    const indoorLabel = 
+        isIndoorParam === "true"
+            ? "屋内"
+            : isIndoorParam === "false"
+            ? "屋外"
+            : undefined;
+
     const conditionLabel = [
         params.query,
         areaLabel,
         purposeLabel,
         dateLabel,
         timeLabel,
+        indoorLabel,
     ]
         .filter(Boolean)
         .join(' / ');
@@ -83,7 +93,12 @@ export default function Page() {
                     query: params.query,
                     area: params.area,
                     tag: params.purpose,
-                    is_indoor: undefined,
+                    is_indoor:
+                        isIndoorParam === null
+                            ? undefined
+                            : isIndoorParam === "true"
+                            ? "1"
+                            : "0",
                     weather_ok: undefined,
                 };
 
