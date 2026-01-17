@@ -87,6 +87,10 @@ export default function Page() {
 
                 const raw = await res.json();
 
+                console.log("raw", raw);
+                console.log("raw first", Array.isArray(raw) ? raw[0] : raw?.data?.[0]);
+
+
                 const normalized: Spot[] = raw.map((spot: any) => ({
                     id: spot.id,
                     name: spot.name,

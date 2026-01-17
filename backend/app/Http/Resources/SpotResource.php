@@ -12,9 +12,9 @@ class SpotResource extends JsonResource
         $tag = null;
 
         if (!empty($this->tag_json)) {
-            $tag = trim((string) $this->tags_json[0]);
-        } elseif (!empty($this->tags)) {
-            $first = preg_split('/[,\s]+/', (string) $this->tags)[0] ?? null;
+            $tag = trim((string) $this->tag_json[0]);
+        } elseif (!empty($this->tag)) {
+            $first = preg_split('/[,\s]+/', (string) $this->tag)[0] ?? null;
             $tag = $first !== null ? trim((string) $first) : null;
         }
 

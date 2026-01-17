@@ -11,6 +11,9 @@ class SpotSearchController extends Controller
 {
     public function index(Request $request)
     {
+        dd('SpotSearchController hit');
+
+        
         $query  = Spot::query();
         $userId = auth()->id() ?? -1;
 
@@ -27,10 +30,7 @@ class SpotSearchController extends Controller
         }
 
         if ($request->filled('tag')) {
-            $tags = $request->input('tag'); // tags[]=cafe&tags[]=date
-            $query->whereHas('tag', function ($q) use ($tags) {
-                $q->whereIn('slug', $tags);
-            });
+            $query->whereHas('tag', $request->input('tag'));
         }
 
         $query->withCount([
@@ -48,6 +48,7 @@ class SpotSearchController extends Controller
             'image_url',
             'is_indoor',
             'weather_ok',
+            'tag',
         ]);
     }
 }
