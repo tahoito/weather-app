@@ -1,4 +1,5 @@
 import axios from "axios";
+const api = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export type AuthSignUpRequest = {
   auth: {
@@ -16,18 +17,20 @@ export type AuthSignUpResponse = {
 export async function authSignUp({
   auth,
 }: AuthSignUpRequest): Promise<AuthSignUpResponse> {
-  const apiUrl = "https://example.com/api/sign-up-login/signup";
-
   try {
-    const response = await axios.post<AuthSignUpResponse>(apiUrl, auth, {
-      headers: { "Content-Type": "application/json" },
-    });
+    const response = await axios.post<AuthSignUpResponse>(
+      `${api}/api/sign-up-login/signup`,
+      auth, 
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
     return response.data;
   } catch (err: any) {
     console.error(err);
     return {
       success: false,
-      message: err.response?.data.message || "ログインに失敗しました",
+      message: err.response?.data?.message || "ログインに失敗しました",
       authToken: "",
     };
   }
