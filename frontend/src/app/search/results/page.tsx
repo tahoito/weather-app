@@ -93,9 +93,7 @@ export default function Page() {
                     area: spot.area,
                     description: spot.description,
                     imageUrl: spot.image_url,
-                    tags: spot.tags
-                        ? spot.tags.split(',').map((t: string) => t.trim())
-                        : [],
+                    tag: spot.tag,
                 }));
 
                 setSpots(normalized);

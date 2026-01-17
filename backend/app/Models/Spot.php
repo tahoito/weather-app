@@ -17,7 +17,6 @@ class Spot extends Model
         'lon' => 'float',
         'is_indoor' => 'boolean',
         'image_urls' => 'array',
-        'tags_json' => 'array',
         'weather_suitability' => 'array',
         'highlights' => 'array',
         'is_indoor' => 'boolean',
@@ -31,10 +30,5 @@ class Spot extends Model
     public function favorites()
     {
         return $this->hasMany(Favorite::class);
-    }
-
-    public function tags()
-    {
-        return $this->belongsToMany(Tag::class);
     }
 }
