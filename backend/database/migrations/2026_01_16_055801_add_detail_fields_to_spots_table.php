@@ -12,16 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('spots', function (Blueprint $table) {
-            $table->decimal('lon',10,7)->after('lat');
+            
+            $table->text('detail')->nullable();
+            $table->string('price')->nullable();
+            $table->string('opening_hours')->nullable();
 
-            $table->text('detail')->nullable()->after('description');
-            $table->string('price')->nullable()->after('tips');
-            $table->string('opening_hours')->nullable()->after('price');
-
-            $table->json('image_urls')->nullable()->after('image_url');
-            $table->json('tags_json')->nullable()->after('tips');
-            $table->json('weather_suitability')->nullable()->after('weather_ok');
-            $table->json('highlights')->nullable()->after('weather_suitability');
+            $table->json('image_urls')->nullable();
+            $table->json('tags_json')->nullable();
+            $table->json('weather_suitability')->nullable();
+            $table->json('highlights')->nullable();
 
             if (Schema::hasColumn('spots', 'lon') && Schema::hasColumn('spots', 'long')) {
                 DB::statement('UPDATE spots SET lon = `long` WHERE lon IS NULL');

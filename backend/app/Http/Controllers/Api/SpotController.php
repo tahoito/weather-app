@@ -73,19 +73,62 @@ class SpotController extends Controller
     public function recommended(Request $request)
     {
         $area = $request->query('area'); 
+        $weather = $request->query('weather','clear');
         $limit = (int) $request->query('limit', 4);
 
-        $query = Spot::with(['area', 'tags']);
+        $temp = $request->has('temp') ? (float) $request->query('temp') : null;
+        $pop = $request->has('pop') ? (int) $request->query('pop') : null;
+        $wind = $request->has('wind') ? (float) $request->query('wind') : null;
+        $humidity = $request->has('humidity') ? (int) $request->query('humidity') : null;
 
-        if ($area) {
-            $query->where('area', $area); 
+        $indoorScore = 0;
+
+        if ($pop !== null) {
+            if ($pop >= 80) $indoorScore += 50;
+            elseif ($pop >= 60) $indoorScore += 35;
+            elseif ($pop >= 40) $indoorScore += 15;
         }
 
-        $spots = $query
-            ->orderByDesc('created_at')
-            ->limit($limit)
-            ->get();
+        if ($wind !== null) {
+            if ($wind >= 10) $indoorScore += 25;
+            elseif ($wind >= 8) $indoorScore += 15;
+            elseif ($wind >= 6) $indoorScore += 8;
+        }
 
-        return SpotResource::collection($spots);
+        if ($temp !== null) {
+            if ($temp <= 7) $indoorScore += 15;
+            elseif ($temp <= 10) $indoorScore += 10;
+
+            if ($temp >= 32) $indoorScore += 15;
+            elseif ($temp >= 30) $indoorScore += 10;
+        }
+
+        if ($humidity != null) {
+            if ($humidity >= 85) $indoorScore += 10;
+            elseif ($humidity >= 60) $indoorScore += 5;
+        }
+
+        $q = Spot::query();
+
+        if ($indoorScore >= 50) {
+            $q->orderByDesc('is_indoor');
+        }else {
+            $q->orderBy('is_indoor');
+        }
+
+        $q->orderByDesc('weather_ok')->orderByDesc('created_at');
+
+        $spots = $q->limit($limit)->get();
+
+        $mode = $indoorScore >= 50 ? 'indoor' : 'outdoor';
+
+        $spots = $q->limit($limit)->get();
+
+        return SpotResource::collection($spots)->additional([
+            'meta' => [
+                'indoor_score' => $indoorScore,
+                'mode' => $mode,
+            ],
+        ]);
     }
 }
