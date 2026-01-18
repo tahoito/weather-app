@@ -12,6 +12,17 @@ class Spot extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'lat' => 'float',
+        'lon' => 'float',
+        'is_indoor' => 'boolean',
+        'image_urls' => 'array',
+        'weather_suitability' => 'array',
+        'highlights' => 'array',
+        'is_indoor' => 'boolean',
+        'weather_ok' => 'boolean',
+    ];
+
     public function area(){
         return $this->belongsTo(Area::class);
     }
@@ -21,8 +32,8 @@ class Spot extends Model
         return $this->hasMany(Favorite::class);
     }
 
-    public function tags()
+    public function openingHours(): HasMany
     {
-        return $this->belongsToMany(Tag::class);
+        return $this->hasMany(SpotOpeningHour::class);
     }
 }

@@ -32,7 +32,10 @@ type Spot = {
   area: string;
   description: string;
   image_url: string;
-  tags: string[];
+  tag: string;
+  is_indoor?: boolean;
+  weather_ok?: boolean;
+  areaName?: string;
 };
 
 export default function Page() {
@@ -48,31 +51,32 @@ export default function Page() {
   );
   const [areas, setAreas] = useState<Area[]>([]);
   const [currentArea, setCurrentArea] = useState<Area | null>(null);
+  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
 
   useEffect(() => {
-    const justEntered = localStorage.getItem("justEnteredApp");
-
-    if (justEntered === "true") {
+    const shouldShow = localStorage.getItem("showAreaModal") === "true";
+    if (shouldShow) {
       setAreaModalMode("initial");
       setIsAreaModalOpen(true);
-      localStorage.removeItem("justEnteredApp");
+      localStorage.removeItem("showAreaModal");
     }
   }, []);
 
   useEffect(() => {
     async function loadAreas() {
       try {
-        const res = await fetch("http://localhost:8011/api/areas");
+        const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+        const res = await fetch(`${base}/api/areas`);
         if (!res.ok) return;
 
-        const data: Area[] = await res.json();
+        const json = await res.json();
+        const data: Area[] = Array.isArray(json) ? json : json.data;
         setAreas(data);
 
-        // 仮：最初は名駅を選択
-        const meieki = data.find((a) => a.slug === "meieki");
-        if (meieki) {
-          setCurrentArea(meieki);
-        }
+        const savedSlug = localStorage.getItem("selectedAreaSlug");
+        const saved = savedSlug ? data.find(a => a.slug === savedSlug) : null;
+        setCurrentArea(saved ?? data[0]);
+        
       } catch (e) {}
     }
 
@@ -82,19 +86,25 @@ export default function Page() {
   useEffect(() => {
     if (!currentArea) return;
 
+    const controller = new AbortController();
+
     async function loadWeather() {
       try {
         const res = await fetch(
-          `/api/weather?lat=${currentArea.lat}&lon=${currentArea.lon}`
+          `/api/weather/current?lat=${currentArea.lat}&lon=${currentArea.lon}`,
+          { signal: controller.signal, cache: "no-store" }
         );
         if (!res.ok) return;
 
         const data = await res.json();
         setWeather(data);
-      } catch (e) {}
+      } catch (e:any) {
+        if (e?.name !== "AbortError") console.error(e);
+      }
     }
 
     loadWeather();
+    return () => controller.abort();
   }, [currentArea]);
 
   // useEffect(() => {
@@ -117,33 +127,68 @@ export default function Page() {
   // }, [currentArea]);
 
   useEffect(() => {
-    if (!currentArea || areas.length === 0) return;
+    if (!currentArea || areas.length === 0 || !weather) return;
 
     async function loadSpots() {
       try {
-        const res = await fetch(
-          `/api/spots/recommended?area=${currentArea.slug}`
-        );
-        if (!res.ok) {
-          console.error("スポット取得失敗", res.status);
-          return;
-        }
+        const qs = new URLSearchParams({
+          area: currentArea.slug,
+          pop: String(weather.precipitation),
+          wind: String(weather.windSpeed),
+          temp: String(weather.temperature),
+          humidity: String(weather.humidity),
+          limit: "10",
+        });
 
-        const data: Spot[] = await res.json();
+        const res = await fetch(`/api/spots/recommended?${qs.toString()}`, {
+          cache: "no-store",
+        });
+        if (!res.ok) return;
+      
+        const json = await res.json();
+        const data: Spot[] = Array.isArray(json) ? json : json.data;
 
-        const mappedSpots = data.map((spot) => ({
+        setSpots(
+          data.map((spot) => ({
           ...spot,
-          areaName: areas.find((a) => a.slug === spot.area)?.name || spot.area,
-        }));
-
-        setSpots(mappedSpots);
+          areaName: areas.find((a) => a.slug === spot.area)?.name ||spot.area,
+        }))
+      );
       } catch (err) {
-        console.error(err);
-      }
+        console.error("loadSpots error:", err);
+      }  
     }
-
     loadSpots();
-  }, [currentArea, areas]);
+  }, [currentArea?.slug,
+     areas.length,
+     weather?.precipitation,
+     weather?.humidity,
+     weather?.windSpeed,
+     weather?.temperature,]);
+
+  useEffect(() => {
+  async function loadFavorites() {
+    try {
+      const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+      if (!base) {
+        console.error("NEXT_PUBLIC_API_BASE_URL が未設定");
+        return;
+      }
+
+      const res = await fetch(`${base}/api/favorites`, { cache: "no-store" });
+      if (!res.ok) {
+        console.error("favorites取得失敗", res.status);
+        return;
+      }
+
+      const data = await res.json();
+      setFavoriteIds(data.map((f: any) => Number(f.spot_id)));
+    } catch (e) {
+      console.error("favorites fetch error:", e);
+    }
+  }
+    loadFavorites();
+  }, []);
 
   return (
     <div className="bg-back min-h-screen pb-20 [&>*]:text-fg ">
@@ -191,6 +236,7 @@ export default function Page() {
                         className="w-20 px-2 py-1 rounded-full border bg-card-back shadow-[1px_2px_1px_rgba(0,0,0,0.20)]"
                         onClick={() => {
                           setCurrentArea(area);
+                          localStorage.setItem("selectedAreaSlug", area.slug);
                           setIsAreaModalOpen(false);
                         }}
                       >
@@ -215,7 +261,7 @@ export default function Page() {
                 {weather ? (
                   (() => {
                     const weatherInfo = weatherCodeMap[weather.weatherCode];
-                    if (!weatherInfo) return <p className="mt-1">情報なし</p>;
+                    if (!weatherInfo) return;
                     const IconComponent = weatherInfo.Icon;
                     return (
                       <>
@@ -268,7 +314,11 @@ export default function Page() {
         <div className="flex justify-center ">
           <div className="grid grid-cols-2 gap-2">
             {spots.map((spot) => (
-              <SpotCard key={spot.id} spot={spot} />
+              <SpotCard
+                key={spot.id}
+                spot={spot}
+                initialIsFavorite={favoriteIds.includes(spot.id)}
+              />
             ))}
           </div>
         </div>

@@ -14,7 +14,7 @@ export const dummySpots: Spot[] = [
       "https://placehold.jp/600x400.png?text=Nagoya+Castle+2",
       "https://placehold.jp/600x400.png?text=Nagoya+Castle+3",
     ],
-    tags: ["友達", "ゆったり"],
+    tag: ["友達"],
     weatherSuitability: [
       "雨の日でも屋内展示があるので楽しめる",
       "晴れの日は城と空のコントラストが美しい",
@@ -38,7 +38,7 @@ export const dummySpots: Spot[] = [
       "https://placehold.jp/600x400.png?text=Nagoya+Castle+3",
       "https://placehold.jp/600x400.png?text=Nagoya+Castle+4",
     ],
-    tags: ["アクティブ", "屋外"],
+    tag: ["アクティブ"],
     weatherSuitability: [
       "雨の日でも屋内展示があるので楽しめる",
       "晴れの日は城と空のコントラストが美しい",
@@ -57,7 +57,7 @@ export const dummySpots: Spot[] = [
       "オアシス21は「水の宇宙船」と呼ばれるガラスの大屋根が象徴的な複合施設です。屋上からは栄の街並みを見渡すことができ、夜にはライトアップされた幻想的な景色を楽しめます。地下にはショップや飲食店もあり、休憩スポットとしても便利です。",
     thumbnailUrl: "https://placehold.jp/600x400.png?text=Central+Tower+Thumb",
     imageUrls: ["https://placehold.jp/300x200.png"],
-    tags: ["友達", "ゆったり", "屋外"],
+    tag: ["友達"],
     weatherSuitability: [
       "雨の日でも屋内展示があるので楽しめる",
       "晴れの日は城と空のコントラストが美しい",
@@ -76,7 +76,7 @@ export const dummySpots: Spot[] = [
       "熱田神宮は日本有数の古社で、三種の神器の一つである草薙神剣を祀っていることで知られています。広大な境内は自然に囲まれており、都会にいながら静かで厳かな時間を過ごすことができます。参拝だけでなく、散策にもおすすめの場所です。",
     thumbnailUrl: "https://placehold.jp/600x400.png?text=Central+Tower+Thumb",
     imageUrls: ["https://placehold.jp/300x200.png"],
-    tags: ["一人", "アクティブ", "屋外"],
+    tag: ["一人"],
     weatherSuitability: [
       "雨の日でも屋内展示があるので楽しめる",
       "晴れの日は城と空のコントラストが美しい",

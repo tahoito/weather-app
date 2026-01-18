@@ -2,17 +2,40 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { HeartIcon } from "./icon/heart-icon";
 import { Spot } from "@/types/spot";
-import { areaLabelMap } from "@/types/area";
 import { FavoriteButton } from "@/components/favorite-button";
+import { purposeTags } from "@/app/search/data";
 
 type Props = {
   spot: Spot;
+  initialIsFavorite: boolean;
 };
 
-export function SpotCard({ spot }: Props) {
-  const [isFavorite, setIsFavorite] = useState(false);
+export function SpotCard({ spot, initialIsFavorite }: Props) {
+  const displayTag = purposeTags.find((p)=>p.slug === spot.tag)?.label ?? spot.tag;
+  const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
+
+  const toggleFavorite = async () => {
+    try {
+      if (isFavorite) {
+        await fetch(`http://localhost:8011/api/favorites/${spot.id}`, {
+          method: "DELETE",
+        });
+        setIsFavorite(false);
+      } else {
+        await fetch(`http://localhost:8011/api/favorites`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ spot_id: spot.id }),
+        });
+        setIsFavorite(true);
+      }
+    } catch (e) {
+      console.error("お気に入り切替失敗", e);
+    }
+  };
+
+
   return (
     <Link
       href={`/detail/${spot.id}`}
@@ -30,20 +53,17 @@ export function SpotCard({ spot }: Props) {
       </div>
       <div className="grid grid-cols-[5fr_1fr]">
         <div className="flex flex-wrap gap-1 mt-1">
-          {spot.tags.map((tag) => (
-            <span
-              key={tag}
-              className="text-xs py-1 px-2  rounded-full bg-card-tag border border-[0.5px]"
-            >
-              {tag}
+          {spot.tag && (
+            <span className="text-xs py-1 px-2  rounded-full bg-card-tag border border-[0.5px]">
+              {displayTag}
             </span>
-          ))}
+          )}
         </div>
 
         <div>
           <FavoriteButton
             isFavorite={isFavorite}
-            onToggle={() => setIsFavorite((v) => !v)}
+            onToggle={toggleFavorite}
             iconClassName="w-5 h-5"
           />
         </div>

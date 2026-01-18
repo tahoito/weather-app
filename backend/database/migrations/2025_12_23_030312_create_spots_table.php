@@ -19,9 +19,8 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('image_url')->nullable();
             $table->decimal('lat', 10, 7);
-            $table->decimal('long', 10, 7);
+            $table->decimal('lon', 10, 7);
             $table->string('tags')->nullable();
-            $table->text('tips')->nullable();
             $table->boolean('is_indoor');
             $table->boolean('weather_ok'); 
         });

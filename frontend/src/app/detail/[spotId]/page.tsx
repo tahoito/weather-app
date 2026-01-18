@@ -10,6 +10,7 @@ import { MapPinIcon } from "lucide-react";
 import { StarIcon } from "lucide-react";
 import { MapPinSimpleIcon } from "@/components/icon/map-pin-simple-icon";
 import { FavoriteButton } from "@/components/favorite-button";
+import { purposeTags } from "@/app/search/data"; 
 
 export default function Page() {
   const [spots, setSpots] = useState(dummySpots);
@@ -19,6 +20,8 @@ export default function Page() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
+  const displayTag =
+  purposeTags.find((p) => p.slug === spot.tag)?.label ?? spot.tag;
 
   if (!spot) {
     return <div>スポットが見つかりません</div>;
@@ -31,7 +34,7 @@ export default function Page() {
       setCurrentIndex((prev) =>
         prev === spot.imageUrls.length - 1 ? 0 : prev + 1
       );
-    }, 4000); // ← 4秒ごと
+    }, 4000); 
 
     return () => clearInterval(interval);
   }, [spot.imageUrls.length]);
@@ -65,12 +68,10 @@ export default function Page() {
             const diff = touchStartX - touchEndX;
             if (Math.abs(diff) > 50) {
               if (diff > 0) {
-                // 左にスワイプ → 次
                 setCurrentIndex((prev) =>
                   Math.min(prev + 1, spot.imageUrls.length - 1)
                 );
               } else {
-                // 右にスワイプ → 前
                 setCurrentIndex((prev) => Math.max(prev - 1, 0));
               }
             }
@@ -123,17 +124,14 @@ export default function Page() {
           </div>
           <p className="text-xl">{spot.area}</p>
           <p>屋内</p>
-          <p>{spot.detail}</p>
+          <p>{spot.description}</p>
         </div>
         <div className="flex justify-end gap-2">
-          {spot.tags.map((tag) => (
-            <span
-              key={tag}
-              className="text-sm py-2.5 px-4 rounded-full bg-main"
-            >
-              {tag}
+          {spot.tag && (
+            <span className="text-sm py-2.5 px-4 rounded-full bg-main">
+              {displayTag}
             </span>
-          ))}
+          )}
         </div>
         <div className="[&>*]:mt-7">
           <div className="relative border rounded-2xl p-4 pt-6">
