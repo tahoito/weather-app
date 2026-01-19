@@ -9,41 +9,44 @@ function getCookie(req: Request, key: string) {
   return m ? decodeURIComponent(m[1]) : "";
 }
 
-export async function DELETE(req: Request, ctx: { params: { spotId: string } }) {
-  try {
-    const base = process.env.NEXT_PUBLIC_API_BASE_URL;
-    if (!base) {
-      return NextResponse.json(
-        { error: "server env missing: NEXT_PUBLIC_API_BASE_URL" },
-        { status: 500 }
-      );
-    }
-
-    const token = getCookie(req, "authToken");
-    if (!token) {
-      return NextResponse.json({ error: "missing authToken" }, { status: 401 });
-    }
-
-    const url = `${base}/api/favorites/${ctx.params.spotId}`;
-
-    const res = await fetch(url, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store",
-    });
-
-    const text = await res.text();
-    if (!res.ok) {
-      console.error("Laravel favorites DELETE error:", res.status, text);
-      return NextResponse.json(
-        { error: "upstream error", status: res.status, detail: text },
-        { status: 502 }
-      );
-    }
-
-    return NextResponse.json({ success: true }, { headers: { "Cache-Control": "no-store" } });
-  } catch (e) {
-    console.error("favorites delete route error:", e);
-    return NextResponse.json({ error: "internal error" }, { status: 500 });
+export async function DELETE(
+  req: Request,
+  ctx: { params: Promise<{ spotId: string }> }
+) {
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (!base) {
+    return NextResponse.json(
+      { error: "server env missing: NEXT_PUBLIC_API_BASE_URL" },
+      { status: 500 }
+    );
   }
+
+  const token = getCookie(req, "authToken");
+  if (!token) {
+    return NextResponse.json({ error: "missing authToken" }, { status: 401 });
+  }
+
+  const { spotId } = await ctx.params; 
+  const url = `${base}/api/favorites/${spotId}`;
+
+  const res = await fetch(url, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` , Accept: "application/json", },
+    cache: "no-store",
+  });
+
+  const text = await res.text();
+
+
+  if (!res.ok) {
+    console.error("Laravel favorites DELETE error:", res.status, text);
+    return new NextResponse(text || "upstream error", {
+      status: res.status,
+      headers: {
+        "Content-Type": res.headers.get("content-type") ?? "text/plain",
+      },
+    });
+  }
+
+  return NextResponse.json({ success: true });
 }

@@ -32,13 +32,14 @@ class FavoriteController extends Controller
         return response()->json($favorite, 201);
     }
 
-    public function destroy(Spot $spot)
+    public function destroy(int $spot)
     {
         $userId = $this->dummyUserId();
 
         Favorite::where('user_id', $userId)
             ->where('spot_id', $spot->id)
             ->delete();
+            
         return response()->noContent();
     }
 }

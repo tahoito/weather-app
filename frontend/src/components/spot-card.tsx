@@ -21,7 +21,7 @@ export function SpotCard({ spot, initialIsFavorite }: Props) {
         if(!res.ok) throw new Error(`DELETE failed: ${res.status}`);
         setIsFavorite(false);
       } else {
-        const res = await fetch(`api/favorites`, {
+        const res = await fetch(`/api/favorites`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ spot_id: spot.id }),
