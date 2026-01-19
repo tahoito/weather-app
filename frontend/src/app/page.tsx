@@ -1,12 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Page() {
   return (
     <div className="bg-back w-full h-full [&>*]:text-fg">
-      <div className="mx-9 grid grid-rows-2 h-screen">
-        <h1 className="flex justify-center"></h1>
+      <div
+        className="mx-9 grid h-screen "
+        style={{ gridTemplateRows: "2fr 1fr" }}
+      >
+        <h1 className="flex justify-center ">
+          <Image src="/images/logo.svg" alt="logo" width={250} height={250} />
+        </h1>
         <div className="flex flex-col gap-8">
           <Link
             href="/auth/login"
