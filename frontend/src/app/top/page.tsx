@@ -100,13 +100,6 @@ export default function Page() {
           limit: 10,
         });
 
-        console.log("📦 spotsData raw", spotsData);
-        console.log(
-          "📦 spotsData areas",
-          spotsData.map((s) => s.area)
-        );
-        console.log("📦 spotsData === prev spots ?", spotsData === spots);
-
         setSpots(
           spotsData.map((spot) => ({
             ...spot,
@@ -144,7 +137,7 @@ export default function Page() {
 
   return (
     <div className="bg-back min-h-screen pb-20 [&>*]:text-fg ">
-      <div className="flex items-center pt-15">
+      <div className="flex items-center pt-5">
         <div className="flex-1 flex justify-center gap-8">
           <p>現在のエリア</p>
           <p className="font-semibold text-base">

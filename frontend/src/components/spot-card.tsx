@@ -12,8 +12,6 @@ type Props = {
 };
 
 export function SpotCard({ spot, initialIsFavorite }: Props) {
-  const displayTag =
-    purposeTags.find((p) => p.slug === spot.tag)?.label ?? spot.tag;
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
 
   const toggleFavorite = async () => {
