@@ -18,7 +18,11 @@ export function SpotCard({ spot, initialIsFavorite }: Props) {
     try {
       if (isFavorite) {
         const res = await fetch(`/api/favorites/${spot.id}`, { method: "DELETE" });
-        if(!res.ok) throw new Error(`DELETE failed: ${res.status}`);
+        if(!res.ok) {
+          const detail = await res.text();
+          console.error("DELETE failed:", res.status, detail);
+          throw new Error(`DELETE failed: ${res.status}`);
+        }
         setIsFavorite(false);
       } else {
         const res = await fetch(`/api/favorites`, {
