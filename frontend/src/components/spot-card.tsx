@@ -17,16 +17,16 @@ export function SpotCard({ spot, initialIsFavorite }: Props) {
   const toggleFavorite = async () => {
     try {
       if (isFavorite) {
-        await fetch(`http://localhost:8011/api/favorites/${spot.id}`, {
-          method: "DELETE",
-        });
+        const res = await fetch(`/api/favorites/${spot.id}`, { method: "DELETE" });
+        if(!res.ok) throw new Error(`DELETE failed: ${res.status}`);
         setIsFavorite(false);
       } else {
-        await fetch(`http://localhost:8011/api/favorites`, {
+        const res = await fetch(`api/favorites`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ spot_id: spot.id }),
         });
+        if(!res.ok) throw new Error(`POST failed: ${res.status}`);
         setIsFavorite(true);
       }
     } catch (e) {
@@ -61,7 +61,7 @@ export function SpotCard({ spot, initialIsFavorite }: Props) {
           ))}
         </div>
 
-        <div>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
           <FavoriteButton
             isFavorite={isFavorite}
             onToggle={toggleFavorite}
