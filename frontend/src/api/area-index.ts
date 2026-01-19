@@ -1,5 +1,4 @@
 import axios from "axios";
-import Cookies from "js-cookie";
 
 export type Area = {
   id: number;
@@ -10,14 +9,6 @@ export type Area = {
 };
 
 export async function fetchAreas(): Promise<Area[]> {
-  const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/areas`;
-  const token = Cookies.get("authToken");
-
-  const res = await axios.get(apiUrl, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
+  const res = await axios.get("/api/areas");
   return res.data;
 }
