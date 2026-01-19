@@ -25,7 +25,7 @@ export type Spot = {
   areaName?: string;
   description: string;
   image_url: string;
-  tag: string;
+  tags: string[] | null;
 };
 
 export const weatherCodeMap: Record<

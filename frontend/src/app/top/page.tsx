@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { fetchAreas, Area } from "@/api/area-index";
+import { fetchSpotsRecommended, Spot } from "@/api/spot-recommend";
+import { fetchFavorites } from "@/api/favorite-index";
 import { UmbrellaIcon } from "@/components/icon/umbrella-icon";
 import { DropletIcon } from "@/components/icon/droplet-icon";
 import { WindIcon } from "@/components/icon/wind-icon";
@@ -18,33 +21,11 @@ type WeatherInfo = {
   weatherCode: number;
 };
 
-type Area = {
-  id: number;
-  name: string;
-  slug: string;
-  lat: number;
-  lon: number;
-};
-
-type Spot = {
-  id: number;
-  name: string;
-  area: string;
-  description: string;
-  image_url: string;
-  tag: string;
-  is_indoor?: boolean;
-  weather_ok?: boolean;
-  areaName?: string;
-};
-
 export default function Page() {
   const [weather, setWeather] = useState<WeatherInfo | null>(null);
   const fmt = (v?: number, suffix = "") =>
     typeof v === "number" ? `${v}${suffix}` : "--";
-  // const [spots, setSpots] = useState(dummySpots);
   const [spots, setSpots] = useState<Spot[]>([]);
-  const [spotsLoading, setSpotsLoading] = useState(false);
   const [isAreaModalOpen, setIsAreaModalOpen] = useState(false);
   const [areaModalMode, setAreaModalMode] = useState<"initial" | "change">(
     "change"
@@ -65,19 +46,17 @@ export default function Page() {
   useEffect(() => {
     async function loadAreas() {
       try {
-        const base = process.env.NEXT_PUBLIC_API_BASE_URL;
-        const res = await fetch(`${base}/api/areas`);
-        if (!res.ok) return;
+        const data = await fetchAreas();
 
-        const json = await res.json();
-        const data: Area[] = Array.isArray(json) ? json : json.data;
         setAreas(data);
 
         const savedSlug = localStorage.getItem("selectedAreaSlug");
-        const saved = savedSlug ? data.find(a => a.slug === savedSlug) : null;
-        setCurrentArea(saved ?? data[0]);
-        
-      } catch (e) {}
+        const saved = savedSlug ? data.find((a) => a.slug === savedSlug) : null;
+
+        setCurrentArea(saved ?? data[0] ?? null);
+      } catch (e) {
+        console.error("loadAreas error", e);
+      }
     }
 
     loadAreas();
@@ -98,7 +77,7 @@ export default function Page() {
 
         const data = await res.json();
         setWeather(data);
-      } catch (e:any) {
+      } catch (e: any) {
         if (e?.name !== "AbortError") console.error(e);
       }
     }
@@ -107,92 +86,58 @@ export default function Page() {
     return () => controller.abort();
   }, [currentArea]);
 
-  // useEffect(() => {
-  //   if (!currentArea) return;
-
-  //   async function load() {
-  //     setSpotsLoading(true);
-
-  //     const res = await fetch(
-  //       `/api/spots/recommended?area=${currentArea.slug}`
-  //     );
-  //     if (!res.ok) return;
-
-  //     const data = await res.json();
-  //     setSpots(data);
-  //     setSpotsLoading(false);
-  //   }
-
-  //   load();
-  // }, [currentArea]);
-
   useEffect(() => {
     if (!currentArea || areas.length === 0 || !weather) return;
 
     async function loadSpots() {
       try {
-        const qs = new URLSearchParams({
+        const spotsData: Spot[] = await fetchSpotsRecommended({
           area: currentArea.slug,
-          pop: String(weather.precipitation),
-          wind: String(weather.windSpeed),
-          temp: String(weather.temperature),
-          humidity: String(weather.humidity),
-          limit: "10",
+          pop: weather.precipitation,
+          wind: weather.windSpeed,
+          temp: weather.temperature,
+          humidity: weather.humidity,
+          limit: 10,
         });
-
-        const res = await fetch(`/api/spots/recommended?${qs.toString()}`, {
-          cache: "no-store",
-        });
-        if (!res.ok) return;
-      
-        const json = await res.json();
-        const data: Spot[] = Array.isArray(json) ? json : json.data;
 
         setSpots(
-          data.map((spot) => ({
-          ...spot,
-          areaName: areas.find((a) => a.slug === spot.area)?.name ||spot.area,
-        }))
-      );
+          spotsData.map((spot) => ({
+            ...spot,
+            areaName:
+              areas.find((a) => a.slug === spot.area)?.name || spot.area,
+          }))
+        );
       } catch (err) {
         console.error("loadSpots error:", err);
-      }  
+      }
     }
+
     loadSpots();
-  }, [currentArea?.slug,
-     areas.length,
-     weather?.precipitation,
-     weather?.humidity,
-     weather?.windSpeed,
-     weather?.temperature,]);
+  }, [
+    currentArea?.slug,
+    areas.length,
+    weather?.precipitation,
+    weather?.humidity,
+    weather?.windSpeed,
+    weather?.temperature,
+  ]);
 
   useEffect(() => {
-  async function loadFavorites() {
-    try {
-      const base = process.env.NEXT_PUBLIC_API_BASE_URL;
-      if (!base) {
-        console.error("NEXT_PUBLIC_API_BASE_URL が未設定");
-        return;
+    async function loadFavorites() {
+      try {
+        const favorites = await fetchFavorites();
+        setFavoriteIds(favorites.map((f) => f.spot.id));
+      } catch (e) {
+        console.error("loadFavorites error:", e);
       }
-
-      const res = await fetch(`${base}/api/favorites`, { cache: "no-store" });
-      if (!res.ok) {
-        console.error("favorites取得失敗", res.status);
-        return;
-      }
-
-      const data = await res.json();
-      setFavoriteIds(data.map((f: any) => Number(f.spot_id)));
-    } catch (e) {
-      console.error("favorites fetch error:", e);
     }
-  }
+
     loadFavorites();
   }, []);
 
   return (
     <div className="bg-back min-h-screen pb-20 [&>*]:text-fg ">
-      <div className="flex items-center pt-15">
+      <div className="flex items-center pt-5">
         <div className="flex-1 flex justify-center gap-8">
           <p>現在のエリア</p>
           <p className="font-semibold text-base">
@@ -236,6 +181,8 @@ export default function Page() {
                         className="w-20 px-2 py-1 rounded-full border bg-card-back shadow-[1px_2px_1px_rgba(0,0,0,0.20)]"
                         onClick={() => {
                           setCurrentArea(area);
+                          setWeather(null); // ← これが重要
+                          setSpots([]);
                           localStorage.setItem("selectedAreaSlug", area.slug);
                           setIsAreaModalOpen(false);
                         }}
