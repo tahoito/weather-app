@@ -13,30 +13,31 @@ class SpotController extends Controller
     public function index(Request $request)
     {
         $validated = $request->validate([
-            'area' => ['nullable','string'],
+            'area' => ['nullable', 'string'],
             'is_indoor' => ['nullable'],
             'weather_ok' => ['nullable'],
         ]);
 
-        $q = Spot::query()->with(['area','tag']);
+        $q = Spot::query()->with(['area', 'tags']);
 
         if (!empty($validated['area'])) {
             $q->where('area', $validated['area']);
         }
 
-        if ($request->filled('is_indoor')){
-            $q->where('is_indoor',filter_var($request->input('is_indoor'),  FILTER_VALIDATE_BOOLEAN));
+        if ($request->filled('is_indoor')) {
+            $q->where('is_indoor', filter_var($request->input('is_indoor'),  FILTER_VALIDATE_BOOLEAN));
         }
 
-        if ($request->filled('weather_ok')){
-            $q->where('weather_ok',filter_var($request->input('weather_ok'),FILTER_VALIDATE_BOOLEAN));
+        if ($request->filled('weather_ok')) {
+            $q->where('weather_ok', filter_var($request->input('weather_ok'), FILTER_VALIDATE_BOOLEAN));
         }
 
-        $spots = $q->select(['id','name','lat','lon','area','description','image_url','is_indoor','weather_ok','tag'])
+        $spots = $q
             ->whereNotNull('lat')
             ->whereNotNull('lon')
             ->orderBy('id')
             ->get();
+
 
         return SpotResource::collection($spots);
     }
@@ -53,13 +54,25 @@ class SpotController extends Controller
         $north = (float) $request->query('north');
         $east = (float) $request->query('east');
 
+        // $q = Spot::query()
+        //     ->with('tag')
+        //     ->select(['id', 'name', 'lat', 'lon', 'area', 'tag_id'])
         $q = Spot::query()
-            ->select(['id','name','lat','lon','area','tag'])
-            ->whereBetween('lat',[$south, $north])
-            ->whereBetween('lon',[$west, $east])
+            ->with('tags')
+            ->whereBetween('lat', [$south, $north])
+            ->whereBetween('lon', [$west, $east])
             ->whereNotNull('lat')
             ->whereNotNull('lon');
-        
+
+
+
+        // $q = Spot::query()
+        //     ->select(['id', 'name', 'lat', 'lon', 'area', 'tag'])
+        // ->whereBetween('lat', [$south, $north])
+        // ->whereBetween('lon', [$west, $east])
+        // ->whereNotNull('lat')
+        // ->whereNotNull('lon');
+
         if ($request->filled('area')) {
             $q->where('area', $request->string('area'));
         }
@@ -72,8 +85,8 @@ class SpotController extends Controller
 
     public function recommended(Request $request)
     {
-        $area = $request->query('area'); 
-        $weather = $request->query('weather','clear');
+        $area = $request->query('area');
+        $weather = $request->query('weather', 'clear');
         $limit = (int) $request->query('limit', 4);
 
         $temp = $request->has('temp') ? (float) $request->query('temp') : null;
@@ -110,19 +123,21 @@ class SpotController extends Controller
 
         $q = Spot::query();
 
+        if ($area) {
+            $q->where('area', $area);
+        }
+
         if ($indoorScore >= 50) {
             $q->orderByDesc('is_indoor');
-        }else {
+        } else {
             $q->orderBy('is_indoor');
         }
 
         $q->orderByDesc('weather_ok')->orderByDesc('created_at');
 
-        $spots = $q->limit($limit)->get();
+        $spots = $q->with('tags')->limit($limit)->get();
 
         $mode = $indoorScore >= 50 ? 'indoor' : 'outdoor';
-
-        $spots = $q->limit($limit)->get();
 
         return SpotResource::collection($spots)->additional([
             'meta' => [

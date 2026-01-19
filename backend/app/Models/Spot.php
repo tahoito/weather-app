@@ -23,13 +23,19 @@ class Spot extends Model
         'weather_ok' => 'boolean',
     ];
 
-    public function area(){
+    public function area()
+    {
         return $this->belongsTo(Area::class);
     }
 
     public function favorites()
     {
         return $this->hasMany(Favorite::class);
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'spot_tag', 'spot_id', 'tag_id');
     }
 
     public function openingHours(): HasMany

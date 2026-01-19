@@ -4,20 +4,21 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Models\Tag;
+
 
 class SpotResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $tag = null;
+        $tagName = null;
 
-        if (!empty($this->tag_json)) {
-            $tag = trim((string) $this->tag_json[0]);
-        } elseif (!empty($this->tag)) {
-            $first = preg_split('/[,\s]+/', (string) $this->tag)[0] ?? null;
-            $tag = $first !== null ? trim((string) $first) : null;
+
+        if (!empty($this->tag)) {
+            $slug = trim($this->tag);
+
+            $tagName = Tag::where('slug', $slug)->value('name');
         }
-
 
         return [
             'id'   => $this->id,
@@ -26,10 +27,13 @@ class SpotResource extends JsonResource
             'lat'  => (float) $this->lat,
             'lon'  => (float) $this->lon,
             'description' => $this->description ?? '',
-            'image_url' => $this->image_url ? : 'https://placehold.co/300x200?text=No+Image',
+            'image_url' => $this->image_url ?: 'https://placehold.co/300x200?text=No+Image',
             'is_indoor' => (bool) ($this->is_indoor ?? false),
             'weather_ok' => (bool) ($this->weather_ok ?? false),
-            'tag' => $tag,
+            'tags' => $this->tags->pluck('name'),
+
+
+
         ];
     }
 }
