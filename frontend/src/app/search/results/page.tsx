@@ -49,12 +49,12 @@ export default function Page() {
             ? `${params.start_time} ~ ${params.end_time}`
             : undefined;
 
-    const indoorLabel = 
+    const indoorLabel =
         isIndoorParam === "true"
             ? "屋内"
             : isIndoorParam === "false"
-            ? "屋外"
-            : undefined;
+                ? "屋外"
+                : undefined;
 
     const conditionLabel = [
         params.query,
@@ -92,13 +92,13 @@ export default function Page() {
                 const apiParams = {
                     query: params.query,
                     area: params.area,
-                    tag: params.purpose,
+                    purpose: params.purpose,
                     is_indoor:
                         isIndoorParam === null
                             ? undefined
                             : isIndoorParam === "true"
-                            ? "1"
-                            : "0",
+                                ? "1"
+                                : "0",
                     weather_ok: undefined,
                 };
 
@@ -107,13 +107,13 @@ export default function Page() {
                     `http://localhost:8000/api/spots/search?${query}`
                 );
 
-                
+
                 const text = await res.text();
                 let raw: any = null;
 
                 try {
                     raw = text ? JSON.parse(text) : null;
-                    } catch {
+                } catch {
                     raw = null;
                 }
 
@@ -122,11 +122,11 @@ export default function Page() {
                     throw new Error("fetch failed");
                 }
 
-                const items = 
-                    Array.isArray(raw) 
-                        ? raw 
+                const items =
+                    Array.isArray(raw)
+                        ? raw
                         : Array.isArray(raw?.data)
-                            ? raw.data 
+                            ? raw.data
                             : Array.isArray(raw?.data?.data)
                                 ? raw.data.data
                                 : [];
@@ -191,10 +191,10 @@ export default function Page() {
 
                     {!loading &&
                         spots.map(spot => (
-                            <SpotCard 
-                                key={spot.id} 
+                            <SpotCard
+                                key={spot.id}
                                 spot={spot}
-                                initialIsFavorite = {Boolean((spot as any).is_favorite)} />
+                                initialIsFavorite={Boolean((spot as any).is_favorite)} />
                         ))}
                 </div>
             </div>

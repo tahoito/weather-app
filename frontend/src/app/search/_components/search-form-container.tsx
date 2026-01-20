@@ -87,27 +87,41 @@ export function SearchFormContainer({
     const handleSearch = async () => {
         const params = new URLSearchParams();
 
+        // テキスト検索かどうかをisInputFocusedで確認
         if (isInputFocused) {
+            // テキスト検索: queryのみ
             if (searchText.trim()) {
                 await handleSaveSearchHistory(searchText.trim());
                 params.append('query', searchText.trim());
+            } else {
+                alert('検索条件が入力されていません');
+                return;
             }
         } else {
-            if (searchText.trim()) {
-                await handleSaveSearchHistory(searchText.trim());
-                params.append('query', searchText.trim());
-            }
-
-            if (areaSlugs.length > 0) {
-                areaSlugs.forEach(slug => params.append('area', slug)
-            );
-    }
-
-            if (activeFilter === 'date') {
-                if (date) {
-                    params.append('date', date);
+            // 場所から検索の場合
+            if (activeFilter === 'area') {
+                // area(null可、複数選択可)
+                if (areaSlugs.length > 0) {
+                    areaSlugs.forEach(slug => params.append('area', slug));
                 }
+                // purpose(必須)
+                params.append('purpose', purposeSlug);
+                // is_indoor(null可)
+                if (indoor !== 'both') {
+                    params.append('is_indoor', indoor === 'indoor' ? 'true' : 'false');
+                }
+            }
+            // 日付から検索の場合
+            else if (activeFilter === 'date') {
+                // date(必須)
+                if (!date) {
+                    alert('日付を選択してください');
+                    return;
+                }
+                params.append('date', date);
 
+                // start_time(null可), end_time(null可)
+                // 終日の場合はどちらもnull
                 if (!isAllDay) {
                     if (startTime) {
                         params.append('start_time', startTime);
@@ -116,12 +130,14 @@ export function SearchFormContainer({
                         params.append('end_time', endTime);
                     }
                 }
-            }
 
-            params.append('purpose', purposeSlug);
+                // purpose(必須)
+                params.append('purpose', purposeSlug);
 
-            if (indoor !== 'both') {
-                params.append('is_indoor', indoor === 'indoor' ? 'true' : 'false');
+                // is_indoor(null可)
+                if (indoor !== 'both') {
+                    params.append('is_indoor', indoor === 'indoor' ? 'true' : 'false');
+                }
             }
         }
 
