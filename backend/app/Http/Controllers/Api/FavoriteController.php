@@ -17,7 +17,7 @@ class FavoriteController extends Controller
     public function index()
     {
         $userId = $this->dummyUserId();
-        $favorites = favorite::with('spot')
+        $favorites = Favorite::with('spot')
             ->where('user_id', $userId)
             ->latest()
             ->get();
@@ -32,14 +32,14 @@ class FavoriteController extends Controller
         return response()->json($favorite, 201);
     }
 
-    public function destroy(int $spot)
+    public function destroy(int $spotId)
     {
         $userId = $this->dummyUserId();
 
         Favorite::where('user_id', $userId)
-            ->where('spot_id', $spot->id)
+            ->where('spot_id', $spotId)
             ->delete();
-            
+
         return response()->noContent();
     }
 }
