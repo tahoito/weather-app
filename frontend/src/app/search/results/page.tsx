@@ -10,12 +10,14 @@ import { SpotCard } from '@/components/spot-card';
 
 import { Spot } from '@/types/spot';
 import { areaTags, purposeTags } from '../data';
+import { fetchAreas, Area } from "@/api/area-index";
 
 export default function Page() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
     const areas = searchParams.getAll('area');
+    const [areasMaster, setAreasMaster] = useState<Area[]>([]);
     const params = {
         query: searchParams.get('query') ?? undefined,
         area: areas.length ? areas : undefined,
@@ -89,6 +91,9 @@ export default function Page() {
             try {
                 setLoading(true);
 
+                const data = await fetchAreas();
+                setAreasMaster(data);
+
                 const apiParams = {
                     query: params.query,
                     area: params.area,
@@ -131,15 +136,14 @@ export default function Page() {
                                 ? raw.data.data
                                 : [];
 
-                const normalized: Spot[] = items.map((spot: any) => ({
-                    id: spot.id,
-                    name: spot.name,
-                    area: spot.area,
-                    description: spot.description,
-                    imageUrl: spot.image_url,
-                    tag: spot.tag,
-                }));
-                setSpots(normalized);
+            const normalized = items.map((spot: any) => ({
+                id: spot.id,
+                name: spot.name,
+                area: spot.area,
+                areaName: data.find(a => a.slug === spot.area)?.name || spot.area,
+                image_url: spot.image_url,
+                tags: Array.isArray(spot.tags) ? spot.tags : [],
+            }));setSpots(normalized);
             } catch (e) {
                 console.error(e);
                 setSpots([]);
