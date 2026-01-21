@@ -74,4 +74,11 @@ class SpotSearchController extends Controller
             'tag',
         ]);
     }
+
+    public function show(Spot $spot)
+    {
+        $spot->load(['area','tags']);
+        return new SpotResource($spot);
+    }
+
 }

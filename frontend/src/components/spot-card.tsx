@@ -11,6 +11,8 @@ type Props = {
   initialIsFavorite: boolean;
 };
 
+
+
 export function SpotCard({ spot, initialIsFavorite }: Props) {
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
 
