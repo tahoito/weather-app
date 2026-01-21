@@ -31,7 +31,7 @@ class SpotResource extends JsonResource
             'image_url' => $this->image_url ?: 'https://placehold.co/300x200?text=No+Image',
             'is_indoor' => (bool) ($this->is_indoor ?? false),
             'weather_ok' => (bool) ($this->weather_ok ?? false),
-            'tags' => $this->tags->pluck('name'),
+            'tags' => $this->tags->pluck('name')->values()->all(),
             'price' => $this->price,
             'openingHours' => $this->opening_hours,
             'imageUrls' => is_string($this->image_urls) ? json_decode($this->image_urls, true) : $this->image_urls ?? [],
