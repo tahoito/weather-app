@@ -135,6 +135,7 @@ export default function Page() {
                             : Array.isArray(raw?.data?.data)
                                 ? raw.data.data
                                 : [];
+            console.log("raw tags:", items?.[0]?.tags, "isArray?", Array.isArray(items?.[0]?.tags));
 
             const normalized = items.map((spot: any) => ({
                 id: spot.id,
