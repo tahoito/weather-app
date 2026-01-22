@@ -1,105 +1,153 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, X } from 'lucide-react';
 
 import { NavigationBar } from '@/components/navigation-bar';
 import { SpotCard } from '@/components/spot-card';
 
 import { Spot } from '@/types/spot';
-import { areaTags, purposeTags } from '../data';
+import {
+    areaTags,
+    purposeTags,
+    getDateOptions,
+    getTimeOptions,
+    getNearestTimeOption,
+    getOneHourLaterTime
+} from '../data';
+import Modal from '@/components/Modal';
+import { AreaFilter } from '../_components/area-filter';
+import { DateTimeFilter } from '../_components/date-time-filter';
+import { PurposeFilter } from '../_components/purpose-filter';
 
 export default function Page() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
+    // 検索オプションを取得
     const areas = searchParams.getAll('area');
     const params = {
         query: searchParams.get('query') ?? undefined,
         area: areas.length ? areas : undefined,
-        purpose: searchParams.get('purpose') ?? undefined,
         date: searchParams.get('date') ?? undefined,
         start_time: searchParams.get('start_time') ?? undefined,
         end_time: searchParams.get('end_time') ?? undefined,
+        purpose: searchParams.get('purpose') ?? undefined,
+        id_indoor: searchParams.get('is_indoor') ?? undefined
     };
 
-    const isIndoorParam = searchParams.get("is_indoor");
+    // 日付オプションと時間オプションを取得
+    const dateOptions = getDateOptions();
+    const timeOptions = getTimeOptions();
 
-    // 表示用ラベル生成
-    const areaLabel = params.area
-        ?.map(slug => areaTags.find(a => a.slug === slug)?.label)
-        .filter(Boolean)
-        .join('・');
+    // 検索条件の状態保持（検索ページと同じ構造）
+    const [areaSlugs, setAreaSlugs] = useState<string[]>(() => {
+        if (params.area) {
+            if (Array.isArray(params.area)) {
+                return params.area;
+            }
+            return [params.area];
+        }
+        return ['meieki'];
+    });
+    const [date, setDate] = useState<string>(
+        params.date ?? (dateOptions[0]?.value || '')
+    );
+    const initialStartTime = params.start_time ?? getNearestTimeOption(timeOptions);
+    const [startTime, setStartTime] = useState<string>(initialStartTime);
+    const [endTime, setEndTime] = useState<string>(
+        params.end_time ?? getOneHourLaterTime(initialStartTime, timeOptions)
+    );
+    const [isAllDay, setIsAllDay] = useState<boolean>(
+        !params.start_time && !params.end_time
+    );
+    const [purposeSlug, setPurposeSlug] = useState<string>(
+        params.purpose ?? 'date'
+    );
+    const [indoor, setIndoor] = useState<'both' | 'outdoor' | 'indoor'>(
+        params.id_indoor === 'true' ? 'indoor' : params.id_indoor === 'false' ? 'outdoor' : 'both'
+    );
 
-    const purposeLabel = purposeTags.find(
-        p => p.slug === params.purpose
-    )?.label;
-
-    const dateLabel = (() => {
-        if (!params.date) return;
-        const d = new Date(params.date);
-        const w = ['日', '月', '火', '水', '木', '金', '土'][d.getDay()];
-        return `${d.getMonth() + 1}/${d.getDate()}(${w})`;
-    })();
-
-    const timeLabel =
-        params.start_time && params.end_time
-            ? `${params.start_time} ~ ${params.end_time}`
-            : undefined;
-
-    const indoorLabel =
-        isIndoorParam === "true"
-            ? "屋内"
-            : isIndoorParam === "false"
-                ? "屋外"
-                : undefined;
-
-    const conditionLabel = [
-        params.query,
-        areaLabel,
-        purposeLabel,
-        dateLabel,
-        timeLabel,
-        indoorLabel,
-    ]
-        .filter(Boolean)
-        .join(' / ');
-
+    // 検索結果・ローディング状態
     const [spots, setSpots] = useState<Spot[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
 
-    // フェッチ
+    // モーダル表示状態（条件変更ボタンが押されたかどうか）
+    const [showModal, setShowModal] = useState(false);
+
+    // 検索オプションを構築（API用）
+    // 状態が変更されたら再計算される
+    const searchOptions = useMemo(() => {
+        if (params.query) {
+            return {
+                query: params.query,
+                area: undefined,
+                purpose: undefined,
+                id_indoor: undefined
+            };
+        }
+
+        if (params.date) {
+            return {
+                query: undefined,
+                area: undefined,
+                purpose: purposeSlug,
+                id_indoor: indoor !== 'both' ? (indoor === 'indoor' ? 'true' : 'false') : undefined
+            };
+        }
+
+        return {
+            query: undefined,
+            area: areaSlugs.length > 0 ? areaSlugs : undefined,
+            purpose: purposeSlug,
+            id_indoor: indoor !== 'both' ? (indoor === 'indoor' ? 'true' : 'false') : undefined
+        };
+    }, [params.query, params.date, areaSlugs, purposeSlug, indoor]);
+
+    // buildQuery関数
     const buildQuery = (params: Record<string, any>) => {
-        const search = new URLSearchParams();
+        const query = new URLSearchParams();
+
         Object.entries(params).forEach(([key, value]) => {
-            if (!value) return;
+            if (value === undefined) return;
+
             if (Array.isArray(value)) {
-                value.forEach(v => search.append(key, v));
+                value.forEach(v => query.append(key, v));
             } else {
-                search.append(key, value);
+                query.append(key, value);
             }
         });
-        return search.toString();
+
+        return query.toString();
     };
 
+    // エリア選択のトグル関数
+    const toggleAreaSelection = (slug: string) => {
+        setAreaSlugs(prev =>
+            prev.includes(slug)
+                ? prev.filter(s => s !== slug)
+                : [...prev, slug]
+        );
+    };
+
+    // 検索条件が変わったら再フェッチ
     useEffect(() => {
         const fetchSpots = async () => {
-            try {
-                setLoading(true);
+            setLoading(true);
 
+            try {
                 const apiParams = {
-                    query: params.query,
-                    area: params.area,
-                    purpose: params.purpose,
+                    query: searchOptions.query,
+                    area: searchOptions.area,
+                    purpose: searchOptions.purpose,
                     is_indoor:
-                        isIndoorParam === null
+                        searchOptions.id_indoor === undefined
                             ? undefined
-                            : isIndoorParam === "true"
-                                ? "1"
-                                : "0",
-                    weather_ok: undefined,
+                            : searchOptions.id_indoor === 'true'
+                                ? '1'
+                                : '0',
                 };
 
                 const query = buildQuery(apiParams);
@@ -107,29 +155,17 @@ export default function Page() {
                     `http://localhost:8000/api/spots/search?${query}`
                 );
 
-
-                const text = await res.text();
-                let raw: any = null;
-
-                try {
-                    raw = text ? JSON.parse(text) : null;
-                } catch {
-                    raw = null;
-                }
-
                 if (!res.ok) {
-                    console.error("API error payload:", raw ?? text);
-                    throw new Error("fetch failed");
+                    throw new Error('fetch failed');
                 }
 
-                const items =
-                    Array.isArray(raw)
+                const raw = await res.json();
+
+                const items = Array.isArray(raw?.data)
+                    ? raw.data
+                    : Array.isArray(raw)
                         ? raw
-                        : Array.isArray(raw?.data)
-                            ? raw.data
-                            : Array.isArray(raw?.data?.data)
-                                ? raw.data.data
-                                : [];
+                        : [];
 
                 const normalized: Spot[] = items.map((spot: any) => ({
                     id: spot.id,
@@ -139,6 +175,7 @@ export default function Page() {
                     imageUrl: spot.image_url,
                     tag: spot.tag,
                 }));
+
                 setSpots(normalized);
             } catch (e) {
                 console.error(e);
@@ -149,14 +186,15 @@ export default function Page() {
         };
 
         fetchSpots();
-    }, [searchParams]);
+    }, [searchOptions]);
 
     return (
         <>
-            <div className="bg-back min-h-screen pb-18">
+            <div className="relative bg-back min-h-screen pb-18">
+                {/* ヘッダー */}
                 <div className="relative py-3">
                     <button
-                        onClick={() => router.back()}
+                        onClick={() => router.push('/search')}
                         className="absolute top-1/2 left-5 -translate-y-1/2"
                     >
                         <ArrowLeft size={28} />
@@ -164,20 +202,67 @@ export default function Page() {
                     <h2 className="text-base font-medium text-center">場所一覧</h2>
                 </div>
 
-                <div className="flex items-center justify-between bg-[#FFFEF7] px-5 py-2 border-y border-holder">
-                    <div className="flex items-center">
+                {/* ラベルエリア */}
+                <div className="flex items-center justify-between h-14 bg-[#FFFEF7] px-5 border-y border-holder">
+                    <div className="flex items-center gap-3">
                         <p className="text-base">
-                            {spots.length}
+                            {/* {spots.length} */}
                             <span className="text-xs">件</span>
                         </p>
-                        <p className="ml-3 text-sm">{conditionLabel}</p>
+                        <div className="flex flex-col gap-1 ml-3 text-sm">
+                            {(() => {
+                                if (params.query) {
+                                    // テキスト検索
+                                    return <p>{params.query}</p>
+                                } else if (params.date) {
+                                    // 日付検索
+                                    const dateLabel = `${new Date(date).getMonth() + 1}/${new Date(date).getDate()}`
+                                    const hasTime = startTime || endTime
+                                    const timeLabel = hasTime
+                                        ? `${startTime ?? ''} ~ ${endTime ?? ''}`
+                                        : ''
+                                    const firstLine = [dateLabel, timeLabel].filter(Boolean).join(' ')
+                                    const purposeLabel = purposeSlug
+                                        ? purposeTags.find(tag => tag.slug === purposeSlug)?.label ?? purposeSlug
+                                        : ''
+                                    const indoorLabel = indoor !== 'both'
+                                        ? (indoor === 'indoor' ? '屋内' : '屋外')
+                                        : ''
+                                    const secondLine = [purposeLabel, indoorLabel].filter(Boolean).join(' / ')
+
+                                    return (
+                                        <>
+                                            <p>{firstLine}</p>
+                                            {secondLine && <p>{secondLine}</p>}
+                                        </>
+                                    )
+                                } else {
+                                    // エリア検索
+                                    const areaLabels = areaSlugs.length > 0
+                                        ? areaSlugs.map(slug => areaTags.find(tag => tag.slug === slug)?.label ?? slug).join(' ')
+                                        : ''
+                                    const purposeLabel = purposeSlug ? purposeTags.find(tag => tag.slug === purposeSlug)?.label ?? purposeSlug : ''
+                                    const indoorLabel = indoor !== 'both' ? (indoor === 'indoor' ? '屋内' : '屋外') : ''
+                                    const secondLine = [purposeLabel, indoorLabel].filter(Boolean).join(' / ')
+
+                                    return (
+                                        <>
+                                            {areaLabels && <p>{areaLabels}</p>}
+                                            {secondLine && <p>{secondLine}</p>}
+                                        </>
+                                    )
+                                }
+                            })()}
+                        </div>
                     </div>
-                    <button
-                        onClick={() => router.back()}
-                        className="px-3 py-2 text-sm font-medium text-sub border border-sub rounded-full"
-                    >
-                        条件変更
-                    </button>
+                    {!params.query && (
+                        <button
+                            onClick={() => setShowModal(true)}
+                            className="px-3 py-2 text-sm font-medium text-sub border border-sub rounded-full"
+                        >
+                            条件変更
+                        </button>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 p-5">
@@ -197,9 +282,58 @@ export default function Page() {
                                 initialIsFavorite={Boolean((spot as any).is_favorite)} />
                         ))}
                 </div>
-            </div>
+            </div >
 
             <NavigationBar />
+
+            {showModal && (
+                <Modal isOpen={showModal} onClose={() => setShowModal(false)}>
+                    <div className="px-9 pt-4 pb-8">
+                        <button onClick={() => setShowModal(false)} className='flex ml-auto'><X size={28}></X></button>
+
+                        {/* params.dateがある場合は日付選択のエリアと目的選択エリアを表示 */}
+                        {params.date ? (
+                            <>
+                                <DateTimeFilter
+                                    dateOptions={dateOptions}
+                                    timeOptions={timeOptions}
+                                    date={date}
+                                    setDate={setDate}
+                                    startTime={startTime}
+                                    setStartTime={setStartTime}
+                                    endTime={endTime}
+                                    setEndTime={setEndTime}
+                                    isAllDay={isAllDay}
+                                    setIsAllDay={setIsAllDay}
+                                />
+                                <PurposeFilter
+                                    purposeTags={purposeTags}
+                                    purposeSlug={purposeSlug}
+                                    setPurposeSlug={setPurposeSlug}
+                                    indoor={indoor}
+                                    setIndoor={setIndoor}
+                                />
+                            </>
+                        ) : (
+                            /* 日付選択モーダルでなかった時はエリア選択のエリアと目的選択エリアを表示 */
+                            <>
+                                <AreaFilter
+                                    areaTags={areaTags}
+                                    areaSlugs={areaSlugs}
+                                    toggleAreaSelection={toggleAreaSelection}
+                                />
+                                <PurposeFilter
+                                    purposeTags={purposeTags}
+                                    purposeSlug={purposeSlug}
+                                    setPurposeSlug={setPurposeSlug}
+                                    indoor={indoor}
+                                    setIndoor={setIndoor}
+                                />
+                            </>
+                        )}
+                    </div>
+                </Modal>
+            )}
         </>
-    );
+    )
 }

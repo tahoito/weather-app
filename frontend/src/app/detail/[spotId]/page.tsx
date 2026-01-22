@@ -152,11 +152,10 @@ export default function Page() {
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`w-2 h-2 rounded-full ${
-                currentIndex === index
-                  ? "bg-holder"
-                  : "border border-holder bg-transparent"
-              }`}
+              className={`w-2 h-2 rounded-full ${currentIndex === index
+                ? "bg-holder"
+                : "border border-holder bg-transparent"
+                }`}
             />
           ))}
         </div>
