@@ -144,6 +144,9 @@ export default function Page() {
                 areaName: data.find(a => a.slug === spot.area)?.name || spot.area,
                 image_url: spot.image_url,
                 tags: Array.isArray(spot.tags) ? spot.tags : [],
+                description: spot.description ?? "",
+                is_favorite: spot.is_favorite ?? false,
+
             }));setSpots(normalized);
             } catch (e) {
                 console.error(e);

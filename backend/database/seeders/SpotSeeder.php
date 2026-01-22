@@ -58,7 +58,7 @@ class SpotSeeder extends Seeder
             [
                 'name' => 'ノリタケの森',
                 'area' => 'meieki',
-                'description' => '散歩とカフェ。',
+                'description' => '緑が多くて落ち着く。ゆっくりしたい日におすすめ。',
                 'detail' => '緑が多くて落ち着く。ゆっくりしたい日におすすめ。',
                 'image_url' => 'https://placehold.co/300x200?text=Noritake',
                 'image_urls' => json_encode([
