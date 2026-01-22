@@ -6,6 +6,8 @@ import { NavigationBar } from "@/components/navigation-bar";
 import { fetchFavorites } from "@/api/favorite-index";
 import { fetchAreas, Area } from "@/api/area-index";
 import { fetchSpotsRecommended, Spot } from "@/api/spot-recommend";
+import { purposeTags } from "@/constants/tags";
+
 
 export default function Page() {
   const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
@@ -17,6 +19,10 @@ export default function Page() {
     if (typeof tag === "string") return [tag];
     return [];
   };
+
+  const tagToLabel = (slug: string) =>
+    purposeTags.find((t) => t.slug === slug)?.label ?? slug;
+
 
   useEffect(() => {
     async function loadAreas() {
@@ -57,7 +63,7 @@ export default function Page() {
           return {
             ...f.spot,
             areaName,
-            tags: normalizeTags(f.spot.tag),
+            tags: normalizeTags((f.spot as any).tags ?? (f.spot as any).tag).map(tagToLabel),
           };
         });
 
