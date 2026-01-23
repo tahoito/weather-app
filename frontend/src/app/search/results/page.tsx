@@ -178,13 +178,20 @@ export default function Page() {
                         items.map((spot: any) => ({
                             id: spot.id,
                             name: spot.name,
-                            area: spot.area,
-                            description: spot.description,
-                            imageUrl: spot.image_url,
-                            tag: spot.tag,
+                            image_url: spot.image_url ?? spot.imageUrl ?? "",
+                            areaName:
+                            areaTags.find(a => a.slug === spot.area)?.label ??
+                            (typeof spot.area === "string"
+                                ? spot.area
+                                : spot.area?.label ?? spot.area?.name ?? spot.area?.slug ?? ""),
+                            description: spot.description ?? "",
+                            tags: Array.isArray(spot.tags)
+                            ? spot.tags.map((t: any) => t.label ?? t.name ?? t.slug ?? t).filter(Boolean)
+                            : [],
+
+                            area: typeof spot.area === "string" ? spot.area : spot.area?.slug ?? "",
                         }))
                     );
-
                     return;
                 }
 
@@ -221,13 +228,15 @@ export default function Page() {
                     id: spot.id,
                     name: spot.name,
                     image_url: spot.image_url ?? spot.imageUrl ?? "",
-                    areaName: spot.areaName ?? 
-                    (typeof spot.area === "string"
-                        ? spot.area 
-                        : spot.area?.label ?? spot.area?.name ?? spot.area?.slug ?? ""),
+                    areaName:
+                        areaTags.find(a => a.slug === (typeof spot.area === "string" ? spot.area : spot.area?.slug))?.label
+                        ?? spot.areaName
+                        ?? (typeof spot.area === "string"
+                            ? spot.area
+                            : spot.area?.label ?? spot.area?.name ?? spot.area?.slug ?? ""),
 
                     description: spot.description ?? "",
-                    tag: Array.isArray(spot.tags)
+                    tags: Array.isArray(spot.tags)
                         ? spot.tags.map((t:any) => t.label ?? t.name ?? t.slug ?? t).filter(Boolean)
                         : [],
                 }));
