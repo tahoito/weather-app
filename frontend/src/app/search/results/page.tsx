@@ -22,22 +22,19 @@ import { AreaFilter } from '../_components/area-filter';
 import { DateTimeFilter } from '../_components/date-time-filter';
 import { PurposeFilter } from '../_components/purpose-filter';
 
+
 export default function Page() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
     // 検索オプションを取得
-    const areas = searchParams.getAll('area');
-    const [areasMaster, setAreasMaster] = useState<Area[]>([]);
-    const params = {
-        query: searchParams.get('query') ?? undefined,
-        area: areas.length ? areas : undefined,
-        date: searchParams.get('date') ?? undefined,
-        start_time: searchParams.get('start_time') ?? undefined,
-        end_time: searchParams.get('end_time') ?? undefined,
-        purpose: searchParams.get('purpose') ?? undefined,
-        id_indoor: searchParams.get('is_indoor') ?? undefined
-    };
+    const queryParam = searchParams.get('query') ?? undefined;
+    const areasParam = searchParams.getAll('area');
+    const dateParam = searchParams.get('date') ?? undefined;
+    const startParam = searchParams.get('start_time') ?? undefined;
+    const endParam = searchParams.get('end_time') ?? undefined;
+    const purposeParam = searchParams.get('purpose') ?? undefined;
+    const indoorParam = searchParams.get('is_indoor') ?? undefined;
 
     // 日付オプションと時間オプションを取得
     const dateOptions = getDateOptions();
@@ -45,30 +42,24 @@ export default function Page() {
 
     // 検索条件の状態保持（検索ページと同じ構造）
     const [areaSlugs, setAreaSlugs] = useState<string[]>(() => {
-        if (params.area) {
-            if (Array.isArray(params.area)) {
-                return params.area;
-            }
-            return [params.area];
-        }
-        return ['meieki'];
+        return areasParam.length ?  areasParam : ['meieki']
     });
     const [date, setDate] = useState<string>(
-        params.date ?? (dateOptions[0]?.value || '')
+        dateParam ?? (dateOptions[0]?.value || '')
     );
-    const initialStartTime = params.start_time ?? getNearestTimeOption(timeOptions);
+    const initialStartTime = startParam ?? getNearestTimeOption(timeOptions);
     const [startTime, setStartTime] = useState<string>(initialStartTime);
     const [endTime, setEndTime] = useState<string>(
-        params.end_time ?? getOneHourLaterTime(initialStartTime, timeOptions)
+        endParam ?? getOneHourLaterTime(initialStartTime, timeOptions)
     );
     const [isAllDay, setIsAllDay] = useState<boolean>(
-        !params.start_time && !params.end_time
+        !startParam && !endParam
     );
     const [purposeSlug, setPurposeSlug] = useState<string>(
-        params.purpose ?? 'date'
+        purposeParam ?? 'date'
     );
     const [indoor, setIndoor] = useState<'both' | 'outdoor' | 'indoor'>(
-        params.id_indoor === 'true' ? 'indoor' : params.id_indoor === 'false' ? 'outdoor' : 'both'
+        indoorParam === 'true' ? 'indoor' : indoorParam === 'false' ? 'outdoor' : 'both'
     );
 
     // 検索結果・ローディング状態
@@ -81,21 +72,21 @@ export default function Page() {
     // 検索オプションを構築（API用）
     // 状態が変更されたら再計算される
     const searchOptions = useMemo(() => {
-        if (params.query) {
+        if (queryParam) {
             return {
-                query: params.query,
+                query: queryParam,
                 area: undefined,
                 purpose: undefined,
-                id_indoor: undefined
+                is_indoor: indoorParam,
             };
         }
 
-        if (params.date) {
+        if (dateParam) {
             return {
                 query: undefined,
                 area: undefined,
                 purpose: purposeSlug,
-                id_indoor: indoor !== 'both' ? (indoor === 'indoor' ? 'true' : 'false') : undefined
+                is_indoor: indoor !== 'both' ? (indoor === 'indoor' ? 'true' : 'false') : undefined
             };
         }
 
@@ -103,21 +94,24 @@ export default function Page() {
             query: undefined,
             area: areaSlugs.length > 0 ? areaSlugs : undefined,
             purpose: purposeSlug,
-            id_indoor: indoor !== 'both' ? (indoor === 'indoor' ? 'true' : 'false') : undefined
+            is_indoor: indoor !== 'both' ? (indoor === 'indoor' ? 'true' : 'false') : undefined
         };
-    }, [params.query, params.date, areaSlugs, purposeSlug, indoor]);
+    }, [queryParam, dateParam, areaSlugs, purposeSlug, indoor, indoorParam]);
 
     // buildQuery関数
-    const buildQuery = (params: Record<string, any>) => {
+    type QueryValue = string | string[] | undefined;
+    const buildQuery = (params: Record<string, QueryValue>) => {
         const query = new URLSearchParams();
 
         Object.entries(params).forEach(([key, value]) => {
             if (value === undefined) return;
 
+            const actualKey = key === "area" ? "area[]" : key;
+
             if (Array.isArray(value)) {
-                value.forEach(v => query.append(key, v));
+                value.forEach(v => query.append(actualKey, v));
             } else {
-                query.append(key, value);
+                query.append(actualKey, value);
             }
         });
 
@@ -139,14 +133,78 @@ export default function Page() {
             setLoading(true);
 
             try {
+                if (dateParam) {
+                    const targetTime = isAllDay ? "12:00" : (startTime || "12:00");
+                    const area = areaSlugs[0] ?? "meieki";
+
+                    const areaMeta = areaTags.find(a => a.slug === area);
+                    if (!areaMeta) throw new Error("area not found");
+
+                    const wxRes = await fetch(
+                        `/api/weather/forecast?lat=${areaMeta.lat}&lon=${areaMeta.lon}&date=${date}&time=${targetTime}`
+                    );
+
+                    if (!wxRes.ok) throw new Error("forecast failed");
+                    const wx = await wxRes.json();
+
+                    const qs = new URLSearchParams({
+                        area, 
+                        temp: String(wx.temp),
+                        pop: String(wx.pop),
+                        wind: String(wx.wind),
+                        humidity: String(wx.humidity),
+                        limit: "20",
+                    });
+
+                    qs.set("purpose", purposeSlug);
+                    qs.delete("area");
+                    areaSlugs.forEach(slug => qs.append("area[]", slug));
+
+
+                    if (indoor !== "both") {
+                        qs.set("is_indoor", indoor === "indoor" ? "1" : "0");
+                    }else {
+                        qs.delete("is_indoor");
+                    }
+
+                    const recRes = await fetch(
+                        `http://localhost:8000/api/spots/recommended?${qs.toString()}`
+                    );
+
+                    if (!recRes.ok) throw new Error("recommended failed");
+                    
+                    const raw = await recRes.json();
+                    const items = Array.isArray(raw?.data) ? raw.data : [];
+
+                    setSpots(
+                        items.map((spot: any) => ({
+                            id: spot.id,
+                            name: spot.name,
+                            image_url: spot.image_url ?? spot.imageUrl ?? "",
+                            areaName:
+                            areaTags.find(a => a.slug === spot.area)?.label ??
+                            (typeof spot.area === "string"
+                                ? spot.area
+                                : spot.area?.label ?? spot.area?.name ?? spot.area?.slug ?? ""),
+                            description: spot.description ?? "",
+                            tags: Array.isArray(spot.tags)
+                            ? spot.tags.map((t: any) => t.label ?? t.name ?? t.slug ?? t).filter(Boolean)
+                            : [],
+
+                            area: typeof spot.area === "string" ? spot.area : spot.area?.slug ?? "",
+                        }))
+                    );
+                    return;
+                }
+
                 const apiParams = {
                     query: searchOptions.query,
                     area: searchOptions.area,
                     purpose: searchOptions.purpose,
                     is_indoor:
-                        searchOptions.id_indoor === undefined
+                        searchOptions.is_indoor === undefined
                             ? undefined
-                            : searchOptions.id_indoor === 'true'
+                            : searchOptions.is_indoor === 'true'
                                 ? '1'
                                 : '0',
                 };
@@ -171,15 +229,22 @@ export default function Page() {
                 const normalized: Spot[] = items.map((spot: any) => ({
                     id: spot.id,
                     name: spot.name,
-                    area: spot.area,
-                    description: spot.description,
-                    imageUrl: spot.image_url,
-                    tag: spot.tag,
-                }));
+                    image_url: spot.image_url ?? spot.imageUrl ?? "",
+                    areaName:
+                        areaTags.find(a => a.slug === (typeof spot.area === "string" ? spot.area : spot.area?.slug))?.label
+                        ?? spot.areaName
+                        ?? (typeof spot.area === "string"
+                            ? spot.area
+                            : spot.area?.label ?? spot.area?.name ?? spot.area?.slug ?? ""),
 
+                    description: spot.description ?? "",
+                    tags: Array.isArray(spot.tags)
+                        ? spot.tags.map((t:any) => t.label ?? t.name ?? t.slug ?? t).filter(Boolean)
+                        : [],
+                }));
                 setSpots(normalized);
             } catch (e) {
-                console.error(e);
+                console.error("fetchSpots error", e);
                 setSpots([]);
             } finally {
                 setLoading(false);
@@ -187,11 +252,11 @@ export default function Page() {
         };
 
         fetchSpots();
-    }, [searchOptions]);
+    }, [searchOptions, date, startTime, endTime, isAllDay, areaSlugs, purposeSlug, indoor ]);
 
     return (
         <>
-            <div className="relative bg-back min-h-screen pb-18">
+            <div className="relative bg-back min-h-screen pb-18 pt-5">
                 {/* ヘッダー */}
                 <div className="relative py-3">
                     <button
@@ -207,15 +272,15 @@ export default function Page() {
                 <div className="flex items-center justify-between h-14 bg-[#FFFEF7] px-5 border-y border-holder">
                     <div className="flex items-center gap-3">
                         <p className="text-base">
-                            {/* {spots.length} */}
+                            {spots.length}
                             <span className="text-xs">件</span>
                         </p>
                         <div className="flex flex-col gap-1 ml-3 text-sm">
                             {(() => {
-                                if (params.query) {
+                                if (queryParam) {
                                     // テキスト検索
-                                    return <p>{params.query}</p>
-                                } else if (params.date) {
+                                    return <p>{queryParam}</p>
+                                } else if (dateParam) {
                                     // 日付検索
                                     const dateLabel = `${new Date(date).getMonth() + 1}/${new Date(date).getDate()}`
                                     const hasTime = startTime || endTime
@@ -256,7 +321,7 @@ export default function Page() {
                             })()}
                         </div>
                     </div>
-                    {!params.query && (
+                    {!queryParam && (
                         <button
                             onClick={() => setShowModal(true)}
                             className="px-3 py-2 text-sm font-medium text-sub border border-sub rounded-full"
@@ -293,7 +358,7 @@ export default function Page() {
                         <button onClick={() => setShowModal(false)} className='flex ml-auto'><X size={28}></X></button>
 
                         {/* params.dateがある場合は日付選択のエリアと目的選択エリアを表示 */}
-                        {params.date ? (
+                        {dateParam ? (
                             <>
                                 <DateTimeFilter
                                     dateOptions={dateOptions}

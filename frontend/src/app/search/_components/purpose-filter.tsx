@@ -24,7 +24,10 @@ export function PurposeFilter({ purposeTags, purposeSlug, setPurposeSlug, indoor
                             : 'bg-white'
                             }`}
                     >
-                        <button onClick={() => setPurposeSlug(tag.slug)}>{tag.label}</button>
+                        <button type="button" onClick={() => setPurposeSlug(tag.slug)}
+                            className="w-full py-1 text-center">
+                            {tag.label}
+                        </button>
                     </li>
                 ))}
             </ul>

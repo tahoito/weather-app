@@ -24,3 +24,14 @@ export const weatherCodeMap: Record<
   850: { label: "大雨・嵐", Icon: CloudRainWindIcon },
   950: { label: "大雪", Icon: SnowflakeIcon },
 };
+
+export type Spot = {
+  id: number;
+  name: string;
+  area: string;
+  areaName?: string;
+  image_url?: string;
+  description?: string;
+  tags?: string[];
+  is_favorite?: boolean;
+};
