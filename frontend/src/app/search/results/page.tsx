@@ -131,7 +131,7 @@ export default function Page() {
             setLoading(true);
 
             try {
-                if (date) {
+                if (dateParam) {
                     const targetTime = isAllDay ? "12:00" : (startTime || "12:00");
                     const area = areaSlugs[0] ?? "meieki";
 
@@ -153,6 +153,17 @@ export default function Page() {
                         humidity: String(wx.humidity),
                         limit: "20",
                     });
+
+                    qs.set("purpose", purposeSlug);
+                    qs.delete("area");
+                    areaSlugs.forEach(slug => qs.append("area", slug));
+                    
+
+                    if (indoor !== "both") {
+                        qs.set("is_indoor", indoor === "indoor" ? "1" : "0");
+                    }else {
+                        qs.delete("is_indoor");
+                    }
 
                     const recRes = await fetch(
                         `http://localhost:8000/api/spots/recommended?${qs.toString()}`
@@ -225,7 +236,7 @@ export default function Page() {
         };
 
         fetchSpots();
-    }, [searchOptions, date, startTime, isAllDay, areaSlugs ]);
+    }, [searchOptions, date, startTime, endTime, isAllDay, areaSlugs, purposeSlug, indoor ]);
 
     return (
         <>

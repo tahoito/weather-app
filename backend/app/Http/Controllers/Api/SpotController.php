@@ -25,7 +25,7 @@ class SpotController extends Controller
 
         if (!empty($areas)) {
             $areas = is_array($areas) ? $areas : [$areas];
-            $q->where('area', $areas);
+            $q->whereIn('area', $areas);
         }
 
         if ($request->filled('is_indoor')) {
@@ -81,10 +81,14 @@ class SpotController extends Controller
 
     public function recommended(Request $request)
     {
-        $userId = auth()->id ?? -1;
-        $area = $request->query('area');
-        $weather = $request->query('weather', 'clear');
+        $userId = auth()->id() ?? -1;
+
+        $areas = $request->query('area');
+        $areas = is_array($areas) ? $areas : ($areas ? [$areas] : []);
+
         $limit = (int) $request->query('limit', 4);
+
+        $weather = $request->query('weather', 'clear');
 
         $temp = $request->has('temp') ? (float) $request->query('temp') : null;
         $pop = $request->has('pop') ? (int) $request->query('pop') : null;
@@ -120,14 +124,26 @@ class SpotController extends Controller
 
         $q = Spot::query();
 
-        if ($area) {
-            $q->where('area', $area);
+        if (!empty($areas)) {
+            $q->whereIn('area', $areas);
         }
 
         if ($indoorScore >= 50) {
             $q->orderByDesc('is_indoor');
         } else {
             $q->orderBy('is_indoor');
+        }
+
+        if ($request->filled('is_indoor')){
+            $isIndoor = (int) $request->query('is_indoor');
+            $q->where('is_indoor',$isIndoor);
+        }
+
+        if ($request->filled('purpose')){
+            $purpose = $request->query('purpose');
+            $q->whereHas('tags',function($qq) use ($purpose){
+                $qq->where('slug', $purpose);
+            });
         }
 
         $q->withCount([
