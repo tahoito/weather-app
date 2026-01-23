@@ -5,6 +5,8 @@ import { SpotCard } from "@/components/spot-card";
 import { dummySpots } from "@/data/dummySpots";
 import { NavigationBar } from "@/components/navigation-bar";
 
+
+
 export default function Page() {
   const [spots, setSpots] = useState(dummySpots);
 

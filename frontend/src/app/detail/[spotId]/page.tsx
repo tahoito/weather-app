@@ -96,12 +96,15 @@ export default function Page() {
   return (
     <div className="bg-back w-full h-full">
       <div className="mx-9 pt-5 pb-24">
-        <div className="grid grid-cols-3 items-center pb-3">
-          <Link href="/top" className="flex justify-start">
+        <div className="relative py-3">
+          <Link
+            href="/top"
+            className="absolute top-1/2 left-5 -translate-y-1/2"
+          >
             <ArrowLeftIcon className="w-7 h-7" />
           </Link>
           <p className="text-center font-semibold">{spot.name}</p>
-          <div className="flex justify-end">
+          <div className="absolute top-1/2 right-5 -translate-y-1/2">
             <FavoriteButton
               isFavorite={isFavorite}
               onToggle={() => setIsFavorite((v) => !v)}
@@ -149,11 +152,10 @@ export default function Page() {
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`w-2 h-2 rounded-full ${
-                currentIndex === index
-                  ? "bg-holder"
-                  : "border border-holder bg-transparent"
-              }`}
+              className={`w-2 h-2 rounded-full ${currentIndex === index
+                ? "bg-holder"
+                : "border border-holder bg-transparent"
+                }`}
             />
           ))}
         </div>

@@ -129,11 +129,12 @@ export default function Page() {
         setFavoriteIds(favorites.map((f) => f.spot.id));
       } catch (e) {
         console.error("loadFavorites error:", e);
+        setFavoriteIds([]);
       }
     }
 
     loadFavorites();
-  }, []);
+  }, [currentArea?.slug]);
 
   return (
     <div className="bg-back min-h-screen pb-20 [&>*]:text-fg ">

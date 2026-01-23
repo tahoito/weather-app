@@ -1,5 +1,4 @@
 import axios from "axios";
-import Cookies from "js-cookie";
 
 export type Spot = {
   id: number;
@@ -22,15 +21,9 @@ export type SpotQuery = {
 };
 
 export async function fetchSpotsRecommended(query: SpotQuery): Promise<Spot[]> {
-  const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/spots/recommended`;
-  const token = Cookies.get("authToken");
-
-  const res = await axios.get(apiUrl, {
+  const res = await axios.get("/api/spots/recommended", {
     params: query,
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
 
-  return res.data.data ?? [];
+  return res.data?.data ?? [];
 }
