@@ -27,5 +27,12 @@ export async function GET(req: Request) {
     return currDiff < prevDiff ? curr : prev;
   });
 
-  return NextResponse.json(selected);
+  return NextResponse.json({
+    date: day.date,
+    time: selected.time,
+    temp: selected.temp, 
+    pop: selected.pop, 
+    wind: selected.wind, 
+    humidity: selected.humidity, 
+  });
 }

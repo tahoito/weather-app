@@ -14,14 +14,18 @@ class SpotController extends Controller
     {
         $validated = $request->validate([
             'area' => ['nullable', 'string'],
+            'area.*' => ['string'],
             'is_indoor' => ['nullable'],
             'weather_ok' => ['nullable'],
         ]);
 
         $q = Spot::query()->with(['area', 'tags']);
 
-        if (!empty($validated['area'])) {
-            $q->where('area', $validated['area']);
+        $areas = $request->input('area');
+
+        if (!empty($areas)) {
+            $areas = is_array($areas) ? $areas : [$areas];
+            $q->where('area', $areas);
         }
 
         if ($request->filled('is_indoor')) {
@@ -54,9 +58,7 @@ class SpotController extends Controller
         $north = (float) $request->query('north');
         $east = (float) $request->query('east');
 
-        // $q = Spot::query()
-        //     ->with('tag')
-        //     ->select(['id', 'name', 'lat', 'lon', 'area', 'tag_id'])
+
         $q = Spot::query()
             ->with('tags')
             ->whereBetween('lat', [$south, $north])
@@ -64,17 +66,11 @@ class SpotController extends Controller
             ->whereNotNull('lat')
             ->whereNotNull('lon');
 
+        $areas = $request->input('area');
 
-
-        // $q = Spot::query()
-        //     ->select(['id', 'name', 'lat', 'lon', 'area', 'tag'])
-        // ->whereBetween('lat', [$south, $north])
-        // ->whereBetween('lon', [$west, $east])
-        // ->whereNotNull('lat')
-        // ->whereNotNull('lon');
-
-        if ($request->filled('area')) {
-            $q->where('area', $request->string('area'));
+        if (!empty($areas)) {
+            $areas = is_array($areas) ? $areas : [$areas];
+            $q->whereIn('area', $areas);
         }
 
         if ($request->filled('is_indoor')) {

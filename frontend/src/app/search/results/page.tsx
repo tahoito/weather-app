@@ -131,6 +131,52 @@ export default function Page() {
             setLoading(true);
 
             try {
+                if (date) {
+                    const targetTime = isAllDay ? "12:00" : (startTime || "12:00");
+                    const area = areaSlugs[0] ?? "meieki";
+
+                    const areaMeta = areaTags.find(a => a.slug === area);
+                    if (!areaMeta) throw new Error("area not found");
+
+                    const wxRes = await fetch(
+                        `/api/forecast?lat=${areaMeta.lat}&lon=${areaMeta.lon}&date=${date}&time=${targetTime}`
+                    );
+
+                    if (!wxRes.ok) throw new Error("forecast failed");
+                    const wx = await wxRes.json();
+
+                    const qs = new URLSearchParams({
+                        area, 
+                        temp: String(wx.temp),
+                        pop: String(wx.pop),
+                        wind: String(wx.wind),
+                        humidity: String(wx.humidity),
+                        limit: "20",
+                    });
+
+                    const recRes = await fetch(
+                        `http://localhost:8000/api/spots/recommended?${qs.toString()}`
+                    );
+
+                    if (!recRes.ok) throw new Error("recommended failed");
+                    
+                    const raw = await recRes.json();
+                    const items = Array.isArray(raw?.data) ? raw.data : [];
+
+                    setSpots(
+                        items.map((spot: any) => ({
+                            id: spot.id,
+                            name: spot.name,
+                            area: spot.area,
+                            description: spot.description,
+                            imageUrl: spot.image_url,
+                            tag: spot.tag,
+                        }))
+                    );
+
+                    return;
+                }
+
                 const apiParams = {
                     query: searchOptions.query,
                     area: searchOptions.area,
@@ -171,7 +217,7 @@ export default function Page() {
 
                 setSpots(normalized);
             } catch (e) {
-                console.error(e);
+                console.error("fetchSpots error", e);
                 setSpots([]);
             } finally {
                 setLoading(false);
@@ -179,7 +225,7 @@ export default function Page() {
         };
 
         fetchSpots();
-    }, [searchOptions]);
+    }, [searchOptions, date, startTime, isAllDay, areaSlugs ]);
 
     return (
         <>

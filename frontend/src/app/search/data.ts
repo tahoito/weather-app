@@ -1,26 +1,29 @@
 export type AreaTag = {
     label: string;
     slug: string;
+    lat: number,
+    lon: number,
 }
 
 export const areaTags: AreaTag[] = [
-    { label: '名駅', slug: 'meieki' },
-    { label: '大須', slug: 'osu' },
-    { label: '金山', slug: 'kanayama' },
-    { label: '栄', slug: 'sakae' },
-    { label: '伏見', slug: 'fushimi' },
-    { label: '矢場町', slug: 'yabacho' },
-    { label: '上前津', slug: 'kamimaezu' },
-    { label: '鶴舞', slug: 'tsurumai' },
-    { label: '星ヶ丘', slug: 'hoshigaoka' },
-    { label: '八事', slug: 'yagoto' },
-    { label: '桜山', slug: 'sakurayama' },
-    { label: '今池', slug: 'imaike' },
-    { label: '覚王山', slug: 'kakuozan' },
-    { label: '本山', slug: 'motoyama' },
-    { label: '新瑞橋', slug: 'aratamabashi' },
-    { label: '久屋大通', slug: 'hisayaodori' },
+    { label: '名駅', slug: 'meieki', lat: 35.1709, lon: 136.8815},
+    { label: '大須', slug: 'osu' , lat: 35.1595, lon: 136.9056},
+    { label: '金山', slug: 'kanayama', lat: 35.1429, lon: 136.9016},
+    { label: '栄', slug: 'sakae', lat: 35.1682, lon: 136.9066},
+    { label: '伏見', slug: 'fushimi', lat: 35.1660, lon: 136.8982},
+    { label: '矢場町', slug: 'yabacho', lat: 35.1601, lon: 136.9067},
+    { label: '上前津', slug: 'kamimaezu', lat: 35.1578, lon: 136.9061},
+    { label: '鶴舞', slug: 'tsurumai', lat:35.1572, lon: 136.9170},
+    { label: '星ヶ丘', slug: 'hoshigaoka', lat: 35.1636, lon: 136.9850},
+    { label: '八事', slug: 'yagoto', lat: 35.1536, lon: 136.9634},
+    { label: '桜山', slug: 'sakurayama', lat: 35.1405, lon: 136.9361},
+    { label: '今池', slug: 'imaike', lat: 35.1685, lon: 136.9364},
+    { label: '覚王山', slug: 'kakuozan', lat: 35.1656, lon: 136.9469},
+    { label: '本山', slug: 'motoyama', lat: 35.1643, lon: 136.9450},
+    { label: '新瑞橋', slug: 'aratamabashi', lat: 35.1285, lon: 136.9365},
+    { label: '久屋大通', slug: 'hisayaodori', lat: 35.1715, lon: 136.9087},
 ]
+
 
 export type PurposeTag = {
     label: string;
