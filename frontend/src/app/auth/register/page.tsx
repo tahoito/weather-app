@@ -58,6 +58,7 @@ export default function Page() {
                 type="email"
                 placeholder="example@gmail.com"
                 className="border border-holder rounded-xl bg-white p-3"
+                autoComplete="current-email"
                 {...register("auth.email", {
                   required: "メールアドレスを入力してください",
                 })}
@@ -79,6 +80,7 @@ export default function Page() {
                   type={showPassword ? "text" : "password"}
                   placeholder="パスワード"
                   className="w-full border border-holder rounded-xl bg-white p-3"
+                  autoComplete="current-password"
                   {...register("auth.password", {
                     required: "パスワードを入力してください",
                   })}
@@ -103,6 +105,7 @@ export default function Page() {
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="パスワード確認"
                   className="w-full border border-holder rounded-xl bg-white p-3"
+                  autoComplete="current-password"
                   {...register("confirmPassword", {
                     required: "確認用パスワードを入力してください",
                     validate: (value) =>
