@@ -122,21 +122,21 @@ class SpotController extends Controller
             elseif ($humidity >= 60) $indoorScore += 5;
         }
 
-        $q = Spot::query();
+        $q = Spot::query()->with('tags');
 
         if (!empty($areas)) {
             $q->whereIn('area', $areas);
         }
 
-        if ($indoorScore >= 50) {
-            $q->orderByDesc('is_indoor');
-        } else {
-            $q->orderBy('is_indoor');
-        }
-
-        if ($request->filled('is_indoor')){
+        if($request->filled('is_indoor')) {
             $isIndoor = (int) $request->query('is_indoor');
-            $q->where('is_indoor',$isIndoor);
+            $q->where('is_indoor', $isIndoor);
+        }else {
+            if($indoorScore >= 50) {
+                $q->orderByDesc('is_indoor',1);
+
+                $q->where('weather_ok',1);
+            }
         }
 
         if ($request->filled('purpose')){
