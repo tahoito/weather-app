@@ -81,6 +81,7 @@ class SpotController extends Controller
 
     public function recommended(Request $request)
     {
+        $userId = auth()->id ?? -1;
         $area = $request->query('area');
         $weather = $request->query('weather', 'clear');
         $limit = (int) $request->query('limit', 4);
@@ -128,6 +129,10 @@ class SpotController extends Controller
         } else {
             $q->orderBy('is_indoor');
         }
+
+        $q->withCount([
+            'favorites as is_favorite' => fn($qq) => $qq->where('user_id', $usrId),
+        ]);
 
         $q->orderByDesc('weather_ok')->orderByDesc('created_at');
 

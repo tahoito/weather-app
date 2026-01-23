@@ -6,6 +6,7 @@ export type WeatherInfo = {
   weatherCode: number;
 };
 
+
 export async function fetchWeatherByLatLon(
   lat: string,
   lon: string
@@ -50,9 +51,10 @@ export async function fetchWeatherByLatLon(
 
 export type ForecastHour = {
     time: string;
-    weatherCode: number;
-    precipitation: number;
-    temperature: number;
+    temp: number;
+    pop: number;
+    wind: number;
+    humidity: number;
 };
 
 export type ForecastDay = {
