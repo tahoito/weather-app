@@ -66,6 +66,7 @@ export type ForecastResponse = {
     forecasts: ForecastDay[];
 }
 
+
 export async function fetchForecastByLatLon(lat: string, lon: string): Promise<ForecastResponse> {
   const latNum = Number(lat);
   const lonNum = Number(lon);
@@ -96,45 +97,65 @@ export async function fetchForecastByLatLon(lat: string, lon: string): Promise<F
 
   const wx0 = data?.wxdata?.[0];
   const srf = wx0?.srf;
-
-  console.log("[forecast] has wxdata[0].srf =", Array.isArray(srf), "len =", srf?.length);
-
-  if (!Array.isArray(srf)) {
-    console.log("[forecast] data snapshot =", data);
-    throw new Error("Forecast data is missing(srf)");
-  }
+  const mrf = wx0?.mrf;
 
   const map = new Map<string, ForecastHour[]>();
 
-  for (const item of srf) {
-    const iso: string | undefined = item?.date;
-    if (!iso) continue;
+  if (Array.isArray(srf)) {
+    for (const item of srf) {
+      const iso: string | undefined = item?.date;
+      if (!iso) continue;
 
-    const datePart = iso.slice(0, 10);
-    const hourPart = iso.slice(11, 13);
-    const time = `${hourPart}:00`;
+      const datePart = iso.slice(0, 10);
+      const hourPart = iso.slice(11, 13);
+      const time = `${hourPart}:00`;
 
-    const hour: ForecastHour = {
-      time,
-      temp: Number(item?.temp ?? 0),
-      pop: Number(item?.prec ?? 0),
-      wind: Number(item?.wndspd ?? 0),
-      humidity: Number(item?.rhum ?? 0),
-    };
+      const hour: ForecastHour = {
+        time,
+        temp: Number(item?.temp ?? 0),
+        pop: Number(item?.prec ?? 0),
+        wind: Number(item?.wndspd ?? 0),
+        humidity: Number(item?.rhum ?? 0),
+      };
 
-    const arr = map.get(datePart) ?? [];
-    arr.push(hour);
-    map.set(datePart, arr);
+      const arr = map.get(datePart) ?? [];
+      arr.push(hour);
+      map.set(datePart, arr);
+    }
   }
 
-  const forecasts: ForecastDay[] = [...map.entries()]
+  let forecastsFromSrf: ForecastDay[] = [...map.entries()]
     .sort(([a], [b]) => (a < b ? -1 : 1))
     .map(([date, hourly]) => ({
       date,
       hourly: hourly.sort((a, b) => (a.time < b.time ? -1 : 1)),
     }));
 
-  console.log("[forecast] built days =", forecasts.length, "first =", forecasts[0]);
 
-  return { forecasts };
+  if (Array.isArray(mrf)) {
+    for (const d of mrf) {
+      const iso: string | undefined = d?.date;
+      if (!iso) continue;
+
+      const datePart = iso.slice(0, 10);
+      if (forecastsFromSrf.some(x => x.date === datePart)) continue;
+
+      forecastsFromSrf.push({
+        date: datePart,
+        hourly: [{
+          time: "12:00",
+          temp: Number(d?.maxtemp ?? d?.mintemp ?? 0),
+          pop: Number(d?.pop ?? 0),
+          wind: 0,
+          humidity: 0,
+        }],
+      });
+    }
+
+    forecastsFromSrf.sort((a, b) => (a.date < b.date ? -1 : 1));
+  }
+
+  console.log("[forecast] built days =", forecastsFromSrf.length);
+
+  return { forecasts: forecastsFromSrf };
 }
