@@ -26,6 +26,10 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $this->call([AreaSeeder::class, SpotSeeder::class,]);
+        $this->call([
+            TagSeeder::class,
+            AreaSeeder::class, 
+            SpotSeeder::class,
+        ]);
     }
 }

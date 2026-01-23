@@ -8,26 +8,6 @@ import { CloudDrizzleIcon } from "@/components/icon/cloud-drizzle-icon";
 import { CloudRainWindIcon } from "@/components/icon/cloud-rain-wind-icon";
 import { SnowflakeIcon } from "@/components/icon/snowflake-icon";
 
-export type SpotTag =
-  | "友達"
-  | "カップル"
-  | "一人"
-  | "家族"
-  | "アクティブ"
-  | "ゆったり"
-  | "屋内"
-  | "屋外";
-
-export type Spot = {
-  id: number;
-  name: string;
-  area: string;
-  areaName?: string;
-  description: string;
-  image_url: string;
-  tags: string[] | null;
-};
-
 export const weatherCodeMap: Record<
   number,
   { label: string; Icon: React.ComponentType<{ className?: string }> }

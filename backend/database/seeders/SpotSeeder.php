@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Spot;
+use App\Models\Tag;
 
 class SpotSeeder extends Seeder
 {
@@ -21,7 +22,7 @@ class SpotSeeder extends Seeder
                     'https://placehold.co/600x400?text=Nagoya+2',
                 ]),
                 'lat' => 35.1850,
-                'lon' => 136.8990, 
+                'lon' => 136.8990,
                 'tag' => 'photo',
                 'is_indoor' => false,
                 'weather_ok' => true,
@@ -57,7 +58,7 @@ class SpotSeeder extends Seeder
             [
                 'name' => 'ノリタケの森',
                 'area' => 'meieki',
-                'description' => '散歩とカフェ。',
+                'description' => '緑が多くて落ち着く。ゆっくりしたい日におすすめ。',
                 'detail' => '緑が多くて落ち着く。ゆっくりしたい日におすすめ。',
                 'image_url' => 'https://placehold.co/300x200?text=Noritake',
                 'image_urls' => json_encode([
@@ -99,5 +100,16 @@ class SpotSeeder extends Seeder
                 'updated_at' => now(),
             ],
         ]);
+
+        $spots = Spot::all();
+
+        foreach ($spots as $spot) {
+            if (!$spot->tag) continue;
+
+            $tag = Tag::where('slug', $spot->tag)->first();
+            if (!$tag) continue;
+
+            $spot->tags()->syncWithoutDetaching([$tag->id]);
+        }
     }
 }

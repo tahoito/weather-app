@@ -28,6 +28,7 @@ export default function Page() {
 
     // 検索オプションを取得
     const areas = searchParams.getAll('area');
+    const [areasMaster, setAreasMaster] = useState<Area[]>([]);
     const params = {
         query: searchParams.get('query') ?? undefined,
         area: areas.length ? areas : undefined,

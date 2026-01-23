@@ -5,20 +5,20 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Spot;
-use App\Models\Favorite;
+use App\Http\Resources\SpotResource;
 
 class SpotSearchController extends Controller
 {
     public function index(Request $request)
     {
-        $query  = Spot::query();
+        $query  = Spot::query()->with(['area','tags']); 
         $userId = auth()->id() ?? -1;
 
         if ($request->filled('query')) {
             $q = $request->input('query');
             $query->where(function($w) use ($q) {
                 $w->where('name','like',"%{$q}%")
-                    ->orWhere('description','like',"%{$q}%");
+                  ->orWhere('description','like',"%{$q}%");
             });
         }
 
@@ -49,12 +49,10 @@ class SpotSearchController extends Controller
 
             $query->whereHas('openingHours', function ($q) use ($dow, $start, $end) {
                 $q->where('day_of_week', $dow);
-
                 if ($start) $q->where('open_time', '<=', $start);
                 if ($end)   $q->where('close_time', '>=', $end);
             });
         }
-
 
         $query->withCount([
             'favorites as is_favorited' => function ($q) use ($userId) {
@@ -62,16 +60,12 @@ class SpotSearchController extends Controller
             }
         ]);
 
-        return $query->get([
-            'id',
-            'name',
-            'area',
-            'lat',
-            'lon',
-            'image_url',
-            'is_indoor',
-            'weather_ok',
-            'tag',
-        ]);
+        return SpotResource::collection($query->orderBy('id')->get());
+    }
+
+    public function show(Spot $spot)
+    {
+        $spot->load(['area','tags']);
+        return new SpotResource($spot);
     }
 }

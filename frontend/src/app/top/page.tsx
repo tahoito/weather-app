@@ -182,7 +182,7 @@ export default function Page() {
                         className="w-20 px-2 py-1 rounded-full border bg-card-back shadow-[1px_2px_1px_rgba(0,0,0,0.20)]"
                         onClick={() => {
                           setCurrentArea(area);
-                          setWeather(null); // ← これが重要
+                          setWeather(null);
                           setSpots([]);
                           localStorage.setItem("selectedAreaSlug", area.slug);
                           setIsAreaModalOpen(false);
