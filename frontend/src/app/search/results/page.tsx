@@ -106,10 +106,12 @@ export default function Page() {
         Object.entries(params).forEach(([key, value]) => {
             if (value === undefined) return;
 
+            const actualKey = key === "area" ? "area[]" : key;
+
             if (Array.isArray(value)) {
-                value.forEach(v => query.append(key, v));
+                value.forEach(v => query.append(actualKey, v));
             } else {
-                query.append(key, value);
+                query.append(actualKey, value);
             }
         });
 
@@ -156,7 +158,7 @@ export default function Page() {
 
                     qs.set("purpose", purposeSlug);
                     qs.delete("area");
-                    areaSlugs.forEach(slug => qs.append("area", slug));
+                    areaSlugs.forEach(slug => qs.append("area[]", slug));
 
 
                     if (indoor !== "both") {
