@@ -157,7 +157,7 @@ export default function Page() {
                     qs.set("purpose", purposeSlug);
                     qs.delete("area");
                     areaSlugs.forEach(slug => qs.append("area", slug));
-                    
+
 
                     if (indoor !== "both") {
                         qs.set("is_indoor", indoor === "indoor" ? "1" : "0");
@@ -220,12 +220,17 @@ export default function Page() {
                 const normalized: Spot[] = items.map((spot: any) => ({
                     id: spot.id,
                     name: spot.name,
-                    area: spot.area,
-                    description: spot.description,
-                    imageUrl: spot.image_url,
-                    tag: spot.tag,
-                }));
+                    image_url: spot.image_url ?? spot.imageUrl ?? "",
+                    areaName: spot.areaName ?? 
+                    (typeof spot.area === "string"
+                        ? spot.area 
+                        : spot.area?.label ?? spot.area?.name ?? spot.area?.slug ?? ""),
 
+                    description: spot.description ?? "",
+                    tag: Array.isArray(spot.tags)
+                        ? spot.tags.map((t:any) => t.label ?? t.name ?? t.slug ?? t).filter(Boolean)
+                        : [],
+                }));
                 setSpots(normalized);
             } catch (e) {
                 console.error("fetchSpots error", e);
@@ -240,7 +245,7 @@ export default function Page() {
 
     return (
         <>
-            <div className="relative bg-back min-h-screen pb-18">
+            <div className="relative bg-back min-h-screen pb-18 pt-5">
                 {/* ヘッダー */}
                 <div className="relative py-3">
                     <button
