@@ -139,7 +139,7 @@ export default function Page() {
                     if (!areaMeta) throw new Error("area not found");
 
                     const wxRes = await fetch(
-                        `/api/forecast?lat=${areaMeta.lat}&lon=${areaMeta.lon}&date=${date}&time=${targetTime}`
+                        `/api/weather/forecast?lat=${areaMeta.lat}&lon=${areaMeta.lon}&date=${date}&time=${targetTime}`
                     );
 
                     if (!wxRes.ok) throw new Error("forecast failed");

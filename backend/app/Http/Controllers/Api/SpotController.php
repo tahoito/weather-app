@@ -131,7 +131,7 @@ class SpotController extends Controller
         }
 
         $q->withCount([
-            'favorites as is_favorite' => fn($qq) => $qq->where('user_id', $usrId),
+            'favorites as is_favorite' => fn($qq) => $qq->where('user_id', $userId),
         ]);
 
         $q->orderByDesc('weather_ok')->orderByDesc('created_at');
