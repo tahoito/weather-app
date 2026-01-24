@@ -148,14 +148,18 @@ export default function Page() {
     <div className="bg-back w-full h-full">
       <div className="mx-9 pt-5 pb-24">
         <div className="relative py-3">
-          <Link
-            href="/top"
-            className="absolute top-1/2 left-5 -translate-y-1/2"
-          >
-            <ArrowLeftIcon className="w-7 h-7" />
-          </Link>
-          <p className="text-center font-semibold">{spot.name}</p>
-          <div className="absolute top-1/2 right-5 -translate-y-1/2">
+
+          <div className="absolute top-1/2 -translate-y-1/2">
+            <Link href="/top">
+              <ArrowLeftIcon className="w-7 h-7" />
+            </Link>
+          </div>
+
+          <p className="text-center font-semibold text-lg px-14">
+            {spot.name}
+          </p>
+
+          <div className="absolute top-1/2 right-0 -translate-y-1/2 flex justify-end">
             <FavoriteButton
               isFavorite={isFavorite}
               onToggle={toggleFavorite}
@@ -163,7 +167,7 @@ export default function Page() {
             />
           </div>
         </div>
-
+        
         <div
           className="overflow-hidden w-full touch-pan-y"
           onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
