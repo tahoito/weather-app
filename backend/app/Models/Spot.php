@@ -21,6 +21,7 @@ class Spot extends Model
         'highlights' => 'array',
         'is_indoor' => 'boolean',
         'weather_ok' => 'boolean',
+        'tags_json' => 'array',
     ];
 
     public function area()
