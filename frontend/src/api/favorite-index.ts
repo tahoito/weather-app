@@ -7,6 +7,6 @@ export type Favorite = {
 };
 
 export async function fetchFavorites(): Promise<Favorite[]> {
-  const res = await axios.get("/api/favorites");
+  const res = await axios.get("http://localhost:8000/api/favorites");
   return res.data;
 }
