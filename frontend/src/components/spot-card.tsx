@@ -54,7 +54,7 @@ export function SpotCard({ spot, initialIsFavorite }: Props) {
           </p>
           <p className="text-sm">{spot.areaName}エリア</p>
         </div>
-        <p className="text-sm mt-1 line-clamp-3">{spot.description}</p>
+        <p className="text-sm mt-1 line-clamp-2">{spot.description}</p>
       </div>
       <div className="grid grid-cols-[5fr_1fr]">
         <div className="flex flex-wrap gap-1 mt-1">
