@@ -20,7 +20,7 @@ export async function GET(req: Request) {
     }
 
     const token = getCookie(req, "authToken");
-    if (!token) return NextResponse.json([], { status: 200 }); // 未ログインは空でOK
+    if (!token) return NextResponse.json([], { status: 200 });
 
     const url = `${base}/api/favorites`;
 
@@ -39,7 +39,9 @@ export async function GET(req: Request) {
     }
 
     const data = text ? JSON.parse(text) : null;
-    return NextResponse.json(data, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json(data, {
+      headers: { "Cache-Control": "no-store" },
+    });
   } catch (e) {
     console.error("favorites GET route error:", e);
     return NextResponse.json({ error: "internal error" }, { status: 500 });
@@ -61,7 +63,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "missing authToken" }, { status: 401 });
     }
 
-    const body = await req.json(); // { spot_id: number } を期待
+    const body = await req.json();
     const url = `${base}/api/favorites`;
 
     const res = await fetch(url, {
@@ -84,7 +86,9 @@ export async function POST(req: Request) {
     }
 
     const data = text ? JSON.parse(text) : null;
-    return NextResponse.json(data, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json(data, {
+      headers: { "Cache-Control": "no-store" },
+    });
   } catch (e) {
     console.error("favorites POST route error:", e);
     return NextResponse.json({ error: "internal error" }, { status: 500 });

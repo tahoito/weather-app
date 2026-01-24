@@ -21,7 +21,7 @@ export type SpotQuery = {
 };
 
 export async function fetchSpotsRecommended(query: SpotQuery): Promise<Spot[]> {
-  const res = await axios.get("/api/spots/recommended", {
+  const res = await axios.get("http://localhost:8000/api/spots/recommended", {
     params: query,
   });
 
