@@ -31,8 +31,14 @@ export type Spot = {
   name: string;
   area: string;
   areaName?: string;
-  image_url?: string;
+  thumbnailUrl?: string;
+  imageUrls?: string[];
+  detail?: string;
   description?: string;
-  tags?: string[];
+  tag?: string[];
   is_favorite?: boolean;
+  weatherSuitability: string[];
+  highlights: string[];
+  price?: string;
+  openingHours?: string;
 };
