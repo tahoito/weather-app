@@ -36,9 +36,11 @@ class SpotSearchController extends Controller
             $query->where('weather_ok', $request->boolean('weather_ok'));
         }
 
-        if ($request->filled('tag')) {
-            $tag = $request->string('tag')->toString();
-            $query->where('tag', $tag);
+        if ($request->filled('purpose')) {
+            $purpose = $request->string('purpose')->toString();
+            $query->whereHas('tags', function ($q) use ($purpose){
+                $q->where('slug', $purpose);
+            });
         }
 
         if ($request->filled('date') && ($request->filled('start_time') || $request->filled('end_time'))) {
