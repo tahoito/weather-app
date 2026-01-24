@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { fetchAreas, Area } from "@/api/area-index";
-import { fetchSpotsRecommended, Spot } from "@/api/spot-recommend";
 import { fetchFavorites } from "@/api/favorite-index";
 import { UmbrellaIcon } from "@/components/icon/umbrella-icon";
 import { DropletIcon } from "@/components/icon/droplet-icon";
@@ -12,6 +11,9 @@ import { SpotCard } from "@/components/spot-card";
 import { weatherCodeMap } from "@/types/spot";
 import { NavigationBar } from "@/components/navigation-bar";
 import { X } from "lucide-react";
+import type { Spot } from "@/types/spot";
+import { fetchSpotsRecommended } from "@/api/spot-recommend";
+
 
 type WeatherInfo = {
   precipitation: number;
