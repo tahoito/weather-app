@@ -5,24 +5,37 @@ type Props = {
 export function CloudHeilIcon({ className }: Props) {
   return (
     <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
+      width="64"
+      height="64"
+      viewBox="0 0 64 64"
       fill="none"
-      stroke="currentColor"
-      strokeWidth="1"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
-      <path d="M16 14v2" />
-      <path d="M8 14v2" />
-      <path d="M16 20h.01" />
-      <path d="M8 20h.01" />
-      <path d="M12 16v2" />
-      <path d="M12 22h.01" />
+      <path
+        d="M53.8088 44H9.64717C-6.79801 40.5122 -0.683281 15.9495 16.4413 20.1005C19.8386 -4.46181 59.2444 0.848626 53.8088 24.0834C67.3971 24.0834 67.3971 44 53.8088 44Z"
+        fill="#9CA3AF"
+      />
+      <path
+        d="M12.4999 46C9.16666 50 9.16668 54 12.5 54C15.8333 54 15.8334 50 12.4999 46Z"
+        fill="#439DEC"
+      />
+      <path
+        d="M32.4999 46C29.1667 50 29.1667 54 32.5 54C35.8333 54 35.8334 50 32.4999 46Z"
+        fill="#439DEC"
+      />
+      <path
+        d="M50.4999 46C47.1667 50 47.1667 54 50.5 54C53.8333 54 53.8334 50 50.4999 46Z"
+        fill="#439DEC"
+      />
+      <path
+        d="M22.4999 52C19.1667 56 19.1667 60 22.5 60C25.8333 60 25.8334 56 22.4999 52Z"
+        fill="#439DEC"
+      />
+      <path
+        d="M41.4999 52C38.1667 56 38.1667 60 41.5 60C44.8333 60 44.8334 56 41.4999 52Z"
+        fill="#439DEC"
+      />
     </svg>
   );
 }
