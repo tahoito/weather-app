@@ -10,6 +10,10 @@ export type SpotQuery = {
   limit: number;
 };
 
+type ApiSpot = Omit<Spot, "tag"> & {
+  tags?: string | string[] | null;
+};
+
 export async function fetchSpotsRecommended(
   query: SpotQuery
 ): Promise<Spot[]> {
@@ -17,10 +21,10 @@ export async function fetchSpotsRecommended(
     params: query,
   });
 
-  const data = (res.data?.data ?? []) as Spot[];
+  const data: ApiSpot[] = res.data?.data ?? [];
 
   return data.map((s) => ({
       ...s,
-      tag: Array.isArray(s.tag) ? s.tag : s.tag ? [s.tag] : [],
+      tag: Array.isArray(s.tags) ? s.tags : s.tags ? [s.tags] : [],
   }))
 }
