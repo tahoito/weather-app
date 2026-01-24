@@ -5,18 +5,17 @@ type Props = {
 export function CloudIcon({ className }: Props) {
   return (
     <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
+      width="64"
+      height="64"
+      viewBox="0 0 64 64"
       fill="none"
-      stroke="currentColor"
-      strokeWidth="1"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
+      <path
+        d="M53.8088 52H9.64717C-6.79801 48.5122 -0.683281 23.9495 16.4413 28.1005C19.8386 3.53819 59.2444 8.84863 53.8088 32.0834C67.3971 32.0834 67.3971 52 53.8088 52Z"
+        fill="#9CA3AF"
+      />
     </svg>
   );
 }
