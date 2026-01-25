@@ -128,13 +128,7 @@ export default function Page() {
     async function loadFavorites() {
       try {
         const favorites = await fetchFavorites();
-
-        const ids = favorites 
-          .map((f: any) => (f?.spot ?? f))
-          .filter((s: any) => s && typeof s.id === "number")
-          .map((s: any) => s.id);
-
-        setFavoriteIds(ids);
+        setFavoriteIds(favorites.map((s:any) => s.id));
       } catch (e) {
         console.error("loadFavorites error:", e);
         setFavoriteIds([]);

@@ -44,8 +44,8 @@ export default function Page() {
   useEffect(() => {
     (async () => {
       try {
-        const favorites = await fetchFavorites();
-        setFavoriteIds(favoriteIds.map((f: any) => (f.spot ?? f).id));
+        const favorites = await fetchFavorites(); 
+        setFavoriteIds(favorites.map((s: any) => s.id))
       } catch (e) {
         console.error("loadFavorites error:", e);
         setFavoriteIds([]);
@@ -58,9 +58,8 @@ export default function Page() {
       try {
         const favorites = await fetchFavorites();
         
-        const spotsWithAreaName = favorites.map((f) => {
-          const s: any = f.spot ?? f;
-
+        
+        const spotsWithAreaName = favorites.map((s: any) => {
           const areaName = areas.find((a) => a.slug === s.area)?.name ?? s.area;
 
           const image_url =

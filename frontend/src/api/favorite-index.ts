@@ -14,10 +14,10 @@ export async function fetchFavorites(): Promise<FavoriteItem[]> {
   if (!res.ok) throw new Error("fetchFavorites failed");
 
   const json = await res.json();
+  const arr = Array.isArray(json) ? json : (json?.data ?? []);
 
-  
-  if (Array.isArray(json)) return json;
-  if (json && Array.isArray(json.data)) return json.data;
+  return arr
+    .map((x:any) => x?.spot ?? x)
+    .filter((s: any) => s && typeof s.id === "number");
 
-  return [];
 }
