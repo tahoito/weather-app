@@ -29,16 +29,21 @@ export const weatherCodeMap: Record<
 export type Spot = {
   id: number;
   name: string;
+  lat:number;
+  lon:number;
   area: string;
   areaName?: string;
   thumbnailUrl?: string;
   imageUrls?: string[];
   detail?: string;
   description?: string;
-  tag?: string[];
+  tags?: string[];
   is_favorite?: boolean;
+  is_indoor: boolean;
+  weather_ok: boolean;
   weatherSuitability: string[];
   highlights: string[];
   price?: string;
   openingHours?: string;
 };
+
