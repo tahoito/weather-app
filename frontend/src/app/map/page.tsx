@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { areaTags } from '../search/data';
 import dynamic from 'next/dynamic';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { NavigationBar } from '@/components/navigation-bar';
@@ -14,11 +16,21 @@ interface Location {
     lon: string;
 }
 
+interface InitialMapState {
+    lat: number;
+    lon: number;
+    spotId: number | null;
+}
+
+const DEFAULT_LAT = 35.1709;
+const DEFAULT_LON = 136.8815;
+
 const MapComponent = dynamic(() => import('@/components/Map'), {
     ssr: false,
 });
 
 export default function Page() {
+    const searchParams = useSearchParams();
     const [spots, setSpots] = useState<Location[]>([]);
     const [isInputFocused, setIsInputFocused] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -26,6 +38,50 @@ export default function Page() {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [indoorFilter, setIndoorFilter] = useState<boolean | null>(null);
     const [selectedSpotId, setSelectedSpotId] = useState<number | null>(null); // ピンを押すとspotIdを状態として保持します
+    const [initialMapState, setInitialMapState] = useState<InitialMapState | null>(null);
+
+    useEffect(() => {
+        const DEFAULT_LAT = 35.1815;
+        const DEFAULT_LON = 136.9066;
+
+        // 1. URLパラメータから取得を試みる
+        const urlLat = searchParams.get('lat');
+        const urlLon = searchParams.get('lon');
+        const urlSpotId = searchParams.get('spotId');
+
+        if (urlLat && urlLon) {
+            setInitialMapState({
+                lat: parseFloat(urlLat),
+                lon: parseFloat(urlLon),
+                spotId: urlSpotId ? parseInt(urlSpotId) : null,
+            });
+            if (urlSpotId) {
+                setSelectedSpotId(parseInt(urlSpotId));
+            }
+            return;
+        }
+
+        // 2. localStorageから selectedAreaSlug を取得
+        const savedSlug = localStorage.getItem('selectedAreaSlug');
+        if (savedSlug) {
+            const area = areaTags.find((a) => a.slug === savedSlug);
+            if (area) {
+                setInitialMapState({
+                    lat: area.lat,
+                    lon: area.lon,
+                    spotId: null,
+                });
+                return;
+            }
+        }
+
+        // 3. どちらも存在しない場合はデフォルト値
+        setInitialMapState({
+            lat: DEFAULT_LAT,
+            lon: DEFAULT_LON,
+            spotId: null,
+        });
+    }, [searchParams]);
 
     useEffect(() => {
         const fetchSpots = async () => {
@@ -69,6 +125,10 @@ export default function Page() {
     const handleSpotSelect = (spotId: number) => {
         setSelectedSpotId(spotId);
     };
+
+    if (!initialMapState) {
+        return null;
+    }
 
     return (
         <>
@@ -131,6 +191,8 @@ export default function Page() {
                 spots={spots}
                 selectedSpotId={selectedSpotId}
                 onSpotSelect={handleSpotSelect}
+                initialLat={initialMapState.lat}
+                initialLon={initialMapState.lon}
             />
             <NavigationBar />
         </>

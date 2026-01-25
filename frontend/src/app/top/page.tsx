@@ -129,7 +129,7 @@ export default function Page() {
     async function loadFavorites() {
       try {
         const favorites = await fetchFavorites();
-        setFavoriteIds(favorites.map((s:any) => s.id));
+        setFavoriteIds(favorites.map((s: any) => s.id));
       } catch (e) {
         console.error("loadFavorites error:", e);
         setFavoriteIds([]);
@@ -169,9 +169,8 @@ export default function Page() {
           {isAreaModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
               <div
-                className={`bg-white rounded-2xl p-6 w-[320px] border relative text-sm ${
-                  areaModalMode === "change" ? "pt-12" : ""
-                }`}
+                className={`bg-white rounded-2xl p-6 w-[320px] border relative text-sm ${areaModalMode === "change" ? "pt-12" : ""
+                  }`}
               >
                 {areaModalMode === "initial" ? (
                   <p className="pb-6 text-base whitespace-nowrap text-center">
@@ -281,7 +280,7 @@ export default function Page() {
           </div>
         </div>
       </div>
-      <NavigationBar  onMapClick={handleMapClick} />
+      <NavigationBar />
     </div>
   );
 }
