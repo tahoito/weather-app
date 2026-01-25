@@ -42,7 +42,7 @@ export default function Page() {
 
     // 検索条件の状態保持（検索ページと同じ構造）
     const [areaSlugs, setAreaSlugs] = useState<string[]>(() => {
-        return areasParam.length ?  areasParam : ['meieki']
+        return areasParam.length ? areasParam : ['meieki']
     });
     const [date, setDate] = useState<string>(
         dateParam ?? (dateOptions[0]?.value || '')
@@ -148,7 +148,7 @@ export default function Page() {
                     const wx = await wxRes.json();
 
                     const qs = new URLSearchParams({
-                        area, 
+                        area,
                         temp: String(wx.temp),
                         pop: String(wx.pop),
                         wind: String(wx.wind),
@@ -163,7 +163,7 @@ export default function Page() {
 
                     if (indoor !== "both") {
                         qs.set("is_indoor", indoor === "indoor" ? "1" : "0");
-                    }else {
+                    } else {
                         qs.delete("is_indoor");
                     }
 
@@ -172,7 +172,7 @@ export default function Page() {
                     );
 
                     if (!recRes.ok) throw new Error("recommended failed");
-                    
+
                     const raw = await recRes.json();
                     const items = Array.isArray(raw?.data) ? raw.data : [];
 
@@ -182,14 +182,14 @@ export default function Page() {
                             name: spot.name,
                             image_url: spot.image_url ?? spot.imageUrl ?? "",
                             areaName:
-                            areaTags.find(a => a.slug === spot.area)?.label ??
-                            (typeof spot.area === "string"
-                                ? spot.area
-                                : spot.area?.label ?? spot.area?.name ?? spot.area?.slug ?? ""),
+                                areaTags.find(a => a.slug === spot.area)?.label ??
+                                (typeof spot.area === "string"
+                                    ? spot.area
+                                    : spot.area?.label ?? spot.area?.name ?? spot.area?.slug ?? ""),
                             description: spot.description ?? "",
                             tags: Array.isArray(spot.tags)
-                            ? spot.tags.map((t: any) => t.label ?? t.name ?? t.slug ?? t).filter(Boolean)
-                            : [],
+                                ? spot.tags.map((t: any) => t.label ?? t.name ?? t.slug ?? t).filter(Boolean)
+                                : [],
 
                             area: typeof spot.area === "string" ? spot.area : spot.area?.slug ?? "",
                         }))
@@ -210,6 +210,7 @@ export default function Page() {
                 };
 
                 const query = buildQuery(apiParams);
+                console.log(query)
                 const res = await fetch(
                     `http://localhost:8000/api/spots/search?${query}`
                 );
@@ -239,7 +240,7 @@ export default function Page() {
 
                     description: spot.description ?? "",
                     tags: Array.isArray(spot.tags)
-                        ? spot.tags.map((t:any) => t.label ?? t.name ?? t.slug ?? t).filter(Boolean)
+                        ? spot.tags.map((t: any) => t.label ?? t.name ?? t.slug ?? t).filter(Boolean)
                         : [],
                 }));
                 setSpots(normalized);
@@ -252,7 +253,7 @@ export default function Page() {
         };
 
         fetchSpots();
-    }, [searchOptions, date, startTime, endTime, isAllDay, areaSlugs, purposeSlug, indoor ]);
+    }, [searchOptions, date, startTime, endTime, isAllDay, areaSlugs, purposeSlug, indoor]);
 
     return (
         <>
