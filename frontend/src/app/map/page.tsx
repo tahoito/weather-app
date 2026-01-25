@@ -112,7 +112,7 @@ export default function Page() {
                             : 'border-fg'
                             }`}
                     >
-                        <img src="./images/map-pin-1.svg" alt="" className='w-8 h-8' />
+                        <img src="/images/map-pin-1.svg" alt="" className='w-8 h-8' />
                         <p>屋外</p>
                     </button>
                     <button
@@ -122,7 +122,7 @@ export default function Page() {
                             : 'border-fg'
                             }`}
                     >
-                        <img src="./images/map-pin-2.svg" alt="" className='w-8 h-8' />
+                        <img src="/images/map-pin-2.svg" alt="" className='w-8 h-8' />
                         <p>屋内</p>
                     </button>
                 </div>

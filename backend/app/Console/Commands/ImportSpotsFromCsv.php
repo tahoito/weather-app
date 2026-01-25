@@ -112,6 +112,7 @@ class ImportSpotsFromCsv extends Command
                     $payload['tags'] = $tagsArray[0] ?? null;
                 }
 
+                $payload['tag'] = $tagsArray[0] ?? null;
                 $payload['tags_json'] = $tagsArray;
                 $payload['weather_suitability'] = $this->toStringArray($data['weather_suitability'] ?? null);
                 $payload['highlights'] = $this->toStringArray($data['highlights'] ?? null);

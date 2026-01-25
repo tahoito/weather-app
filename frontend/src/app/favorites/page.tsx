@@ -5,88 +5,100 @@ import { SpotCard } from "@/components/spot-card";
 import { NavigationBar } from "@/components/navigation-bar";
 import { fetchFavorites } from "@/api/favorite-index";
 import { fetchAreas, Area } from "@/api/area-index";
-import { fetchSpotsRecommended, Spot } from "@/api/spot-recommend";
+import { Spot } from "@/types/spot";
 import { purposeTags } from "@/constants/tags";
-
 
 export default function Page() {
   const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
   const [spots, setSpots] = useState<Spot[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
 
-  const normalizeTags = (tag: unknown): string[] => {
-    if (Array.isArray(tag)) return tag;
-    if (typeof tag === "string") return [tag];
+  const normalizeTags = (raw: unknown): string[] => {
+    if (Array.isArray(raw)) {
+      return raw
+        .map((t: any) => {
+          if (typeof t === "string") return t;
+          if (t && typeof t === "object") return t.slug ?? t.name ?? t.label;
+          return null;
+        })
+        .filter(Boolean);
+    }
+    if (typeof raw === "string") return [raw];
     return [];
   };
 
   const tagToLabel = (slug: string) =>
     purposeTags.find((t) => t.slug === slug)?.label ?? slug;
 
-
   useEffect(() => {
-    async function loadAreas() {
+    (async () => {
       try {
         const data = await fetchAreas();
         setAreas(data);
       } catch (e) {
         console.error("loadAreas error", e);
       }
-    }
-
-    loadAreas();
+    })();
   }, []);
 
   useEffect(() => {
-    async function loadFavorites() {
+    (async () => {
       try {
-        const favorites = await fetchFavorites();
-        setFavoriteIds(favorites.map((f) => f.spot.id));
+        const favorites = await fetchFavorites(); 
+        setFavoriteIds(favorites.map((s: any) => s.id))
       } catch (e) {
         console.error("loadFavorites error:", e);
         setFavoriteIds([]);
       }
-    }
-
-    loadFavorites();
+    })();
   }, []);
 
   useEffect(() => {
     async function loadFavoriteSpots() {
       try {
         const favorites = await fetchFavorites();
+        
+        
+        const spotsWithAreaName = favorites.map((s: any) => {
+          const areaName = areas.find((a) => a.slug === s.area)?.name ?? s.area;
 
-        const spotsWithAreaName = favorites.map((f) => {
-          const areaName =
-            areas.find((a) => a.slug === f.spot.area)?.name ?? f.spot.area;
+          const image_url =
+            s.image_url ??
+            s.imageUrl ??
+            s.thumbnail_url ??
+            s.thumbnailUrl ??
+            (Array.isArray(s.imageUrls) ? s.imageUrls[0] : undefined) ??
+            "";
+
+          const tags = normalizeTags(s.tags ?? s.tag).map(tagToLabel);
 
           return {
-            ...f.spot,
+            ...s,
             areaName,
-            tags: normalizeTags((f.spot as any).tags ?? (f.spot as any).tag).map(tagToLabel),
+            image_url,
+            tags, 
           };
         });
 
         setSpots(spotsWithAreaName);
       } catch (e) {
-        console.error("loadFavorites error:", e);
+        console.error("loadFavoriteSpots error:", e);
         setSpots([]);
       }
     }
 
-    // 👇 areas が揃ってから実行
-    if (areas.length > 0) {
-      loadFavoriteSpots();
-    }
+    if (areas.length > 0) loadFavoriteSpots();
   }, [areas]);
+
 
   return (
     <div className="bg-back min-h-screen pt-10 pb-20 [&>*]:text-fg ">
       <p className="text-center text-lg font-semibold mb-6 pb-2 shadow-[0px_2px_3px_rgba(0,0,0,0.20)]">
         お気に入り一覧
       </p>
+
       <div className="mx-4">
-        <div className="flex justify-center ">
+        <div className="flex justify-center">
           <div className="grid grid-cols-2 gap-2">
             {spots.map((spot) => (
               <SpotCard
@@ -98,6 +110,7 @@ export default function Page() {
           </div>
         </div>
       </div>
+
       <NavigationBar />
     </div>
   );
