@@ -5,7 +5,7 @@ import { SpotCard } from "@/components/spot-card";
 import { NavigationBar } from "@/components/navigation-bar";
 import { fetchFavorites } from "@/api/favorite-index";
 import { fetchAreas, Area } from "@/api/area-index";
-import { fetchSpotsRecommended, Spot } from "@/api/spot-recommend";
+import { Spot } from "@/types/spot";
 import { purposeTags } from "@/constants/tags";
 
 
@@ -14,11 +14,24 @@ export default function Page() {
   const [spots, setSpots] = useState<Spot[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
 
-  const normalizeTags = (tag: unknown): string[] => {
-    if (Array.isArray(tag)) return tag;
-    if (typeof tag === "string") return [tag];
+  const normalizeTags = (raw: unknown): string[] => {
+    if (Array.isArray(raw)) {
+      return raw
+        .map((t: any) => {
+          if (typeof t === "string") return t;
+          if (t && typeof t === "object") return t.slug ?? t.name;
+          return null;
+        })
+        .filter(Boolean);
+    }
+
+    if (typeof raw === "string") {
+      return [raw];
+    }
+
     return [];
   };
+
 
   const tagToLabel = (slug: string) =>
     purposeTags.find((t) => t.slug === slug)?.label ?? slug;
@@ -57,15 +70,25 @@ export default function Page() {
         const favorites = await fetchFavorites();
 
         const spotsWithAreaName = favorites.map((f) => {
+          const s:any = f.spot;
           const areaName =
-            areas.find((a) => a.slug === f.spot.area)?.name ?? f.spot.area;
+            areas.find((a) => a.slug === s.area)?.name ?? s.area;
+
+            const image_url = 
+              s.image_url ?? 
+              s.imageUrl ??
+              s.thumbnail_url ??
+              s.thumbnailUrl ??
+              (Array.isArray(s.imageUrls) ? s.imageUrls[0] : undefined)
+              "";
 
           return {
-            ...f.spot,
+            ...s,
             areaName,
-            tags: normalizeTags((f.spot as any).tags ?? (f.spot as any).tag).map(tagToLabel),
-          };
-        });
+            image_url,
+            tags: normalizeTags(s.tags ?? s.tag).map(tagToLabel),
+        };
+      });
 
         setSpots(spotsWithAreaName);
       } catch (e) {

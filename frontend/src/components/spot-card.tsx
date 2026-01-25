@@ -16,6 +16,17 @@ type Props = {
 export function SpotCard({ spot, initialIsFavorite }: Props) {
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
 
+  const rawTags = (spot as any).tags ?? (spot as any).tag ?? [];
+  const tags = Array.isArray((spot as any).tags) ? (spot as any).tags : [];
+
+  const imgSrc = 
+    (spot as any).thumbnailUrl ?? 
+    (spot as any).thumbnail_url ??
+    (spot as any).image_url ??
+    (spot as any).imageUrl ??
+    (Array.isArray((spot as any).imageUrls) ? (spot as any).imageUrl[0]: undefined) ??
+    "";
+
   const toggleFavorite = async () => {
     try {
       if (isFavorite) {
@@ -45,8 +56,8 @@ export function SpotCard({ spot, initialIsFavorite }: Props) {
       href={`/detail/${spot.id}`}
       className="bg-card-back rounded-lg p-2 shadow-[0_0_6px_0_rgba(0,0,0,0.3)]"
     >
-      <img src={spot.thumbnailUrl ?? (spot as any).image_url ?? "/placeholder.png"} 
-            alt={spot.name} className="rounded-md" />
+      <img src={imgSrc || "/images/placeholder.png"} alt={spot.name} 
+        className="rounded-md" />
       <div className="p-2">
         <div className="min-h-[68px]">
           <p className="font-semibold text-base mt-1 line-clamp-2">
@@ -58,7 +69,7 @@ export function SpotCard({ spot, initialIsFavorite }: Props) {
       </div>
       <div className="grid grid-cols-[5fr_1fr]">
         <div className="flex flex-wrap gap-1 mt-1">
-          {spot.tag?.map((tag) => (
+          {tags.map((tag: string) => (
             <span
               key={tag}
               className="text-xs py-1 px-2 rounded-full bg-card-tag border border-[0.5px]"
