@@ -12,6 +12,7 @@ import { weatherCodeMap } from "@/types/spot";
 import { NavigationBar } from "@/components/navigation-bar";
 import { X } from "lucide-react";
 import type { Spot } from "@/types/spot";
+import { useRouter } from "next/navigation";
 import { fetchSpotsRecommended } from "@/api/spot-recommend";
 
 
@@ -137,6 +138,13 @@ export default function Page() {
 
     loadFavorites();
   }, [currentArea?.slug]);
+
+  const router = useRouter();
+
+  const handleMapClick = () => {
+    const slug = localStorage.getItem("selectedAreaSlug") ?? "meieki";
+    router.push(`/map?area=${encodeURIComponent(slug)}`);
+  };
 
   return (
     <div className="bg-back min-h-screen pb-20 [&>*]:text-fg ">
@@ -273,7 +281,7 @@ export default function Page() {
           </div>
         </div>
       </div>
-      <NavigationBar />
+      <NavigationBar  onMapClick={handleMapClick} />
     </div>
   );
 }
