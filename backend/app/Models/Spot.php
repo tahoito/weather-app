@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Favorite;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Spot extends Model
 {
@@ -19,10 +20,10 @@ class Spot extends Model
         'image_urls' => 'array',
         'weather_suitability' => 'array',
         'highlights' => 'array',
-        'is_indoor' => 'boolean',
         'weather_ok' => 'boolean',
         'tags_json' => 'array',
     ];
+
 
     public function area()
     {
