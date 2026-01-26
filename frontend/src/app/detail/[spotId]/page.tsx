@@ -10,6 +10,8 @@ import { fetchAreas, Area } from "@/api/area-index";
 import { fetchFavorites } from "@/api/favorite-index";
 import Image from "next/image";
 import { Spot } from "@/types/spot";
+import { useSearchParams, useRouter } from "next/navigation";
+
 
 
 export default function Page() {
@@ -24,6 +26,8 @@ export default function Page() {
 
   const params = useParams();
   const spotId = params?.spotId as string;
+
+  const router = useRouter();
 
   useEffect(() => {
     async function loadAreas() {
@@ -147,9 +151,9 @@ export default function Page() {
         <div className="relative py-3">
 
           <div className="absolute top-1/2 -translate-y-1/2">
-            <Link href="/top">
+            <button onClick={() => router.back() }>
               <ArrowLeftIcon className="w-7 h-7" />
-            </Link>
+            </button>
           </div>
 
           <p className="text-center font-semibold text-lg px-14">
