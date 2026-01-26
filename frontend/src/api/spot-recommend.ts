@@ -1,15 +1,5 @@
 import axios from "axios";
-
-export type Spot = {
-  id: number;
-  name: string;
-  area: string;
-  description: string;
-  image_url: string;
-  tag: string | null;
-  is_indoor?: boolean;
-  weather_ok?: boolean;
-};
+import type { Spot } from "@/types/spot";
 
 export type SpotQuery = {
   area: string;
@@ -20,10 +10,21 @@ export type SpotQuery = {
   limit: number;
 };
 
-export async function fetchSpotsRecommended(query: SpotQuery): Promise<Spot[]> {
+type ApiSpot = Omit<Spot, "tag"> & {
+  tags?: string | string[] | null;
+};
+
+export async function fetchSpotsRecommended(
+  query: SpotQuery
+): Promise<Spot[]> {
   const res = await axios.get("http://localhost:8000/api/spots/recommended", {
     params: query,
   });
 
-  return res.data?.data ?? [];
+  const data: ApiSpot[] = res.data?.data ?? [];
+
+  return data.map((s) => ({
+      ...s,
+      tag: Array.isArray(s.tags) ? s.tags : s.tags ? [s.tags] : [],
+  }))
 }

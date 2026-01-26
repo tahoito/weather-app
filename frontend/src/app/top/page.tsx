@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { fetchAreas, Area } from "@/api/area-index";
-import { fetchSpotsRecommended, Spot } from "@/api/spot-recommend";
 import { fetchFavorites } from "@/api/favorite-index";
 import { UmbrellaIcon } from "@/components/icon/umbrella-icon";
 import { DropletIcon } from "@/components/icon/droplet-icon";
@@ -12,6 +11,10 @@ import { SpotCard } from "@/components/spot-card";
 import { weatherCodeMap } from "@/types/spot";
 import { NavigationBar } from "@/components/navigation-bar";
 import { X } from "lucide-react";
+import type { Spot } from "@/types/spot";
+import { useRouter } from "next/navigation";
+import { fetchSpotsRecommended } from "@/api/spot-recommend";
+
 
 type WeatherInfo = {
   precipitation: number;
@@ -126,7 +129,7 @@ export default function Page() {
     async function loadFavorites() {
       try {
         const favorites = await fetchFavorites();
-        setFavoriteIds(favorites.map((f) => f.spot.id));
+        setFavoriteIds(favorites.map((s: any) => s.id));
       } catch (e) {
         console.error("loadFavorites error:", e);
         setFavoriteIds([]);
@@ -135,6 +138,13 @@ export default function Page() {
 
     loadFavorites();
   }, [currentArea?.slug]);
+
+  const router = useRouter();
+
+  const handleMapClick = () => {
+    const slug = localStorage.getItem("selectedAreaSlug") ?? "meieki";
+    router.push(`/map?area=${encodeURIComponent(slug)}`);
+  };
 
   return (
     <div className="bg-back min-h-screen pb-20 [&>*]:text-fg ">
@@ -159,9 +169,8 @@ export default function Page() {
           {isAreaModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
               <div
-                className={`bg-white rounded-2xl p-6 w-[320px] border relative text-sm ${
-                  areaModalMode === "change" ? "pt-12" : ""
-                }`}
+                className={`bg-white rounded-2xl p-6 w-[320px] border relative text-sm ${areaModalMode === "change" ? "pt-12" : ""
+                  }`}
               >
                 {areaModalMode === "initial" ? (
                   <p className="pb-6 text-base whitespace-nowrap text-center">

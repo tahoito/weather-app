@@ -9,22 +9,10 @@ import { FavoriteButton } from "@/components/favorite-button";
 import { fetchAreas, Area } from "@/api/area-index";
 import { fetchFavorites } from "@/api/favorite-index";
 import Image from "next/image";
+import { Spot } from "@/types/spot";
+import { useSearchParams, useRouter } from "next/navigation";
 
-interface Spot {
-  id: number;
-  name: string;
-  detail: string;
-  area: string;
-  areaName?: string;
-  tags: string[];
-  price?: string;
-  openingHours?: string;
-  imageUrls: string[];
-  weatherSuitability: string[];
-  highlights: string[];
-  is_indoor: string;
-  weather_ok: string;
-}
+
 
 export default function Page() {
   const [spot, setSpot] = useState<Spot | null>(null);
@@ -38,6 +26,8 @@ export default function Page() {
 
   const params = useParams();
   const spotId = params?.spotId as string;
+
+  const router = useRouter();
 
   useEffect(() => {
     async function loadAreas() {
@@ -68,9 +58,20 @@ export default function Page() {
         const areaName =
           areas.find((a) => a.slug === apiSpot.area)?.name ?? apiSpot.area;
 
+        const normalizedTags: string[] = Array.isArray(apiSpot.tags)
+          ? apiSpot.tags 
+            .map((t: any) => (typeof t === "string" ? t : t?.name))
+            .filter((v: any): v is string => typeof v === "string" && v.length > 0)
+          : [];
+        
         setSpot({
           ...apiSpot,
-          tags: apiSpot.tags ?? [],
+          lat: Number(apiSpot.lat),
+          lon: Number(apiSpot.lon),
+          is_indoor: Boolean(apiSpot.is_indoor),
+          weather_ok: Boolean(apiSpot.weather_ok),
+          imageUrls: apiSpot.imageUrls ?? [],
+          tags: normalizedTags,
           areaName,
         });
       } catch (error) {
@@ -99,7 +100,7 @@ export default function Page() {
     async function loadFavorites() {
       try {
         const favorites = await fetchFavorites();
-        setFavoriteIds(favorites.map((f) => f.spot.id));
+        setFavoriteIds(favorites.map((s: any) => s.id));
       } catch (e) {
         console.error("loadFavorites error:", e);
         setFavoriteIds([]);
@@ -148,14 +149,18 @@ export default function Page() {
     <div className="bg-back w-full h-full">
       <div className="mx-9 pt-5 pb-24">
         <div className="relative py-3">
-          <Link
-            href="/top"
-            className="absolute top-1/2 left-5 -translate-y-1/2"
-          >
-            <ArrowLeftIcon className="w-7 h-7" />
-          </Link>
-          <p className="text-center font-semibold">{spot.name}</p>
-          <div className="absolute top-1/2 right-5 -translate-y-1/2">
+
+          <div className="absolute top-1/2 -translate-y-1/2">
+            <button onClick={() => router.back() }>
+              <ArrowLeftIcon className="w-7 h-7" />
+            </button>
+          </div>
+
+          <p className="text-center font-semibold text-lg px-14">
+            {spot.name}
+          </p>
+
+          <div className="absolute top-1/2 right-0 -translate-y-1/2 flex justify-end">
             <FavoriteButton
               isFavorite={isFavorite}
               onToggle={toggleFavorite}
@@ -163,7 +168,7 @@ export default function Page() {
             />
           </div>
         </div>
-
+        
         <div
           className="overflow-hidden w-full touch-pan-y"
           onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
@@ -217,10 +222,12 @@ export default function Page() {
               {spot.name}
             </p>
             <div className="absolute top-0 right-0">
-              <div className="border rounded-lg bg-white p-2 flex flex-col items-center gap-0.5">
-                <MapPinIcon className="w-6 h-6 text-sub" />
-                <p className="text-sm leading-none">マップ</p>
-              </div>
+              <Link href={`/map?lat=${spot.lat}&lon=${spot.lon}&spotId=${spot.id}`}>
+                <div className="border rounded-lg bg-white p-2 flex flex-col items-center gap-0.5">
+                  <MapPinIcon className="w-6 h-6 text-sub" />
+                  <p className="text-sm leading-none">マップ</p>
+                </div>
+              </Link>
             </div>
           </div>
           <p className="text-xl">{spot.areaName}エリア</p>
