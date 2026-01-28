@@ -7,14 +7,14 @@ import { UmbrellaIcon } from "@/components/icon/umbrella-icon";
 import { DropletIcon } from "@/components/icon/droplet-icon";
 import { WindIcon } from "@/components/icon/wind-icon";
 import { PencilLineIcon } from "@/components/icon/pencil-line-icon";
-import { SpotCard } from "@/components/spot-card";
 import { weatherCodeMap } from "@/types/spot";
 import { NavigationBar } from "@/components/navigation-bar";
 import { X } from "lucide-react";
 import type { Spot } from "@/types/spot";
 import { useRouter } from "next/navigation";
 import { fetchSpotsRecommended } from "@/api/spot-recommend";
-
+import { SpotCardTop } from "@/components/spot-card/SpotCardTop";
+import { SpotCardContainer } from "@/components/spot-card/SpotCardContainer";
 
 type WeatherInfo = {
   precipitation: number;
@@ -169,8 +169,9 @@ export default function Page() {
           {isAreaModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
               <div
-                className={`bg-white rounded-2xl p-6 w-[320px] border relative text-sm ${areaModalMode === "change" ? "pt-12" : ""
-                  }`}
+                className={`bg-white rounded-2xl p-6 w-[320px] border relative text-sm ${
+                  areaModalMode === "change" ? "pt-12" : ""
+                }`}
               >
                 {areaModalMode === "initial" ? (
                   <p className="pb-6 text-base whitespace-nowrap text-center">
@@ -271,11 +272,19 @@ export default function Page() {
         <div className="flex justify-center ">
           <div className="grid grid-cols-2 gap-2">
             {spots.map((spot) => (
-              <SpotCard
+              <SpotCardContainer
                 key={spot.id}
                 spot={spot}
-                initialIsFavorite={favoriteIds.includes(spot.id)}
-              />
+                initialIsFavorite={true}
+              >
+                {({ spot, isFavorite, toggleFavorite }) => (
+                  <SpotCardTop
+                    spot={spot}
+                    isFavorite={isFavorite}
+                    toggleFavorite={toggleFavorite}
+                  />
+                )}
+              </SpotCardContainer>
             ))}
           </div>
         </div>
