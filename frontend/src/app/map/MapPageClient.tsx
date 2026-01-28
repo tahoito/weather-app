@@ -297,7 +297,7 @@ export default function Page() {
                         >
                           {({ spot, isFavorite, toggleFavorite }) => (
                             <SpotCardModal
-                              spot={spot}
+                              spot={selectedSpot}
                               isFavorite={isFavorite}
                               toggleFavorite={toggleFavorite}
                             />
