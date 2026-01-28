@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SpotCard } from "@/components/spot-card";
+import { SpotCardTop } from "@/components/spot-card/SpotCardTop";
+import { SpotCardContainer } from "@/components/spot-card/SpotCardContainer";
 import { NavigationBar } from "@/components/navigation-bar";
 import { fetchFavorites } from "@/api/favorite-index";
 import { fetchAreas, Area } from "@/api/area-index";
@@ -44,8 +45,8 @@ export default function Page() {
   useEffect(() => {
     (async () => {
       try {
-        const favorites = await fetchFavorites(); 
-        setFavoriteIds(favorites.map((s: any) => s.id))
+        const favorites = await fetchFavorites();
+        setFavoriteIds(favorites.map((s: any) => s.id));
       } catch (e) {
         console.error("loadFavorites error:", e);
         setFavoriteIds([]);
@@ -57,8 +58,7 @@ export default function Page() {
     async function loadFavoriteSpots() {
       try {
         const favorites = await fetchFavorites();
-        
-        
+
         const spotsWithAreaName = favorites.map((s: any) => {
           const areaName = areas.find((a) => a.slug === s.area)?.name ?? s.area;
 
@@ -76,7 +76,7 @@ export default function Page() {
             ...s,
             areaName,
             image_url,
-            tags, 
+            tags,
           };
         });
 
@@ -90,7 +90,6 @@ export default function Page() {
     if (areas.length > 0) loadFavoriteSpots();
   }, [areas]);
 
-
   return (
     <div className="bg-back min-h-screen pt-10 pb-20 [&>*]:text-fg ">
       <p className="text-center text-lg font-semibold mb-6 pb-2 shadow-[0px_2px_3px_rgba(0,0,0,0.20)]">
@@ -100,13 +99,23 @@ export default function Page() {
       <div className="mx-4">
         <div className="flex justify-center">
           <div className="grid grid-cols-2 gap-2">
-            {spots.map((spot) => (
-              <SpotCard
-                key={spot.id}
-                spot={spot}
-                initialIsFavorite={favoriteIds.includes(spot.id)}
-              />
-            ))}
+            {spots
+              .filter((spot) => favoriteIds.includes(spot.id)) // ★ お気に入りだけ
+              .map((spot) => (
+                <SpotCardContainer
+                  key={spot.id}
+                  spot={spot}
+                  initialIsFavorite={true} // お気に入り一覧なので true 固定でOK
+                >
+                  {({ spot, isFavorite, toggleFavorite }) => (
+                    <SpotCardTop
+                      spot={spot}
+                      isFavorite={isFavorite}
+                      toggleFavorite={toggleFavorite}
+                    />
+                  )}
+                </SpotCardContainer>
+              ))}
           </div>
         </div>
       </div>

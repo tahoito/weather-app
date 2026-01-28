@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { Spot } from "@/types/spot";
 import { FavoriteButton } from "@/components/favorite-button";
@@ -8,12 +7,11 @@ import { purposeTags } from "@/app/search/data";
 
 type Props = {
   spot: Spot;
-  initialIsFavorite?: boolean;
+  isFavorite: boolean;
+  toggleFavorite: () => Promise<void>;
 };
 
-export function SpotCard({ spot, initialIsFavorite }: Props) {
-  const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
-
+export function SpotCardTop({ spot, isFavorite, toggleFavorite }: Props) {
   const normalizeTags = (raw: unknown): string[] => {
     if (Array.isArray(raw)) {
       return raw
@@ -48,39 +46,13 @@ export function SpotCard({ spot, initialIsFavorite }: Props) {
 
   const hasImage = typeof imgSrc === "string" && imgSrc.trim() !== "";
 
-  const toggleFavorite = async () => {
-    try {
-      if (isFavorite) {
-        const res = await fetch(`/api/favorites/${spot.id}`, {
-          method: "DELETE",
-        });
-        if (!res.ok) {
-          const detail = await res.text();
-          console.error("DELETE failed:", res.status, detail);
-          throw new Error(`DELETE failed: ${res.status}`);
-        }
-        setIsFavorite(false);
-      } else {
-        const res = await fetch(`/api/favorites`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ spot_id: spot.id }),
-        });
-        if (!res.ok) throw new Error(`POST failed: ${res.status}`);
-        setIsFavorite(true);
-      }
-    } catch (e) {
-      console.error("お気に入り切替失敗", e);
-    }
-  };
-
   return (
     <Link
       href={`/detail/${spot.id}`}
       className="bg-card-back rounded-lg p-2 shadow-[0_0_6px_0_rgba(0,0,0,0.3)]"
     >
       {hasImage ? (
-        <img src={imgSrc!} alt={spot.name} className="rounded-md" />
+        <img src={imgSrc} alt={spot.name} className="rounded-md" />
       ) : (
         <div className="rounded-md bg-gray-200 aspect-[3/2] flex items-center justify-center text-sm text-gray-500">
           No Image
