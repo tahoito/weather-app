@@ -8,7 +8,6 @@ import { EyeIcon } from "@/components/icon/eye-icon";
 import { ArrowLeftIcon } from "@/components/icon/arrow-left-icon";
 import { useRouter } from "next/navigation";
 import { useForm, SubmitHandler } from "react-hook-form";
-import Cookies from "js-cookie";
 
 type FormInput = AuthLoginRequest;
 export default function Page() {
@@ -26,7 +25,7 @@ export default function Page() {
     console.log("LOGIN response:", res);
 
     if (res.success) {
-      Cookies.set("authToken", res.authToken);
+      localStorage.setItem("authToken", res.authToken);
       router.push("/top");
       return;
     }

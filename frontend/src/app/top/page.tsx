@@ -15,6 +15,8 @@ import { useRouter } from "next/navigation";
 import { fetchSpotsRecommended } from "@/api/spot-recommend";
 import { SpotCardTop } from "@/components/spot-card/SpotCardTop";
 import { SpotCardContainer } from "@/components/spot-card/SpotCardContainer";
+import { apiClient } from "@/api/apiClient"; 
+
 
 type WeatherInfo = {
   precipitation: number;
@@ -36,6 +38,12 @@ export default function Page() {
   const [areas, setAreas] = useState<Area[]>([]);
   const [currentArea, setCurrentArea] = useState<Area | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
+
+  useEffect(() => {
+    apiClient.get("/api/me")
+      .catch(() => router.push("/auth/login"));
+  }, []);
+
 
   useEffect(() => {
     const shouldShow = localStorage.getItem("showAreaModal") === "true";
