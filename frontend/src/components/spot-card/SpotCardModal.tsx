@@ -67,13 +67,13 @@ export function SpotCardModal({ spot, isFavorite, toggleFavorite }: Props) {
         )}
 
         <div className="p-2 flex-1">
-          <div className="min-h-[68px]">
-            <p className="font-semibold text-base mt-1 line-clamp-2">
+          <div className="min-h-[50px]">
+            <p className="font-semibold text-base line-clamp-2">
               {spot.name}
             </p>
             <p className="text-sm">{spot.areaName}エリア</p>
           </div>
-          <p className="text-sm mt-1 line-clamp-2">{spot.description}</p>
+          <p className="text-sm line-clamp-2">{spot.description}</p>
         </div>
       </div>
 

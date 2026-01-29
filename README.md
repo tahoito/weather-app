@@ -1,62 +1,104 @@
-## 開発環境セットアップ
+# 🌦 あますぽ
 
-### 1. リポジトリを clone
+**天気、見てから行き先決めない？**
 
-```bash
-git clone https://github.com/tahoito/weather-app.git
-cd weather-app
+天気を条件に組み込み、  
+**その日のコンディションに合った行動・スポットを提案するWebアプリ**です。
 
-```
+---
 
-### 2. 環境変数ファイル（.env）を作成
-📌 Backend（Laravel）
-```bash
-cp backend/.env.example backend/.env
-```
+## 📱 アプリイメージ
 
-APP_KEY を作成：
-```bash
-docker compose run backend php artisan key:generate
-```
-
-📌 Frontend（Next.js）
-```bash
-cp frontend/.env.example frontend/.env.local
-```
-
-### 3. Docker起動
-```bash
-docker compose up --build -d
-```
-※ 初回だけ --build をつける
-（以降は docker compose up -d ）
+<!-- ここにスクリーンショットを追加 -->
+<p align="center">
+  <img src="images/top.png" width="250" />
+  <img src="images/search.png" width="250" />
+  <img src="images/map.png" width="250" />
+</p>
 
 
-## 開発フロー
+---
 
-### 1.mainを最新にする
-```bash
-git checkout main
-git pull origin main
-```
-### 2.ブランチ作成
-```bash
-git checkout -b feature/機能名
-```
-### 3.コミットする
-```bash
-git add .
-git commit -m "わかりやすく書く"
-```
+## 🌟 コンセプト
 
-### 4.pushする
-```bash
-git push origin feature/機能名
-```
+場所や行動を提案する際に、  
+**「天気」も判断材料として自然に組み込む**。
 
-## アクセスURL
-フロント（Next.js）	http://localhost:3001
-バックエンド（Laravel API）	http://localhost:8000
+- 晴れの日に向いている場所
+- 雨の日でも楽しめる行動
+- 気温・湿度・風を考慮した提案
 
+「天気を見る」から  
+**「天気で決める」体験へ。**
 
+---
 
+## 🎯 ターゲット
+
+- 10〜20代の学生・若手社会人
+- 友達・恋人とよく遊ぶ人
+- 行き先を毎回迷いがちな人
+- 雨の日・気温差で行動しづらい人
+
+---
+
+## ❓ 解決したい課題
+
+- 天気と行き先を別々のアプリで確認している
+- 予定を立てた後に天気に気づき、変更が必要になる
+- 晴れの日は選択肢が多すぎて決められない
+- 雨の日の代替案がすぐに見つからない
+
+---
+
+## ✨ 提供する価値
+
+- 天気 × 行動提案を**1画面で完結**
+- 雨・湿度・降水量・風速などを考慮した提案
+- 目的（デート / 映え / 友達 / 推し活）に合わせた表示
+- 行き先決定までの時間を大幅に短縮
+
+---
+
+## 🧭 主な機能
+
+- 今日の天気取得
+- 天気に応じた行動・スポット提案
+- 日付 / エリア / 目的 / 屋内・屋外検索
+- 天気 × 行動提案ロジック
+- マップ表示（天気適性カラー）
+- スポット詳細表示
+- お気に入り保存
+- 天気API連携
+- スポットデータ管理
+
+---
+
+## 🛠 技術スタック
+
+### Frontend
+- Next.js
+- TypeScript
+- Tailwind CSS
+
+### Backend
+- Laravel
+- MySQL
+
+### Map
+- Leaflet
+- OpenStreetMap
+
+### API
+- Weathernews API
+
+### Infrastructure / Environment
+- Docker
+  
+---
+
+## 🚀 今後の展望
+
+- ユーザーの好みに基づいたレコメンド強化
+- 行動履歴を活かした提案
+- スポット・イベント連携の拡張

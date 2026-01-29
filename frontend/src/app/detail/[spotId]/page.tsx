@@ -142,6 +142,9 @@ export default function Page() {
     }
   };
 
+  
+
+
   if (loading) return <div>読み込み中...</div>;
   if (!spot) return <div>スポットが見つかりません</div>;
 
@@ -215,6 +218,7 @@ export default function Page() {
             />
           ))}
         </div>
+      
 
         <div className="[&>*]:mb-1 mb-2">
           <div className="relative">

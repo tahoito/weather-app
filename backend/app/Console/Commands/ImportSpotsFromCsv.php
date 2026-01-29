@@ -48,9 +48,24 @@ class ImportSpotsFromCsv extends Command
         }
 
         if ($this->option('truncate')) {
+            Schema::disableForeignKeyConstraints();
+
+        
+            if (Schema::hasTable('favorites')) {
+                DB::table('favorites')->truncate();
+            }
+          
+            if (Schema::hasTable('spot_tag')) {
+                DB::table('spot_tag')->truncate();
+            }
+
             DB::table('spots')->truncate();
-            $this->warn("Truncated spots table.");
+
+            Schema::enableForeignKeyConstraints();
+
+            $this->warn("Truncated spots (and related tables).");
         }
+
 
         $now = now();
         $count = 0;

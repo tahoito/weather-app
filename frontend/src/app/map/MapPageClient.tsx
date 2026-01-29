@@ -157,9 +157,24 @@ export default function Page() {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/spot/${spotId}`
     );
-    const data: Spot = await res.json();
+    const json = await res.json();
+    const apiSpot = json.data ?? json;
 
-    setSelectedSpot(data);
+    const areaName =
+      areaTags.find((a) => a.slug === apiSpot.area)?.label ?? apiSpot.area;
+
+      setSelectedSpot({
+        ...apiSpot, 
+        lat: Number(apiSpot.lat),
+        lon: Number(apiSpot.lon),
+        areaName, 
+        imageUrls: apiSpot.imageUrls ?? [],
+        tags: Array.isArray(apiSpot.tags)
+          ? apiSpot.tags.map((t:any) => 
+            typeof t === "string" ? t: t?.name
+          )
+          : [],
+      });
   };
   useEffect(() => {
     console.log("selectedSpot:", selectedSpot);
@@ -253,43 +268,49 @@ export default function Page() {
       />
 
       {selectedSpot && (
-        <Modal isOpen onClose={handleCloseModal} showOverlay={false}>
-          <div className="max-h-[80vh] flex flex-col">
-            <div className="shrink-0 relative">
-              <button
-                onClick={handleCloseModal}
-                className="absolute top-4 right-4 z-10"
-              >
-                <X size={28} />
-              </button>
-              <p className="text-2xl my-4 mx-6">{selectedSpot?.name}</p>
-            </div>
-
-            <div className="overflow-y-auto px-6 pb-6">
-              <div className="grid gap-6">
-                {modalSpots.map((location) => {
-                  const spot = locationToSpot(location);
-
-                  return (
-                    <SpotCardContainer
-                      key={spot.id}
-                      spot={spot}
-                      initialIsFavorite={true}
+        <div className="fixed inset-0 z-9 pointer-events-none">
+          <div className="pointer-events-auto">
+            <Modal isOpen onClose={handleCloseModal} showOverlay={false}>
+              <div className="pb-[80px]">
+                <div className="max-h-[80vh] flex flex-col">
+                  <div className="shrink-0 relative">
+                    <button
+                      onClick={handleCloseModal}
+                      className="absolute top-4 right-4 z-10"
                     >
-                      {({ spot, isFavorite, toggleFavorite }) => (
-                        <SpotCardModal
+                      <X size={28} />
+                    </button>
+                    <p className="text-2xl my-4 mx-6">{selectedSpot?.name}</p>
+                  </div>
+                </div>
+
+                <div className="overflow-y-auto px-6 pb-6">
+                  <div className="grid gap-6">
+                    {modalSpots.map((location) => {
+                      const spot = locationToSpot(location);
+
+                      return (
+                        <SpotCardContainer
+                          key={spot.id}
                           spot={spot}
-                          isFavorite={isFavorite}
-                          toggleFavorite={toggleFavorite}
-                        />
-                      )}
-                    </SpotCardContainer>
-                  );
-                })}
+                          initialIsFavorite={true}
+                        >
+                          {({ spot, isFavorite, toggleFavorite }) => (
+                            <SpotCardModal
+                              spot={selectedSpot}
+                              isFavorite={isFavorite}
+                              toggleFavorite={toggleFavorite}
+                            />
+                          )}
+                        </SpotCardContainer>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-            </div>
+            </Modal>
           </div>
-        </Modal>
+        </div>
       )}
 
       <NavigationBar />
