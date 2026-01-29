@@ -11,5 +11,5 @@ export type Area = {
 
 export async function fetchAreas(): Promise<Area[]> {
   const res = await apiClient.get("/api/areas");
-  return Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
+  return res.data;
 }

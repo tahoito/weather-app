@@ -16,6 +16,7 @@ import { fetchSpotsRecommended } from "@/api/spot-recommend";
 import { SpotCardTop } from "@/components/spot-card/SpotCardTop";
 import { SpotCardContainer } from "@/components/spot-card/SpotCardContainer";
 import { apiClient } from "@/api/apiClient"; 
+import { createPortal } from "react-dom";
 
 
 type WeatherInfo = {
@@ -27,6 +28,13 @@ type WeatherInfo = {
 };
 
 export default function Page() {
+  const router = useRouter();
+
+  useEffect(() => {
+    apiClient.get("/api/me")
+      .catch(() => router.push("/auth/login"));
+  }, [router]);
+
   const [weather, setWeather] = useState<WeatherInfo | null>(null);
   const fmt = (v?: number, suffix = "") =>
     typeof v === "number" ? `${v}${suffix}` : "--";
@@ -40,12 +48,6 @@ export default function Page() {
   const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
 
   useEffect(() => {
-    apiClient.get("/api/me")
-      .catch(() => router.push("/auth/login"));
-  }, []);
-
-
-  useEffect(() => {
     const shouldShow = localStorage.getItem("showAreaModal") === "true";
     if (shouldShow) {
       setAreaModalMode("initial");
@@ -53,6 +55,7 @@ export default function Page() {
       localStorage.removeItem("showAreaModal");
     }
   }, []);
+
 
   useEffect(() => {
     async function loadAreas() {
@@ -147,7 +150,6 @@ export default function Page() {
     loadFavorites();
   }, [currentArea?.slug]);
 
-  const router = useRouter();
 
   const handleMapClick = () => {
     const slug = localStorage.getItem("selectedAreaSlug") ?? "meieki";
@@ -174,46 +176,51 @@ export default function Page() {
             <PencilLineIcon className="h-4 w-4" />
             変更
           </button>
-          {isAreaModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-              <div
-                className={`bg-white rounded-2xl p-6 w-[320px] border relative text-sm ${
-                  areaModalMode === "change" ? "pt-12" : ""
-                }`}
-              >
-                {areaModalMode === "initial" ? (
-                  <p className="pb-6 text-base whitespace-nowrap text-center">
-                    設定するエリアを選択してください。
-                  </p>
-                ) : (
-                  <button
-                    onClick={() => setIsAreaModalOpen(false)}
-                    className="absolute top-3 right-3"
-                  >
-                    <X />
-                  </button>
-                )}
-                <ul className="grid grid-cols-3 gap-2 gap-x-[15px] gap-y-[16px]">
-                  {areas.map((area) => (
-                    <li key={area.id}>
-                      <button
-                        className="w-20 px-2 py-1 rounded-full border bg-card-back shadow-[1px_2px_1px_rgba(0,0,0,0.20)]"
-                        onClick={() => {
-                          setCurrentArea(area);
-                          setWeather(null);
-                          setSpots([]);
-                          localStorage.setItem("selectedAreaSlug", area.slug);
-                          setIsAreaModalOpen(false);
-                        }}
-                      >
-                        {area.name}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
+          {typeof window !== "undefined" &&
+            isAreaModalOpen &&
+            createPortal(
+              <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40">
+                <div
+                  className={`relative z-[100000] bg-white rounded-2xl p-6 w-[320px] border text-sm ${
+                    areaModalMode === "change" ? "pt-12" : ""
+                  }`}
+                >
+                  {areaModalMode === "initial" ? (
+                    <p className="pb-6 text-base whitespace-nowrap text-center">
+                      設定するエリアを選択してください。
+                    </p>
+                  ) : (
+                    <button
+                      onClick={() => setIsAreaModalOpen(false)}
+                      className="absolute top-3 right-3"
+                    >
+                      <X />
+                    </button>
+                  )}
+
+                  <ul className="grid grid-cols-3 gap-2 gap-x-[15px] gap-y-[16px]">
+                    {areas.map((area) => (
+                      <li key={area.id}>
+                        <button
+                          className="w-20 px-2 py-1 rounded-full border bg-card-back shadow-[1px_2px_1px_rgba(0,0,0,0.20)]"
+                          onClick={() => {
+                            setCurrentArea(area);
+                            setWeather(null);
+                            setSpots([]);
+                            localStorage.setItem("selectedAreaSlug", area.slug);
+                            setIsAreaModalOpen(false);
+                          }}
+                        >
+                          {area.name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>,
+              document.body
+            )}
+
         </div>
       </div>
 

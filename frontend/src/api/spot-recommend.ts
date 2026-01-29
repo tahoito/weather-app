@@ -1,4 +1,4 @@
-import axios from "axios";
+import { apiClient } from "./apiClient";
 import type { Spot } from "@/types/spot";
 
 export type SpotQuery = {
@@ -17,14 +17,14 @@ type ApiSpot = Omit<Spot, "tag"> & {
 export async function fetchSpotsRecommended(
   query: SpotQuery
 ): Promise<Spot[]> {
-  const res = await axios.get("http://localhost:8000/api/spots/recommended", {
+  const res = await apiClient.get("/api/spots/recommended", {
     params: query,
   });
 
   const data: ApiSpot[] = res.data?.data ?? [];
 
   return data.map((s) => ({
-      ...s,
-      tag: Array.isArray(s.tags) ? s.tags : s.tags ? [s.tags] : [],
-  }))
+    ...s,
+    tag: Array.isArray(s.tags) ? s.tags : s.tags ? [s.tags] : [],
+  }));
 }
