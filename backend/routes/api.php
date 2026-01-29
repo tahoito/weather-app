@@ -5,14 +5,14 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Route;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\AreaController;
 use App\Http\Controllers\Api\SpotSearchController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\SpotController;
 
-
-Route::post('/sign-up-login/signup', function (Request $request){
+Route::post('/sign-up-login/signup', function (Request $request) {
     $validated = $request->validate([
         'auth.email' => ['required', 'email', Rule::unique('users', 'email')],
         'auth.password' => ['required', 'min:8'],
@@ -24,48 +24,81 @@ Route::post('/sign-up-login/signup', function (Request $request){
         'password' => Hash::make($validated['auth']['password']),
     ]);
 
+    $token = $user->createToken('web')->plainTextToken;
 
     return response()->json([
         'success' => true,
         'message' => 'created',
-        'authToken' => 'dummy-token',
+        'authToken' => $token,
+        'user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+        ],
     ]);
 });
 
-
-Route::post('/sign-up-login/login', function (Request $request){
+Route::post('/sign-up-login/login', function (Request $request) {
     $validated = $request->validate([
         'auth.email' => ['required','email'],
         'auth.password' => ['required'],
     ]);
 
-    $email = $validated['auth']['email'];
-    $password = $validated['auth']['password'];
+    $user = User::where('email', $validated['auth']['email'])->first();
 
-    $user = User::where('email',$email)->first();
-
-    if (!$user || !Hash::check($password, $user->password)) {
+    if (!$user || !Hash::check($validated['auth']['password'], $user->password)) {
         return response()->json([
             'success' => false,
             'message' => 'メールアドレスかパスワードが違います',
             'authToken' => '',
-        ],401);
+        ], 401);
     }
+
+    
+    $token = $user->createToken('web')->plainTextToken;
 
     return response()->json([
         'success' => true,
         'message' => 'ok',
-        'authToken' => 'dummy-token-login',
+        'authToken' => $token,
+        'user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+        ],
     ]);
 });
 
-Route::get('/areas',[AreaController::class,'index']);
-Route::get('/spots/search',[SpotSearchController::class,'index']);
-Route::get('/favorites',[FavoriteController::class,'index']);
-Route::post('/favorites',[FavoriteController::class,'store']);
-Route::delete('/favorites/{spotId}',[FavoriteController::class,'destroy']);
-Route::get('/tags', [TagController::class,'index']);
-Route::get('/spots/recommended', [SpotController::class, 'recommended']);
-Route::get('/spots',[SpotController::class,'index']);
-Route::get('/spot/{spot}',[SpotController::class,'show']);
-Route::get('/spots/in-bounds',[SpotController::class,'inBounds']);
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('/me', function (Request $request) {
+        return response()->json([
+            'success' => true,
+            'user' => $request->user(),
+        ]);
+    });
+
+    Route::post('/logout', function (Request $request) {
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'logged out',
+        ]);
+    });
+
+    
+    Route::get('/areas', [AreaController::class,'index']);
+    Route::get('/spots/search', [SpotSearchController::class,'index']);
+
+    Route::get('/favorites', [FavoriteController::class,'index']);
+    Route::post('/favorites', [FavoriteController::class,'store']);
+    Route::delete('/favorites/{spotId}', [FavoriteController::class,'destroy']);
+
+    Route::get('/tags', [TagController::class,'index']);
+
+    Route::get('/spots/recommended', [SpotController::class,'recommended']);
+    Route::get('/spots', [SpotController::class,'index']);
+    Route::get('/spot/{spot}', [SpotController::class,'show']);
+    Route::get('/spots/in-bounds', [SpotController::class,'inBounds']);
+});
