@@ -64,6 +64,8 @@ export default function Page() {
   const [indoorFilter, setIndoorFilter] = useState<boolean | null>(null);
   const [selectedSpotId, setSelectedSpotId] = useState<number | null>(null); // ピンを押すとspotIdを状態として保持します
   const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null);
+  const [modalTitle, setModalTitle] = useState<string>("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [initialMapState, setInitialMapState] =
     useState<InitialMapState | null>(null);
 
@@ -145,6 +147,8 @@ export default function Page() {
   }, [searchQuery, indoorFilter]);
 
   const handleFilterToggle = (isIndoor: boolean) => {
+    setIsModalOpen(true);
+    setModalTitle(isIndoor ? "屋内" : "屋外");
     if (indoorFilter === isIndoor) {
       setIndoorFilter(null);
     } else {
@@ -152,6 +156,7 @@ export default function Page() {
     }
   };
   const handleSpotSelect = async (spotId: number) => {
+    setIsModalOpen(true);
     setSelectedSpotId(spotId);
 
     const res = await fetch(
@@ -163,18 +168,17 @@ export default function Page() {
     const areaName =
       areaTags.find((a) => a.slug === apiSpot.area)?.label ?? apiSpot.area;
 
-      setSelectedSpot({
-        ...apiSpot, 
-        lat: Number(apiSpot.lat),
-        lon: Number(apiSpot.lon),
-        areaName, 
-        imageUrls: apiSpot.imageUrls ?? [],
-        tags: Array.isArray(apiSpot.tags)
-          ? apiSpot.tags.map((t:any) => 
-            typeof t === "string" ? t: t?.name
-          )
-          : [],
-      });
+    setSelectedSpot({
+      ...apiSpot,
+      lat: Number(apiSpot.lat),
+      lon: Number(apiSpot.lon),
+      areaName,
+      imageUrls: apiSpot.imageUrls ?? [],
+      tags: Array.isArray(apiSpot.tags)
+        ? apiSpot.tags.map((t: any) => (typeof t === "string" ? t : t?.name))
+        : [],
+    });
+    setModalTitle(apiSpot.name);
   };
   useEffect(() => {
     console.log("selectedSpot:", selectedSpot);
@@ -185,15 +189,14 @@ export default function Page() {
   }
 
   const handleCloseModal = () => {
+    setIsModalOpen(false);
     setSelectedSpotId(null);
     setSelectedSpot(null);
   };
 
   const modalSpots =
     selectedSpotId !== null
-      ? spots.filter(
-          (location) => locationToSpot(location).id === selectedSpotId
-        )
+      ? spots.filter((s) => s.id === selectedSpotId)
       : spots;
 
   return (
@@ -203,7 +206,12 @@ export default function Page() {
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSearchQuery(value);
+              setModalTitle(value);
+              setIsModalOpen(true);
+            }}
             onFocus={() => setIsInputFocused(true)}
             onBlur={() => setIsInputFocused(false)}
             className={`w-full bg-white rounded-[12px] font-medium transition-all ${
@@ -267,7 +275,7 @@ export default function Page() {
         initialLon={initialMapState.lon}
       />
 
-      {selectedSpot && (
+      {isModalOpen && (
         <div className="fixed inset-0 z-9 pointer-events-none">
           <div className="pointer-events-auto">
             <Modal isOpen onClose={handleCloseModal} showOverlay={false}>
@@ -280,7 +288,7 @@ export default function Page() {
                     >
                       <X size={28} />
                     </button>
-                    <p className="text-2xl my-4 mx-6">{selectedSpot?.name}</p>
+                    <p className="text-2xl my-4 mx-6">{modalTitle}</p>
                   </div>
                 </div>
 
@@ -297,7 +305,7 @@ export default function Page() {
                         >
                           {({ spot, isFavorite, toggleFavorite }) => (
                             <SpotCardModal
-                              spot={selectedSpot}
+                              spot={spot}
                               isFavorite={isFavorite}
                               toggleFavorite={toggleFavorite}
                             />
