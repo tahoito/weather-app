@@ -1,4 +1,4 @@
-import axios from "axios";
+import { apiClient } from "./apiClient";
 
 export type Area = {
   id: number;
@@ -8,11 +8,8 @@ export type Area = {
   lon: number;
 };
 
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
-});
 
 export async function fetchAreas(): Promise<Area[]> {
-  const res = await api.get("/api/areas");
+  const res = await apiClient.get("/api/areas");
   return Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
 }

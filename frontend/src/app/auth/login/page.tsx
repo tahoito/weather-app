@@ -25,7 +25,7 @@ export default function Page() {
     console.log("LOGIN response:", res);
 
     if (res.success) {
-      localStorage.setItem("authToken", res.authToken);
+      localStorage.setItem("token", res.authToken);
       router.push("/top");
       return;
     }

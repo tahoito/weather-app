@@ -1,23 +1,10 @@
-import axios from "axios";
+import { apiClient } from "./apiClient";
 import { Spot } from "@/types/spot";
 
-export type Favorite = {
-  id: number;
-  spot: Spot;
-};
-
-type FavoriteItem = { spot: any } | any;
-
-
 export async function fetchFavorites(): Promise<Spot[]> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/favorites`,
-    { cache: "no-store" }
-  );
+  const res = await apiClient.get("/api/favorites");
 
-  if (!res.ok) throw new Error("fetchFavorites failed");
-
-  const json = await res.json();
+  const json = res.data;
   const arr = Array.isArray(json) ? json : (json?.data ?? []);
 
   return arr
