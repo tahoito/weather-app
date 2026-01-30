@@ -1,14 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { fetchAreas, Area } from "@/api/area-index";
+import { fetchFavorites } from "@/api/favorite-index";
 import { UmbrellaIcon } from "@/components/icon/umbrella-icon";
 import { DropletIcon } from "@/components/icon/droplet-icon";
 import { WindIcon } from "@/components/icon/wind-icon";
 import { PencilLineIcon } from "@/components/icon/pencil-line-icon";
-import { SpotCard } from "@/components/spot-card";
-import { dummySpots } from "@/data/dummySpots";
 import { weatherCodeMap } from "@/types/spot";
 import { NavigationBar } from "@/components/navigation-bar";
+import { X } from "lucide-react";
+import type { Spot } from "@/types/spot";
+import { useRouter } from "next/navigation";
+import { fetchSpotsRecommended } from "@/api/spot-recommend";
+import { SpotCardTop } from "@/components/spot-card/SpotCardTop";
+import { SpotCardContainer } from "@/components/spot-card/SpotCardContainer";
+import { apiClient } from "@/api/apiClient"; 
+import { createPortal } from "react-dom";
+
 
 type WeatherInfo = {
   precipitation: number;
@@ -19,48 +28,199 @@ type WeatherInfo = {
 };
 
 export default function Page() {
-  const [weather, setWeather] = useState<WeatherInfo | null>(null);
-  const fmt = (v?: number, suffix = "") => (typeof v === "number" ? `${v}${suffix}` : "--");
-  const [spots, setSpots] = useState(dummySpots);
-  const [spotsLoading, setSpotsLoading] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
+    apiClient.get("/api/me")
+      .catch(() => router.push("/auth/login"));
+  }, [router]);
+
+  const [weather, setWeather] = useState<WeatherInfo | null>(null);
+  const fmt = (v?: number, suffix = "") =>
+    typeof v === "number" ? `${v}${suffix}` : "--";
+  const [spots, setSpots] = useState<Spot[]>([]);
+  const [isAreaModalOpen, setIsAreaModalOpen] = useState(false);
+  const [areaModalMode, setAreaModalMode] = useState<"initial" | "change">(
+    "change"
+  );
+  const [areas, setAreas] = useState<Area[]>([]);
+  const [currentArea, setCurrentArea] = useState<Area | null>(null);
+  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
+
+  useEffect(() => {
+    const shouldShow = localStorage.getItem("showAreaModal") === "true";
+    if (shouldShow) {
+      setAreaModalMode("initial");
+      setIsAreaModalOpen(true);
+      localStorage.removeItem("showAreaModal");
+    }
+  }, []);
+
+
+  useEffect(() => {
+    async function loadAreas() {
+      try {
+        const data = await fetchAreas();
+
+        setAreas(data);
+
+        const savedSlug = localStorage.getItem("selectedAreaSlug");
+        const saved = savedSlug ? data.find((a) => a.slug === savedSlug) : null;
+
+        setCurrentArea(saved ?? data[0] ?? null);
+      } catch (e) {
+        console.error("loadAreas error", e);
+      }
+    }
+
+    loadAreas();
+  }, []);
+
+  useEffect(() => {
+    if (!currentArea) return;
+
+    const controller = new AbortController();
+
     async function loadWeather() {
       try {
-        const res = await fetch("/api/weather?lat=32&lon=130");
-        if (!res.ok) {
-          return;
-        }
+        const res = await fetch(
+          `/api/weather/current?lat=${currentArea.lat}&lon=${currentArea.lon}`,
+          { signal: controller.signal, cache: "no-store" }
+        );
+        if (!res.ok) return;
+
         const data = await res.json();
         setWeather(data);
-      } catch (e) {}
+      } catch (e: any) {
+        if (e?.name !== "AbortError") console.error(e);
+      }
     }
+
     loadWeather();
-  }, []);
-  
+    return () => controller.abort();
+  }, [currentArea]);
 
   useEffect(() => {
-    async function load() {
-      const res = await fetch("/api/spots/recommended?area=meieki");
-      if (!res.ok) return;
-      const data = await res.json();
-      setSpots(data);
+    if (!currentArea || areas.length === 0 || !weather) return;
+
+    async function loadSpots() {
+      try {
+        const spotsData: Spot[] = await fetchSpotsRecommended({
+          area: currentArea.slug,
+          pop: weather.precipitation,
+          wind: weather.windSpeed,
+          temp: weather.temperature,
+          humidity: weather.humidity,
+          limit: 10,
+        });
+
+        setSpots(
+          spotsData.map((spot) => ({
+            ...spot,
+            areaName:
+              areas.find((a) => a.slug === spot.area)?.name || spot.area,
+          }))
+        );
+      } catch (err) {
+        console.error("loadSpots error:", err);
+      }
     }
-    load();
-  }, []);
+
+    loadSpots();
+  }, [
+    currentArea?.slug,
+    areas.length,
+    weather?.precipitation,
+    weather?.humidity,
+    weather?.windSpeed,
+    weather?.temperature,
+  ]);
+
+  useEffect(() => {
+    async function loadFavorites() {
+      try {
+        const favorites = await fetchFavorites();
+        setFavoriteIds(favorites.map((s: any) => s.id));
+      } catch (e) {
+        console.error("loadFavorites error:", e);
+        setFavoriteIds([]);
+      }
+    }
+
+    loadFavorites();
+  }, [currentArea?.slug]);
+
+
+  const handleMapClick = () => {
+    const slug = localStorage.getItem("selectedAreaSlug") ?? "meieki";
+    router.push(`/map?area=${encodeURIComponent(slug)}`);
+  };
 
   return (
     <div className="bg-back min-h-screen pb-20 [&>*]:text-fg ">
-      <div className="flex items-center pt-15 text-[14px]">
+      <div className="flex items-center pt-5">
         <div className="flex-1 flex justify-center gap-8">
           <p>現在のエリア</p>
-          <p className="font-semibold text-base">名駅</p>
+          <p className="font-semibold text-base">
+            {currentArea?.name ?? "読み込み中"}
+          </p>
         </div>
         <div className="mr-6">
-          <button className="flex justify-center gap-2 w-20 py-0.5 rounded-full border border-sub text-sub">
+          <button
+            onClick={() => {
+              setAreaModalMode("change");
+              setIsAreaModalOpen(true);
+            }}
+            className="flex justify-center gap-2 w-20 py-0.5 rounded-full border border-sub text-sub"
+          >
             <PencilLineIcon className="h-4 w-4" />
             変更
           </button>
+          {typeof window !== "undefined" &&
+            isAreaModalOpen &&
+            createPortal(
+              <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40">
+                <div
+                  className={`relative z-[100000] bg-white rounded-2xl p-6 w-[320px] border text-sm ${
+                    areaModalMode === "change" ? "pt-12" : ""
+                  }`}
+                >
+                  {areaModalMode === "initial" ? (
+                    <p className="pb-6 text-base whitespace-nowrap text-center">
+                      設定するエリアを選択してください。
+                    </p>
+                  ) : (
+                    <button
+                      onClick={() => setIsAreaModalOpen(false)}
+                      className="absolute top-3 right-3"
+                    >
+                      <X />
+                    </button>
+                  )}
+
+                  <ul className="grid grid-cols-3 gap-2 gap-x-[15px] gap-y-[16px]">
+                    {areas.map((area) => (
+                      <li key={area.id}>
+                        <button
+                          className="w-20 px-2 py-1 rounded-full border bg-card-back shadow-[1px_2px_1px_rgba(0,0,0,0.20)]"
+                          onClick={() => {
+                            setCurrentArea(area);
+                            setWeather(null);
+                            setSpots([]);
+                            localStorage.setItem("selectedAreaSlug", area.slug);
+                            setIsAreaModalOpen(false);
+                          }}
+                        >
+                          {area.name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>,
+              document.body
+            )}
+
         </div>
       </div>
 
@@ -74,7 +234,7 @@ export default function Page() {
                 {weather ? (
                   (() => {
                     const weatherInfo = weatherCodeMap[weather.weatherCode];
-                    if (!weatherInfo) return <p className="mt-1">情報なし</p>;
+                    if (!weatherInfo) return;
                     const IconComponent = weatherInfo.Icon;
                     return (
                       <>
@@ -102,15 +262,19 @@ export default function Page() {
             <div className="grid grid-cols-3 mx-auto mt-4 w-52">
               <div className="flex justify-center items-center gap-1">
                 <UmbrellaIcon className="h-5 w-5" />
-                <span className="text-xs">{fmt(weather?.precipitation, "%")}</span>
+                <span className="text-xs">
+                  {fmt(weather?.precipitation, "%")}
+                </span>
               </div>
               <div className="flex justify-center items-center gap-1">
                 <DropletIcon className="h-5 w-5" />
-                <span className="text-xs">{fmt(weather?.humidity,"%")}</span>
+                <span className="text-xs">{fmt(weather?.humidity, "%")}</span>
               </div>
               <div className="flex justify-center items-center gap-1">
                 <WindIcon className="h-5 w-5" />
-                <span className="text-xs">{fmt(weather?.windSpeed,"m/s")}</span>
+                <span className="text-xs">
+                  {fmt(weather?.windSpeed, "m/s")}
+                </span>
               </div>
             </div>
           </div>
@@ -123,7 +287,19 @@ export default function Page() {
         <div className="flex justify-center ">
           <div className="grid grid-cols-2 gap-2">
             {spots.map((spot) => (
-              <SpotCard key={spot.id} spot={spot} />
+              <SpotCardContainer
+                key={spot.id}
+                spot={spot}
+                initialIsFavorite={favoriteIds.includes(spot.id)}
+              >
+                {({ spot, isFavorite, toggleFavorite }) => (
+                  <SpotCardTop
+                    spot={spot}
+                    isFavorite={isFavorite}
+                    toggleFavorite={toggleFavorite}
+                  />
+                )}
+              </SpotCardContainer>
             ))}
           </div>
         </div>

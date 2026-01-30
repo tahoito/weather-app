@@ -8,7 +8,6 @@ import { EyeIcon } from "@/components/icon/eye-icon";
 import { ArrowLeftIcon } from "@/components/icon/arrow-left-icon";
 import { useRouter } from "next/navigation";
 import { useForm, SubmitHandler } from "react-hook-form";
-import Cookies from "js-cookie";
 
 type FormInput = AuthLoginRequest;
 export default function Page() {
@@ -23,11 +22,15 @@ export default function Page() {
 
   const onSubmit: SubmitHandler<FormInput> = async (data) => {
     const res = await authLogin(data);
+    console.log("LOGIN response:", res);
 
     if (res.success) {
-      Cookies.set("authToken", res.authToken);
-      router.push("/sign-up-login");
+      localStorage.setItem("token", res.authToken);
+      router.push("/top");
+      return;
     }
+
+    alert(res.message); 
   };
 
   return (
@@ -49,6 +52,7 @@ export default function Page() {
                 type="email"
                 placeholder="example@gmail.com"
                 className="border border-holder rounded-xl bg-white p-3"
+                autoComplete="current-email"
                 {...register("auth.email", {
                   required: "メールアドレスを入力してください",
                 })}
@@ -70,6 +74,7 @@ export default function Page() {
                   type={showPassword ? "text" : "password"}
                   placeholder="パスワード"
                   className="w-full border border-holder rounded-xl bg-white p-3"
+                  autoComplete="current-password"
                   {...register("auth.password", {
                     required: "パスワードを入力してください",
                   })}

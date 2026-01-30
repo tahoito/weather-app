@@ -1,4 +1,4 @@
-import axios from "axios";
+import { apiClient } from "./apiClient";
 
 export type AuthSignUpRequest = {
   auth: {
@@ -11,23 +11,22 @@ export type AuthSignUpResponse = {
   success: boolean;
   message: string;
   authToken: string;
+  user?: { id: number; name: string; email: string };
 };
 
 export async function authSignUp({
   auth,
 }: AuthSignUpRequest): Promise<AuthSignUpResponse> {
-  const apiUrl = "https://example.com/api/sign-up-login/signup";
-
   try {
-    const response = await axios.post<AuthSignUpResponse>(apiUrl, auth, {
-      headers: { "Content-Type": "application/json" },
-    });
-    return response.data;
+    const res = await apiClient.post<AuthSignUpResponse>(
+      "/api/sign-up-login/signup",
+      { auth }
+    );
+    return res.data;
   } catch (err: any) {
-    console.error(err);
     return {
       success: false,
-      message: err.response?.data.message || "ログインに失敗しました",
+      message: err.response?.data?.message || "サインアップに失敗しました",
       authToken: "",
     };
   }

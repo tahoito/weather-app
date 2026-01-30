@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Favorite;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Spot extends Model
 {
@@ -12,7 +13,20 @@ class Spot extends Model
 
     protected $guarded = [];
 
-    public function area(){
+    protected $casts = [
+        'lat' => 'float',
+        'lon' => 'float',
+        'is_indoor' => 'boolean',
+        'image_urls' => 'array',
+        'weather_suitability' => 'array',
+        'highlights' => 'array',
+        'weather_ok' => 'boolean',
+        'tags_json' => 'array',
+    ];
+
+
+    public function area()
+    {
         return $this->belongsTo(Area::class);
     }
 
@@ -23,6 +37,11 @@ class Spot extends Model
 
     public function tags()
     {
-        return $this->belongsToMany(Tag::class);
+        return $this->belongsToMany(Tag::class, 'spot_tag', 'spot_id', 'tag_id');
+    }
+
+    public function openingHours(): HasMany
+    {
+        return $this->hasMany(SpotOpeningHour::class);
     }
 }

@@ -8,7 +8,6 @@ import { ArrowLeftIcon } from "@/components/icon/arrow-left-icon";
 import { authSignUp, AuthSignUpRequest } from "@/api/auth-sign-up";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import Cookies from "js-cookie";
 
 type FormInput = AuthSignUpRequest & {
   confirmPassword?: string;
@@ -30,8 +29,9 @@ export default function Page() {
     const res = await authSignUp(data);
 
     if (res.success) {
-      Cookies.set("authToken", res.authToken);
-      location.href = "/";
+      localStorage.setItem("token", res.authToken);
+      localStorage.setItem("showAreaModal", "true");
+      router.push("/top");
     }
   };
 
@@ -57,6 +57,7 @@ export default function Page() {
                 type="email"
                 placeholder="example@gmail.com"
                 className="border border-holder rounded-xl bg-white p-3"
+                autoComplete="current-email"
                 {...register("auth.email", {
                   required: "メールアドレスを入力してください",
                 })}
@@ -78,6 +79,7 @@ export default function Page() {
                   type={showPassword ? "text" : "password"}
                   placeholder="パスワード"
                   className="w-full border border-holder rounded-xl bg-white p-3"
+                  autoComplete="current-password"
                   {...register("auth.password", {
                     required: "パスワードを入力してください",
                   })}
@@ -102,6 +104,7 @@ export default function Page() {
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="パスワード確認"
                   className="w-full border border-holder rounded-xl bg-white p-3"
+                  autoComplete="current-password"
                   {...register("confirmPassword", {
                     required: "確認用パスワードを入力してください",
                     validate: (value) =>

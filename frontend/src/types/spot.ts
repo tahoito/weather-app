@@ -1,45 +1,49 @@
-import { SunIcon } from "@/components/icon/sun-icon";
+import { SunnyIcon } from "@/components/icon/sunny-icon";
 import { CloudIcon } from "@/components/icon/cloud-icon";
-import { CloudRainIcon } from "@/components/icon/cloud-rain-icon";
-import { CloudSnowIcon } from "@/components/icon/cloud-snow-icon";
+import { RainIcon } from "@/components/icon/rain-icon";
+import { SnowIcon } from "@/components/icon/snow-icon";
 import { CloudHeilIcon } from "@/components/icon/cloud-hail-icon";
-import { FlameIcon } from "@/components/icon/flame-icon";
+import { SunIcon } from "@/components/icon/sun-icon";
+import { HazeIcon } from "@/components/icon/haze-icon";
 import { CloudDrizzleIcon } from "@/components/icon/cloud-drizzle-icon";
 import { CloudRainWindIcon } from "@/components/icon/cloud-rain-wind-icon";
 import { SnowflakeIcon } from "@/components/icon/snowflake-icon";
-
-export type SpotTag =
-  | "友達"
-  | "カップル"
-  | "一人"
-  | "家族"
-  | "アクティブ"
-  | "ゆったり"
-  | "屋内"
-  | "屋外";
-
-export type Spot = {
-  id: number;
-  name: string;
-  area: string;
-  description: string;
-  imageUrl: string;
-  tags: SpotTag[];
-};
 
 export const weatherCodeMap: Record<
   number,
   { label: string; Icon: React.ComponentType<{ className?: string }> }
 > = {
-  100: { label: "晴れ", Icon: SunIcon },
+  100: { label: "晴れ", Icon: SunnyIcon },
   200: { label: "くもり", Icon: CloudIcon },
-  300: { label: "雨", Icon: CloudRainIcon },
-  400: { label: "雪", Icon: CloudSnowIcon },
+  300: { label: "雨", Icon: RainIcon },
+  400: { label: "雪", Icon: SnowIcon },
   430: { label: "みぞれ", Icon: CloudHeilIcon },
   500: { label: "快晴", Icon: SunIcon },
-  550: { label: "猛暑", Icon: FlameIcon },
-  600: { label: "うすぐもり", Icon: SunIcon },
+  550: { label: "猛暑", Icon: SunIcon },
+  600: { label: "うすぐもり", Icon: HazeIcon },
   650: { label: "小雨", Icon: CloudDrizzleIcon },
   850: { label: "大雨・嵐", Icon: CloudRainWindIcon },
   950: { label: "大雪", Icon: SnowflakeIcon },
 };
+
+export type Spot = {
+  id: number;
+  name: string;
+  lat:number;
+  lon:number;
+  area: string;
+  areaName?: string;
+  thumbnailUrl?: string;
+  imageUrls?: string[];
+  detail?: string;
+  description?: string;
+  tags?: string[];
+  is_favorite?: boolean;
+  is_indoor: boolean;
+  weather_ok: boolean;
+  weatherSuitability: string[];
+  highlights: string[];
+  price?: string;
+  openingHours?: string;
+};
+

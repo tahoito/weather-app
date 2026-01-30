@@ -6,43 +6,53 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Favorite;
 use App\Models\Spot;
+use App\Http\Resources\SpotResource;
+
 
 class FavoriteController extends Controller
 {
-    private function dummyUserId(): int{
+    private function dummyUserId(): int
+    {
         return 1;
     }
 
-    public function index(){
+    public function index()
+    {
         $userId = $this->dummyUserId();
-        $favorites = favorite::with('spot')
-            ->where('user_id',$userId)
+
+        $spots = Favorite::where('user_id', $userId)
+            ->with('spot.tags')    
             ->latest()
-            ->get();
-        return response()->json($favorites);
+            ->get()
+            ->pluck('spot')
+            ->filter()
+            ->values();           
+
+        return SpotResource::collection($spots);
     }
 
-    public function store(Request $request){
+    public function store(Request $request)
+    {
         $userId = $this->dummyUserId();
+        $validated = $request->validate(['spot_id' => ['required', 'integer', 'exists:spots,id'],]);
+        $favorite = Favorite::firstOrCreate(['user_id' => $userId, 'spot_id' => $validated['spot_id'],]);
 
-        $validated = $request->validated([
-            'spot_id' => ['required','integer','exists:spots,id']
-        ]);
+        $favorite->load('spot.tags');
 
-        $favorite = Favorite::firstOrCreate([
-            'user_id' => $userId,
-            'spot_id' => $validated['spot_id'],
-        ]);
-
-        return response()->json($favorite,201);
+        return response()->json([
+            'id' => $favorite->id,
+            'spot' => new \App\Http\Resources\SpotResource($favorite->spot),
+        ], 201);
     }
 
-    public function destroy(Spot $spot){
+    public function destroy(int $spotId)
+    {
         $userId = $this->dummyUserId();
 
-        Favorite::where('user_id',$userId)
-            ->where('spot_id',$spot->id)
+        Favorite::where('user_id', $userId)
+            ->where('spot_id', $spotId)
             ->delete();
+
         return response()->noContent();
     }
 }

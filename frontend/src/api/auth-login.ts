@@ -1,4 +1,4 @@
-import axios from "axios";
+import { apiClient } from "./apiClient"; 
 
 export type AuthLoginRequest = {
   auth: {
@@ -9,26 +9,24 @@ export type AuthLoginRequest = {
 
 export type AuthLoginResponse = {
   success: boolean;
-  message: string[];
+  message: string;
   authToken: string;
 };
 
 export async function authLogin({
   auth,
 }: AuthLoginRequest): Promise<AuthLoginResponse> {
-  const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/login`;
-
-  return axios
-    .post<AuthLoginResponse>(apiUrl, {
-      auth,
-    })
-    .then((res) => res.data)
-    .catch((err) => {
-      console.log(err);
-      return {
-        success: false,
-        message: err.response?.data.messages || [],
-        authToken: "",
-      };
-    });
+  try {
+    const res = await apiClient.post<AuthLoginResponse>(
+      "/api/sign-up-login/login",
+      { auth }
+    );
+    return res.data;
+  } catch (err: any) {
+    return {
+      success: false,
+      message: err.response?.data?.message || "ログインに失敗しました",
+      authToken: "",
+    };
+  }
 }
