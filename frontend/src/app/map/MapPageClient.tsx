@@ -132,8 +132,7 @@ export default function Page() {
           params.append("is_indoor", indoorFilter ? "1" : "0");
         }
 
-        const res = await apiClient.get("/api/spots/search", { params });
-
+        const res = await apiClient.get("/spots/search", { params });
         const list: Location[] = res.data.data ?? [];
 
         setSpots(
@@ -173,7 +172,7 @@ export default function Page() {
     setIsModalOpen(true);
     setSelectedSpotId(spotId);
 
-    const res = await apiClient.get(`/api/spot/${spotId}`);
+    const res = await apiClient.get(`/spot/${spotId}`);
     const apiSpot = res.data.data;
 
     const areaName =
@@ -218,20 +217,23 @@ export default function Page() {
             type="text"
             value={inputValue} // ★ここが超重要：inputValueにする
             onChange={(e) => {
-              const value = e.target.value;
-              setSearchQuery(value);
+              setInputValue(e.target.value);
               // 入力中はタイトルもモーダルも触らない
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                setModalTitle(searchQuery); // 入力確定した文字をタイトルに
-                setIsModalOpen(true); // ここで初めてモーダルを開く
+                e.preventDefault();
+                const q = (e.currentTarget.value || "").trim();
+                setSearchQuery(q);
+                setModalTitle(q || "検索"); // 入力確定した文字をタイトルに
+                setIsModalOpen(!!q); // ここで初めてモーダルを開く
               }
             }}
             onFocus={() => setIsInputFocused(true)}
             onBlur={() => setIsInputFocused(false)}
-            className={`w-full bg-white rounded-[12px] font-medium transition-all ${
-              isInputFocused ? "px-4 py-3" : "py-3 pl-13 pr-3"
+            className={`w-full bg-white rounded-[12px] font-medium transition-all 
+              outline-none border border-holder focus-visible:border-sub focus-visible:ring-2 focus-visible:ring-sub/30
+              ${isInputFocused ? "px-4 py-3" : "py-3 pl-13 pr-3"
             }`}
             placeholder="検索"
           />
