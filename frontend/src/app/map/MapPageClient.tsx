@@ -244,7 +244,7 @@ export default function Page() {
             onClick={() => handleFilterToggle(false)}
             className={`flex items-center gap-2 py-1 px-2 border rounded-[12px] transition-colors ${
               indoorFilter === false
-                ? "border-blue-500 bg-blue-50"
+                ? "border border-sub"
                 : "border-fg"
             }`}
           >
@@ -254,7 +254,7 @@ export default function Page() {
           <button
             onClick={() => handleFilterToggle(true)}
             className={`flex items-center gap-2 py-1 px-2 border rounded-[12px] transition-colors ${
-              indoorFilter === true ? "border-blue-500 bg-blue-50" : "border-fg"
+              indoorFilter === true ? "border border-sub" : "border-fg"
             }`}
           >
             <img src="/images/map-pin-2.svg" alt="" className="w-8 h-8" />
