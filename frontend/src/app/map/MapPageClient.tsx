@@ -4,10 +4,9 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { areaTags } from "../search/data";
 import dynamic from "next/dynamic";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import { NavigationBar } from "@/components/navigation-bar";
 import Modal from "@/components/Modal";
-import { X } from "lucide-react";
 import type { Spot } from "@/types/spot";
 import { SpotCardModal } from "@/components/spot-card/SpotCardModal";
 import { SpotCardContainer } from "@/components/spot-card/SpotCardContainer";
@@ -51,30 +50,40 @@ function locationToSpot(location: Location): Spot {
     ...location,
     lat: Number(location.lat),
     lon: Number(location.lon),
-  };
+  } as Spot;
 }
 
 export default function Page() {
   const searchParams = useSearchParams();
+
   const [spots, setSpots] = useState<Location[]>([]);
 
-  const [isInputFocused, setIsInputFocused] = useState(false);
+  // 入力中（確定前）
+  const [inputValue, setInputValue] = useState("");
+
+  // 確定した検索ワード（Enterで更新 → APIはこれだけ見て走る）
   const [searchQuery, setSearchQuery] = useState("");
+
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [indoorFilter, setIndoorFilter] = useState<boolean | null>(null);
-  const [selectedSpotId, setSelectedSpotId] = useState<number | null>(null); // ピンを押すとspotIdを状態として保持します
+
+  const [selectedSpotId, setSelectedSpotId] = useState<number | null>(null);
   const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null);
+
   const [modalTitle, setModalTitle] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [initialMapState, setInitialMapState] =
     useState<InitialMapState | null>(null);
 
+  // 初期位置
   useEffect(() => {
-    const DEFAULT_LAT = 35.1815;
-    const DEFAULT_LON = 136.9066;
+    const fallbackLat = 35.1815;
+    const fallbackLon = 136.9066;
 
-    // 1. URLパラメータから取得を試みる
     const urlLat = searchParams.get("lat");
     const urlLon = searchParams.get("lon");
     const urlSpotId = searchParams.get("spotId");
@@ -84,15 +93,14 @@ export default function Page() {
       setInitialMapState({
         lat: parseFloat(urlLat),
         lon: parseFloat(urlLon),
-        spotId: urlSpotId ? parseInt(urlSpotId) : null,
+        spotId,
       });
       if (spotId) {
-        handleSpotSelect(spotId); // ← ★ これが重要
+        handleSpotSelect(spotId);
       }
       return;
     }
 
-    // 2. localStorageから selectedAreaSlug を取得
     const savedSlug = localStorage.getItem("selectedAreaSlug");
     if (savedSlug) {
       const area = areaTags.find((a) => a.slug === savedSlug);
@@ -106,22 +114,20 @@ export default function Page() {
       }
     }
 
-    // 3. どちらも存在しない場合はデフォルト値
     setInitialMapState({
-      lat: DEFAULT_LAT,
-      lon: DEFAULT_LON,
+      lat: fallbackLat ?? DEFAULT_LAT,
+      lon: fallbackLon ?? DEFAULT_LON,
       spotId: null,
     });
   }, [searchParams]);
 
+  // 検索（Enterで searchQuery が変わった時だけ）
   useEffect(() => {
     const fetchSpots = async () => {
       setIsLoading(true);
       try {
         const params = new URLSearchParams();
-        if (searchQuery) {
-          params.append("query", searchQuery);
-        }
+        if (searchQuery) params.append("query", searchQuery);
         if (indoorFilter !== null) {
           params.append("is_indoor", indoorFilter ? "1" : "0");
         }
@@ -144,22 +150,19 @@ export default function Page() {
       }
     };
 
-    const timeoutId = setTimeout(() => {
-      fetchSpots();
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
+    fetchSpots();
   }, [searchQuery, indoorFilter]);
 
   const handleFilterToggle = (isIndoor: boolean) => {
     setIsModalOpen(true);
     setModalTitle(isIndoor ? "屋内" : "屋外");
-    if (indoorFilter === isIndoor) {
-      setIndoorFilter(null);
-    } else {
-      setIndoorFilter(isIndoor);
-    }
+
+    if (indoorFilter === isIndoor) setIndoorFilter(null);
+    else setIndoorFilter(isIndoor);
+
+    setIsFilterOpen(false);
   };
+
   const handleSpotSelect = async (spotId: number) => {
     setIsModalOpen(true);
     setSelectedSpotId(spotId);
@@ -180,21 +183,17 @@ export default function Page() {
         ? apiSpot.tags.map((t: any) => (typeof t === "string" ? t : t?.name))
         : [],
     });
+
     setModalTitle(apiSpot.name);
   };
-  useEffect(() => {
-    console.log("selectedSpot:", selectedSpot);
-  }, [selectedSpot]);
-
-  if (!initialMapState) {
-    return null;
-  }
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedSpotId(null);
     setSelectedSpot(null);
   };
+
+  if (!initialMapState) return null;
 
   const modalSpots =
     selectedSpotId !== null
@@ -207,12 +206,20 @@ export default function Page() {
         <div className="relative w-full">
           <input
             type="text"
-            value={searchQuery}
+            value={inputValue} // ★ここが超重要：inputValueにする
             onChange={(e) => {
               const value = e.target.value;
-              setSearchQuery(value);
-              setModalTitle(value);
+              setInputValue(value);
+              setModalTitle(value || "検索");
               setIsModalOpen(true);
+              setIsFilterOpen(false);
+              setSelectedSpotId(null);
+              setSelectedSpot(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                setSearchQuery(inputValue.trim()); // Enterで検索確定
+              }
             }}
             onFocus={() => setIsInputFocused(true)}
             onBlur={() => setIsInputFocused(false)}
@@ -221,24 +228,28 @@ export default function Page() {
             }`}
             placeholder="検索"
           />
+
           {!isInputFocused && (
             <Search
               size={24}
               className="absolute top-1/2 left-4 -translate-y-1/2 text-gray-400"
             />
           )}
+
           {isLoading && (
             <div className="absolute top-1/2 right-4 -translate-y-1/2">
               <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
             </div>
           )}
         </div>
+
         <button
           onClick={() => setIsFilterOpen(!isFilterOpen)}
           className="flex items-center justify-center w-12 h-12 bg-white rounded-[12px] shrink-0"
         >
           <SlidersHorizontal size={28} />
         </button>
+
         <div
           className={`absolute top-[calc(100%+8px)] right-5 flex flex-col gap-1 bg-white p-3 border border-fg rounded-[12px] transition-all duration-200 ${
             isFilterOpen
@@ -247,17 +258,17 @@ export default function Page() {
           }`}
         >
           <p className="font-medium mb-1">絞り込み</p>
+
           <button
             onClick={() => handleFilterToggle(false)}
             className={`flex items-center gap-2 py-1 px-2 border rounded-[12px] transition-colors ${
-              indoorFilter === false
-                ? "border border-sub"
-                : "border-fg"
+              indoorFilter === false ? "border border-sub" : "border-fg"
             }`}
           >
             <img src="/images/map-pin-1.svg" alt="" className="w-8 h-8" />
             <p>屋外</p>
           </button>
+
           <button
             onClick={() => handleFilterToggle(true)}
             className={`flex items-center gap-2 py-1 px-2 border rounded-[12px] transition-colors ${
@@ -269,6 +280,7 @@ export default function Page() {
           </button>
         </div>
       </div>
+
       <MapComponent
         spots={spots}
         selectedSpotId={selectedSpotId}
@@ -298,7 +310,6 @@ export default function Page() {
                   <div className="grid gap-6">
                     {modalSpots.map((location) => {
                       const spot = locationToSpot(location);
-
                       return (
                         <SpotCardContainer
                           key={spot.id}
