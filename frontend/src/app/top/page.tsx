@@ -290,7 +290,7 @@ export default function Page() {
               <SpotCardContainer
                 key={spot.id}
                 spot={spot}
-                initialIsFavorite={true}
+                initialIsFavorite={favoriteIds.includes(spot.id)}
               >
                 {({ spot, isFavorite, toggleFavorite }) => (
                   <SpotCardTop
