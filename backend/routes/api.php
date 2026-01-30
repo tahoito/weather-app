@@ -87,7 +87,7 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
     });
 
-    
+    Route::get('/weather/current', [WeatherController::class, 'current']);
     Route::get('/areas', [AreaController::class,'index']);
     Route::get('/spots/search', [SpotSearchController::class,'index']);
 
