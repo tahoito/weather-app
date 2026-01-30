@@ -1,0 +1,193 @@
+# flyctl launch added from .gitignore
+# 全体で無視するもの
+**/db_data
+**/.env
+**/.env.local
+**/*.env
+
+# Laravel backend
+**/backend/vendor
+**/backend/node_modules
+**/backend/storage/*.key
+**/backend/.env
+**/backend/storage/logs/*.log
+
+# Next frontend
+**/frontend/node_modules
+**/frontend/.next
+**/frontend/.env.local
+**/node_modules
+
+# flyctl launch added from backend/.gitignore
+backend/**/*.log
+backend/**/.DS_Store
+backend/**/.env
+backend/**/.env.backup
+backend/**/.env.production
+backend/**/.phpactor.json
+backend/**/.phpunit.result.cache
+backend/.fleet
+backend/.idea
+backend/.nova
+backend/.phpunit.cache
+backend/.vscode
+backend/.zed
+backend/auth.json
+backend/node_modules
+backend/public/build
+backend/public/hot
+backend/public/storage
+backend/storage/*.key
+backend/storage/pail
+backend/vendor
+backend/**/Homestead.json
+backend/**/Homestead.yaml
+backend/**/Thumbs.db
+
+backend/storage/*
+!backend/storage/app
+!backend/storage/app/public
+!backend/storage/framework
+!backend/storage/framework/cache
+!backend/storage/framework/sessions
+!backend/storage/framework/views
+!backend/storage/logs
+backend/**/mysql_data
+
+# flyctl launch added from backend/bootstrap/cache/.gitignore
+backend/bootstrap/cache/**/*
+!backend/bootstrap/cache/**/.gitignore
+
+# flyctl launch added from backend/database/.gitignore
+backend/database/**/*.sqlite*
+
+# flyctl launch added from backend/storage/app/.gitignore
+backend/storage/app/**/*
+!backend/storage/app/**/private
+!backend/storage/app/**/public
+!backend/storage/app/**/.gitignore
+
+# flyctl launch added from backend/storage/app/private/.gitignore
+backend/storage/app/private/**/*
+!backend/storage/app/private/**/.gitignore
+
+# flyctl launch added from backend/storage/app/public/.gitignore
+backend/storage/app/public/**/*
+!backend/storage/app/public/**/.gitignore
+
+# flyctl launch added from backend/storage/framework/.gitignore
+backend/storage/framework/**/compiled.php
+backend/storage/framework/**/config.php
+backend/storage/framework/**/down
+backend/storage/framework/**/events.scanned.php
+backend/storage/framework/**/maintenance.php
+backend/storage/framework/**/routes.php
+backend/storage/framework/**/routes.scanned.php
+backend/storage/framework/**/schedule-*
+backend/storage/framework/**/services.json
+
+# flyctl launch added from backend/storage/framework/cache/.gitignore
+backend/storage/framework/cache/**/*
+!backend/storage/framework/cache/**/data
+!backend/storage/framework/cache/**/.gitignore
+
+# flyctl launch added from backend/storage/framework/cache/data/.gitignore
+backend/storage/framework/cache/data/**/*
+!backend/storage/framework/cache/data/**/.gitignore
+
+# flyctl launch added from backend/storage/framework/sessions/.gitignore
+backend/storage/framework/sessions/**/*
+!backend/storage/framework/sessions/**/.gitignore
+
+# flyctl launch added from backend/storage/framework/testing/.gitignore
+backend/storage/framework/testing/**/*
+!backend/storage/framework/testing/**/.gitignore
+
+# flyctl launch added from backend/storage/framework/views/.gitignore
+backend/storage/framework/views/**/*
+!backend/storage/framework/views/**/.gitignore
+
+# flyctl launch added from backend/storage/logs/.gitignore
+backend/storage/logs/**/*
+!backend/storage/logs/**/.gitignore
+
+# flyctl launch added from backend/vendor/fly-apps/dockerfile-laravel/.gitignore
+backend/vendor/fly-apps/dockerfile-laravel/vendor
+backend/vendor/fly-apps/dockerfile-laravel/.idea
+backend/vendor/fly-apps/dockerfile-laravel/.vscode
+backend/vendor/fly-apps/dockerfile-laravel/.vagrant
+backend/vendor/fly-apps/dockerfile-laravel/**/.phpunit.result.cache
+backend/vendor/fly-apps/dockerfile-laravel/**/.env
+
+# flyctl launch added from backend/vendor/fly-apps/dockerfile-laravel/storage/app/.gitignore
+backend/vendor/fly-apps/dockerfile-laravel/storage/app/**/*
+!backend/vendor/fly-apps/dockerfile-laravel/storage/app/**/.gitignore
+
+# flyctl launch added from backend/vendor/fly-apps/dockerfile-laravel/storage/framework/cache/.gitignore
+backend/vendor/fly-apps/dockerfile-laravel/storage/framework/cache/**/*
+!backend/vendor/fly-apps/dockerfile-laravel/storage/framework/cache/**/.gitignore
+
+# flyctl launch added from backend/vendor/fly-apps/dockerfile-laravel/storage/framework/views/.gitignore
+backend/vendor/fly-apps/dockerfile-laravel/storage/framework/views/**/*
+!backend/vendor/fly-apps/dockerfile-laravel/storage/framework/views/**/.gitignore
+
+# flyctl launch added from backend/vendor/hamcrest/hamcrest-php/.gitignore
+backend/vendor/hamcrest/hamcrest-php/**/composer.lock
+backend/vendor/hamcrest/hamcrest-php/**/tests/.phpunit.result.cache
+backend/vendor/hamcrest/hamcrest-php/**/vendor
+
+# flyctl launch added from backend/vendor/mockery/mockery/docs/.gitignore
+backend/vendor/mockery/mockery/docs/**/_build
+
+# flyctl launch added from backend/vendor/psr/container/.gitignore
+backend/vendor/psr/container/**/composer.lock
+backend/vendor/psr/container/**/composer.phar
+backend/vendor/psr/container/vendor
+
+# flyctl launch added from backend/vendor/psr/event-dispatcher/.gitignore
+backend/vendor/psr/event-dispatcher/vendor
+backend/vendor/psr/event-dispatcher/**/composer.lock
+
+# flyctl launch added from frontend/.gitignore
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+frontend/node_modules
+frontend/.pnp
+frontend/**/.pnp.*
+frontend/**/.yarn/*
+!frontend/**/.yarn/patches
+!frontend/**/.yarn/plugins
+!frontend/**/.yarn/releases
+!frontend/**/.yarn/versions
+
+# testing
+frontend/coverage
+
+# next.js
+frontend/.next
+frontend/out
+
+# production
+frontend/build
+
+# misc
+frontend/**/.DS_Store
+frontend/**/*.pem
+
+# debug
+frontend/**/npm-debug.log*
+frontend/**/yarn-debug.log*
+frontend/**/yarn-error.log*
+frontend/**/.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+frontend/**/.env*
+
+# vercel
+frontend/**/.vercel
+
+# typescript
+frontend/**/*.tsbuildinfo
+frontend/**/next-env.d.ts
+fly.toml

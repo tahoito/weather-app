@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for backend-autumn-pond-8461 on 2026-01-30T22:04:30+09:00
+# fly.toml app configuration file generated for weter-app on 2026-01-29T14:59:38+09:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'backend-autumn-pond-8461'
+app = 'weter-app'
 primary_region = 'nrt'
 console_command = 'php /var/www/html/artisan tinker'
 
@@ -21,7 +21,7 @@ console_command = 'php /var/www/html/artisan tinker'
   SESSION_SECURE_COOKIE = 'true'
 
 [http_service]
-  internal_port = 8000
+  internal_port = 8080
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
