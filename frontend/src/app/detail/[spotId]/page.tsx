@@ -69,7 +69,7 @@ export default function Page() {
     const fetchSpot = async () => {
       setLoading(true);
       try {
-        const res = await apiClient.get(`/api/spot/${spotId}`);
+        const res = await apiClient.get(`/spot/${spotId}`);
         const apiSpot = res.data?.data ?? res.data;
 
         const areaName =
@@ -141,11 +141,11 @@ export default function Page() {
 
     try {
       if (isFavorite) {
-        await apiClient.delete(`/api/favorites/${spot.id}`);
+        await apiClient.delete(`/favorites/${spot.id}`);
         setIsFavorite(false);
         setFavoriteIds((prev) => prev.filter((id) => id !== spot.id));
       } else {
-        await apiClient.post(`/api/favorites`, { spot_id: spot.id });
+        await apiClient.post(`/favorites`, { spot_id: spot.id });
         setIsFavorite(true);
         setFavoriteIds((prev) => [...prev, spot.id]);
       }

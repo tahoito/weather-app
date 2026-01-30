@@ -67,9 +67,9 @@ export function SpotCard({ spot, initialIsFavorite }: Props) {
 
     try {
       if (!next) {
-        await apiClient.delete(`/api/favorites/${spot.id}`);
+        await apiClient.delete(`/favorites/${spot.id}`);
       } else {
-        await apiClient.post(`/api/favorites`, { spot_id: spot.id });
+        await apiClient.post(`/favorites`, { spot_id: spot.id });
       }
     } catch (e: any) {
       // 失敗したら戻す
