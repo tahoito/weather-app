@@ -5,7 +5,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Route;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-
+use App\Http\Controllers\Api\WeatherController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\AreaController;
 use App\Http\Controllers\Api\SpotSearchController;

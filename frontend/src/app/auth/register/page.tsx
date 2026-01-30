@@ -29,7 +29,7 @@ export default function Page() {
     const res = await authSignUp(data);
 
     if (res.success) {
-      localStorage.setItem("token", res.authToken);
+      localStorage.setItem("authToken", res.authToken);
       localStorage.setItem("showAreaModal", "true");
       router.push("/top");
     }
