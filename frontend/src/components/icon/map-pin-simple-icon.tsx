@@ -4,16 +4,17 @@ type Props = {
 
 export function MapPinSimpleIcon({ className }: Props) {
   return (
-    <svg viewBox="6 3 12 18" className={className} fill="none">
-      {/* 丸（赤・塗りつぶし） */}
-      <circle cx="12" cy="8" r="4" fill="var(--color-favorite)" />
-
-      {/* 線（黒） */}
+    <svg
+      width="8"
+      height="15"
+      viewBox="0 0 8 15"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M4 7.5V14" stroke="#222222" strokeLinecap="round" />
       <path
-        d="M12 11 v7"
-        stroke="var(--color-fg)"
-        strokeWidth="1"
-        strokeLinecap="round"
+        d="M3.96621 0C1.0421 0 0 2.38655 0 3.86555C0 5.24398 0.766914 8 3.96621 8C7.1655 8 7.97594 5.31092 7.99964 3.86555C8.02333 2.42017 6.89031 0 3.96621 0Z"
+        fill="#E94B4B"
       />
     </svg>
   );
