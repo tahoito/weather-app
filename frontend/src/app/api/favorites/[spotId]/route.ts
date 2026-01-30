@@ -27,7 +27,7 @@ export async function DELETE(
   }
 
   const { spotId } = await ctx.params; 
-  const url = `${base}/api/favorites/${spotId}`;
+  const url = `${base}/favorites/${spotId}`;
 
   const res = await fetch(url, {
     method: "DELETE",

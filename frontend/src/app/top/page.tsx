@@ -31,7 +31,7 @@ export default function Page() {
   const router = useRouter();
 
   useEffect(() => {
-    apiClient.get("/api/me")
+    apiClient.get("/me")
       .catch(() => router.push("/auth/login"));
   }, [router]);
 
@@ -84,7 +84,7 @@ export default function Page() {
     async function loadWeather() {
       try {
         const res = await fetch(
-          `/api/weather/current?lat=${currentArea.lat}&lon=${currentArea.lon}`,
+          `/weather/current?lat=${currentArea.lat}&lon=${currentArea.lon}`,
           { signal: controller.signal, cache: "no-store" }
         );
         if (!res.ok) return;

@@ -19,7 +19,7 @@ export async function authSignUp({
 }: AuthSignUpRequest): Promise<AuthSignUpResponse> {
   try {
     const res = await apiClient.post<AuthSignUpResponse>(
-      "/api/sign-up-login/signup",
+      "/sign-up-login/signup",
       { auth }
     );
     return res.data;

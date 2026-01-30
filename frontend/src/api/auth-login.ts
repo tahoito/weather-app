@@ -18,7 +18,7 @@ export async function authLogin({
 }: AuthLoginRequest): Promise<AuthLoginResponse> {
   try {
     const res = await apiClient.post<AuthLoginResponse>(
-      "/api/sign-up-login/login",
+      "/sign-up-login/login",
       { auth }
     );
     return res.data;

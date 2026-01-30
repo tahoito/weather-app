@@ -158,13 +158,13 @@ export default function Page() {
 
           // Next API: weather/forecast はフロント側（同一オリジン）でOK
           const wxRes = await fetch(
-            `/api/weather/forecast?lat=${areaMeta.lat}&lon=${areaMeta.lon}&date=${date}&time=${targetTime}`,
+            `/weather/forecast?lat=${areaMeta.lat}&lon=${areaMeta.lon}&date=${date}&time=${targetTime}`,
             { cache: "no-store" }
           );
           if (!wxRes.ok) throw new Error("forecast failed");
           const wx = await wxRes.json();
 
-          const recRes = await apiClient.get("/api/spots/recommended", {
+          const recRes = await apiClient.get("/spots/recommended", {
             params: {
               temp: wx.temp,
               pop: wx.pop,
@@ -206,7 +206,7 @@ export default function Page() {
         }
 
         // --- 通常検索: /spots/search ---
-        const res = await apiClient.get("/api/spots/search", {
+        const res = await apiClient.get("/spots/search", {
           params: {
             ...(searchOptions.query ? { query: searchOptions.query } : {}),
             ...(searchOptions.purpose ? { purpose: searchOptions.purpose } : {}),

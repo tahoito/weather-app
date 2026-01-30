@@ -22,7 +22,7 @@ export async function GET(req: Request) {
     const token = getCookie(req, "authToken");
     if (!token) return NextResponse.json([], { status: 200 });
 
-    const url = `${base}/api/favorites`;
+    const url = `${base}/favorites`;
 
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${token}` },
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const url = `${base}/api/favorites`;
+    const url = `${base}/favorites`;
 
     const res = await fetch(url, {
       method: "POST",

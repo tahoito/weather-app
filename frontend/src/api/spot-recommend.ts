@@ -17,7 +17,7 @@ type ApiSpot = Omit<Spot, "tag"> & {
 export async function fetchSpotsRecommended(
   query: SpotQuery
 ): Promise<Spot[]> {
-  const res = await apiClient.get("/api/spots/recommended", {
+  const res = await apiClient.get("/spots/recommended", {
     params: query,
   });
 

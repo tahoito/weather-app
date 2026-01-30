@@ -13,7 +13,7 @@ export async function GET() {
       );
     }
 
-    const url = `${base}/api/areas`;
+    const url = `${base}/areas`;
     const res = await fetch(url, { cache: "no-store" });
 
     const text = await res.text();

@@ -48,10 +48,10 @@ export function SpotCardContainer({
     try {
       if (next) {
         // お気に入り追加
-        await apiClient.post("/api/favorites", { spot_id: spot.id });
+        await apiClient.post("/favorites", { spot_id: spot.id });
       } else {
         // お気に入り削除
-        await apiClient.delete(`/api/favorites/${spot.id}`);
+        await apiClient.delete(`/favorites/${spot.id}`);
       }
     } catch (e: any) {
       // 失敗したら元に戻す
