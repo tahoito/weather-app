@@ -6,6 +6,7 @@ return [
     'allowed_origins' => [
         'http://localhost:3000',
         'http://localhost:3001',
+        'weather-app-i2no.vercel.app'
     ],
     'allowed_origins_patterns' => [],
     'allowed_headers' => ['*'],

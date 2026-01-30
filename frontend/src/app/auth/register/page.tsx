@@ -8,7 +8,6 @@ import { ArrowLeftIcon } from "@/components/icon/arrow-left-icon";
 import { authSignUp, AuthSignUpRequest } from "@/api/auth-sign-up";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import Cookies from "js-cookie";
 
 type FormInput = AuthSignUpRequest & {
   confirmPassword?: string;
@@ -30,7 +29,7 @@ export default function Page() {
     const res = await authSignUp(data);
 
     if (res.success) {
-      Cookies.set("authToken", res.authToken);
+      localStorage.setItem("token", res.authToken);
       localStorage.setItem("showAreaModal", "true");
       router.push("/top");
     }

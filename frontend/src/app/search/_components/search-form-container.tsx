@@ -108,7 +108,7 @@ export function SearchFormContainer({
                 params.append('purpose', purposeSlug);
                 // is_indoor(null可)
                 if (indoor !== 'both') {
-                    params.append('is_indoor', indoor === 'indoor' ? 'true' : 'false');
+                    params.append('is_indoor', indoor === 'indoor' ? '1' : '0');
                 }
             }
             // 日付から検索の場合

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Spot } from "@/types/spot";
 import { FavoriteButton } from "@/components/favorite-button";
 import { purposeTags } from "@/app/search/data";
+import { apiClient } from "@/api/apiClient";
 
 type Props = {
   spot: Spot;
@@ -12,7 +13,8 @@ type Props = {
 };
 
 export function SpotCard({ spot, initialIsFavorite }: Props) {
-  const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
+  const [isFavorite, setIsFavorite] = useState(!!initialIsFavorite);
+  const [isToggling, setIsToggling] = useState(false);
 
   const normalizeTags = (raw: unknown): string[] => {
     if (Array.isArray(raw)) {
@@ -22,7 +24,7 @@ export function SpotCard({ spot, initialIsFavorite }: Props) {
           if (t && typeof t === "object") return t.label ?? t.name ?? t.slug;
           return null;
         })
-        .filter(Boolean);
+        .filter(Boolean) as string[];
     }
     if (typeof raw === "string") return [raw];
     return [];
@@ -49,30 +51,40 @@ export function SpotCard({ spot, initialIsFavorite }: Props) {
   const hasImage = typeof imgSrc === "string" && imgSrc.trim() !== "";
 
   const toggleFavorite = async () => {
+    if (isToggling) return;
+
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      alert("ログインが必要です");
+      return;
+    }
+
+    // 先に反映（楽観的更新）
+    const next = !isFavorite;
+    setIsFavorite(next);
+    setIsToggling(true);
+
     try {
-      if (isFavorite) {
-        const res = await fetch(`/api/favorites/${spot.id}`, {
-          method: "DELETE",
-        });
-        if (!res.ok) {
-          const detail = await res.text();
-          console.error("DELETE failed:", res.status, detail);
-          throw new Error(`DELETE failed: ${res.status}`);
-        }
-        setIsFavorite(false);
+      if (!next) {
+        await apiClient.delete(`/api/favorites/${spot.id}`);
       } else {
-        const res = await fetch(`/api/favorites`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ spot_id: spot.id }),
-        });
-        if (!res.ok) throw new Error(`POST failed: ${res.status}`);
-        setIsFavorite(true);
+        await apiClient.post(`/api/favorites`, { spot_id: spot.id });
       }
-    } catch (e) {
-      console.error("お気に入り切替失敗", e);
+    } catch (e: any) {
+      // 失敗したら戻す
+      setIsFavorite(!next);
+
+      const status = e?.response?.status;
+      console.error("お気に入り切替失敗", status, e?.response?.data, e);
+
+      if (status === 401) alert("認証が切れてるかログインが必要です");
+      else alert("お気に入りの更新に失敗しました");
+    } finally {
+      setIsToggling(false);
     }
   };
+
 
   return (
     <Link

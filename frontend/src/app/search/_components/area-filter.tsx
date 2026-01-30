@@ -16,7 +16,7 @@ export function AreaFilter({ areaTags, areaSlugs, toggleAreaSelection }: AreaFil
                 {areaTags.map((area) => (
                     <li
                         key={area.slug}
-                        className={`w-full py-1 border broder-holder rounded-full text-sm text-center ${areaSlugs.includes(area.slug)
+                        className={`w-full py-1 border border-holder rounded-full text-sm text-center ${areaSlugs.includes(area.slug)
                             ? 'bg-main'
                             : 'bg-white'
                             }`}

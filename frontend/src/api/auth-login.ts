@@ -1,6 +1,4 @@
-import axios from "axios";
-
-const api = process.env.NEXT_PUBLIC_API_BASE_URL;
+import { apiClient } from "./apiClient"; 
 
 export type AuthLoginRequest = {
   auth: {
@@ -18,20 +16,16 @@ export type AuthLoginResponse = {
 export async function authLogin({
   auth,
 }: AuthLoginRequest): Promise<AuthLoginResponse> {
-  try { 
-    const res = await axios.post<AuthLoginResponse>(
-      `${api}/api/sign-up-login/login`,
-      { auth },
-      { headers: { "Content-Type": "application/json" } }
+  try {
+    const res = await apiClient.post<AuthLoginResponse>(
+      "/api/sign-up-login/login",
+      { auth }
     );
     return res.data;
-  }catch(err: any) {
-    console.log("LOGIN STATUS:", err.response?.status);
-    console.log("LOGIN DATA:", err.response?.data);
-    console.log("LOGIN ERRORS:", err.response?.data?.errors);
+  } catch (err: any) {
     return {
       success: false,
-      message: err.response?.data?.messages || "ログインに失敗しました",
+      message: err.response?.data?.message || "ログインに失敗しました",
       authToken: "",
     };
   }

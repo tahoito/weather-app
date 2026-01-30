@@ -42,32 +42,26 @@ export default function Page() {
     })();
   }, []);
 
+  
   useEffect(() => {
+    if (areas.length === 0) return;
+
     (async () => {
       try {
         const favorites = await fetchFavorites();
-        setFavoriteIds(favorites.map((s: any) => s.id));
-      } catch (e) {
-        console.error("loadFavorites error:", e);
-        setFavoriteIds([]);
-      }
-    })();
-  }, []);
 
-  useEffect(() => {
-    async function loadFavoriteSpots() {
-      try {
-        const favorites = await fetchFavorites();
+        setFavoriteIds(favorites.map((s: any) => s.id));
 
         const spotsWithAreaName = favorites.map((s: any) => {
-          const areaName = areas.find((a) => a.slug === s.area)?.name ?? s.area;
+          const areaName =
+            areas.find((a) => a.slug === s.area)?.name ?? s.area;
 
           const image_url =
             s.image_url ??
             s.imageUrl ??
             s.thumbnail_url ??
             s.thumbnailUrl ??
-            (Array.isArray(s.imageUrls) ? s.imageUrls[0] : undefined) ??
+            (Array.isArray(s.imageUrls) ? s.imageUrls[0] : "") ??
             "";
 
           const tags = normalizeTags(s.tags ?? s.tag).map(tagToLabel);
@@ -83,12 +77,12 @@ export default function Page() {
         setSpots(spotsWithAreaName);
       } catch (e) {
         console.error("loadFavoriteSpots error:", e);
+        setFavoriteIds([]);
         setSpots([]);
       }
-    }
-
-    if (areas.length > 0) loadFavoriteSpots();
+    })();
   }, [areas]);
+
 
   return (
     <div className="bg-back min-h-screen pt-10 pb-20 [&>*]:text-fg ">
