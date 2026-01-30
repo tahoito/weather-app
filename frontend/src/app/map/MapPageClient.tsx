@@ -128,7 +128,14 @@ export default function Page() {
 
         const res = await apiClient.get("/api/spots/search", { params });
 
-        setSpots(res.data.data ?? []);
+        const list: Location[] = res.data.data ?? [];
+
+        setSpots(
+          list.map((s) => ({
+            ...s,
+            areaName: areaTags.find((a) => a.slug === s.area)?.label ?? s.area,
+          }))
+        );
       } catch (error) {
         console.log(error);
         setSpots([]);
