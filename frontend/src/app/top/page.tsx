@@ -83,16 +83,14 @@ export default function Page() {
 
     async function loadWeather() {
       try {
-        const res = await fetch(
-          `/weather/current?lat=${currentArea.lat}&lon=${currentArea.lon}`,
-          { signal: controller.signal, cache: "no-store" }
-        );
-        if (!res.ok) return;
+        const res = await apiClient.get("/weather/current", {
+          params: { lat: currentArea.lat, lon: currentArea.lon },
+          signal: controller.signal,
+        });
 
-        const data = await res.json();
-        setWeather(data);
+        setWeather(res.data);
       } catch (e: any) {
-        if (e?.name !== "AbortError") console.error(e);
+        if (e?.name !== "CanceledError") console.error("loadWeather error", e);
       }
     }
 
@@ -148,7 +146,7 @@ export default function Page() {
     }
 
     loadFavorites();
-  }, [currentArea?.slug]);
+  }, []);
 
 
   const handleMapClick = () => {
