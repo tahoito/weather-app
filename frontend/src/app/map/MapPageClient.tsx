@@ -153,6 +153,12 @@ export default function Page() {
     fetchSpots();
   }, [searchQuery, indoorFilter]);
 
+  useEffect(() => {
+    if (!searchQuery || searchQuery.trim() === "") {
+      setIsModalOpen(false);
+    }
+  }, [searchQuery]);
+
   const handleFilterToggle = (isIndoor: boolean) => {
     setIsModalOpen(true);
     setModalTitle(isIndoor ? "屋内" : "屋外");
@@ -187,6 +193,10 @@ export default function Page() {
     setModalTitle(apiSpot.name);
   };
 
+  if (!initialMapState) {
+    return null;
+  }
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedSpotId(null);
@@ -209,16 +219,13 @@ export default function Page() {
             value={inputValue} // ★ここが超重要：inputValueにする
             onChange={(e) => {
               const value = e.target.value;
-              setInputValue(value);
-              setModalTitle(value || "検索");
-              setIsModalOpen(true);
-              setIsFilterOpen(false);
-              setSelectedSpotId(null);
-              setSelectedSpot(null);
+              setSearchQuery(value);
+              // 入力中はタイトルもモーダルも触らない
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                setSearchQuery(inputValue.trim()); // Enterで検索確定
+                setModalTitle(searchQuery); // 入力確定した文字をタイトルに
+                setIsModalOpen(true); // ここで初めてモーダルを開く
               }
             }}
             onFocus={() => setIsInputFocused(true)}
@@ -293,7 +300,7 @@ export default function Page() {
         <div className="fixed inset-0 z-9 pointer-events-none">
           <div className="pointer-events-auto">
             <Modal isOpen onClose={handleCloseModal} showOverlay={false}>
-              <div className="pb-[80px]">
+              <div className="pb-[80px] max-h-[90vh] flex flex-col">
                 <div className="max-h-[80vh] flex flex-col">
                   <div className="shrink-0 relative">
                     <button
