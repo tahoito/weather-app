@@ -11,6 +11,7 @@ import { X } from "lucide-react";
 import type { Spot } from "@/types/spot";
 import { SpotCardModal } from "@/components/spot-card/SpotCardModal";
 import { SpotCardContainer } from "@/components/spot-card/SpotCardContainer";
+import { apiClient } from "@/api/apiClient";
 
 interface Location {
   id: number;
@@ -125,15 +126,12 @@ export default function Page() {
           params.append("is_indoor", indoorFilter ? "1" : "0");
         }
 
-        const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/spots/search${
-          params.toString() ? "?" + params.toString() : ""
-        }`;
+        const res = await apiClient.get("/api/spots/search", { params });
 
-        const res = await fetch(url);
-        const data = await res.json();
-        setSpots(data.data);
+        setSpots(res.data.data ?? []);
       } catch (error) {
         console.log(error);
+        setSpots([]);
       } finally {
         setIsLoading(false);
       }
@@ -159,11 +157,8 @@ export default function Page() {
     setIsModalOpen(true);
     setSelectedSpotId(spotId);
 
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/spot/${spotId}`
-    );
-    const json = await res.json();
-    const apiSpot = json.data ?? json;
+    const res = await apiClient.get(`/api/spot/${spotId}`);
+    const apiSpot = res.data.data;
 
     const areaName =
       areaTags.find((a) => a.slug === apiSpot.area)?.label ?? apiSpot.area;

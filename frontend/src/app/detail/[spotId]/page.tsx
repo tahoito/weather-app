@@ -1,36 +1,40 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeftIcon, MapPinIcon, StarIcon, X, Disc2 } from "lucide-react";
+
 import { MapPinSimpleIcon } from "@/components/icon/map-pin-simple-icon";
 import { FavoriteButton } from "@/components/favorite-button";
+import { NavigationBar } from "@/components/navigation-bar";
+
+import { apiClient } from "@/api/apiClient";
 import { fetchAreas, Area } from "@/api/area-index";
 import { fetchFavorites } from "@/api/favorite-index";
-import Image from "next/image";
 import { Spot } from "@/types/spot";
-import { useSearchParams, useRouter } from "next/navigation";
-
-
 
 export default function Page() {
-  const [spot, setSpot] = useState<Spot | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [areas, setAreas] = useState<Area[]>([]);
-  const [currentArea, setCurrentArea] = useState<Area | null>(null);
-  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
-
   const params = useParams();
+  const router = useRouter();
   const spotId = params?.spotId as string;
 
-  const router = useRouter();
+  const [spot, setSpot] = useState<Spot | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  const [areas, setAreas] = useState<Area[]>([]);
+  const [currentArea, setCurrentArea] = useState<Area | null>(null);
+
+  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  // areas 読み込み（エリア名正規化用）
   useEffect(() => {
-    async function loadAreas() {
+    (async () => {
       try {
         const data = await fetchAreas();
         setAreas(data);
@@ -41,51 +45,86 @@ export default function Page() {
       } catch (e) {
         console.error("loadAreas error", e);
       }
-    }
-
-    loadAreas();
+    })();
   }, []);
 
+  // お気に入りID読み込み（表示用）
   useEffect(() => {
-    const fetchSpot = async () => {
+    (async () => {
       try {
-        const res = await fetch(`http://localhost:8000/api/spot/${spotId}`);
-        if (!res.ok) throw new Error("Failed to fetch spot");
+        const favorites = await fetchFavorites();
+        setFavoriteIds(favorites.map((s: any) => s.id));
+      } catch (e) {
+        console.error("loadFavorites error:", e);
+        setFavoriteIds([]);
+      }
+    })();
+  }, [currentArea?.slug]);
 
-        const data = await res.json();
-        const apiSpot = data.data;
+  // Spot 取得（areas が揃ってから実行して、areaName を確実に付ける）
+  useEffect(() => {
+    if (!spotId) return;
+    if (areas.length === 0) return;
+
+    const fetchSpot = async () => {
+      setLoading(true);
+      try {
+        const res = await apiClient.get(`/api/spot/${spotId}`);
+        const apiSpot = res.data?.data ?? res.data;
 
         const areaName =
           areas.find((a) => a.slug === apiSpot.area)?.name ?? apiSpot.area;
 
         const normalizedTags: string[] = Array.isArray(apiSpot.tags)
-          ? apiSpot.tags 
-            .map((t: any) => (typeof t === "string" ? t : t?.name))
-            .filter((v: any): v is string => typeof v === "string" && v.length > 0)
+          ? apiSpot.tags
+              .map((t: any) => (typeof t === "string" ? t : t?.name ?? t?.slug ?? t?.label))
+              .filter((v: any): v is string => typeof v === "string" && v.length > 0)
           : [];
-        
+
+        const imageUrls: string[] = Array.isArray(apiSpot.imageUrls)
+          ? apiSpot.imageUrls.filter((u: any) => typeof u === "string")
+          : [];
+
+        const weatherSuitability: string[] = Array.isArray(apiSpot.weatherSuitability)
+          ? apiSpot.weatherSuitability.filter((v: any) => typeof v === "string")
+          : [];
+
+        const highlights: string[] = Array.isArray(apiSpot.highlights)
+          ? apiSpot.highlights.filter((v: any) => typeof v === "string")
+          : [];
+
         setSpot({
           ...apiSpot,
           lat: Number(apiSpot.lat),
           lon: Number(apiSpot.lon),
           is_indoor: Boolean(apiSpot.is_indoor),
           weather_ok: Boolean(apiSpot.weather_ok),
-          imageUrls: apiSpot.imageUrls ?? [],
+          imageUrls,
           tags: normalizedTags,
           areaName,
-        });
+          weatherSuitability,
+          highlights,
+        } as Spot);
       } catch (error) {
-        console.error(error);
+        console.error("fetchSpot error", error);
+        setSpot(null);
       } finally {
         setLoading(false);
       }
     };
 
     fetchSpot();
-  }, [spotId, areas]);
+  }, [spotId, areas.length]);
 
+  // isFavorite 反映
   useEffect(() => {
-    if (!spot || spot.imageUrls.length <= 1) return;
+    if (!spot) return;
+    setIsFavorite(favoriteIds.includes(spot.id));
+  }, [favoriteIds, spot?.id]);
+
+  // 画像自動スライド
+  useEffect(() => {
+    if (!spot || !spot.imageUrls || spot.imageUrls.length <= 1) return;
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) =>
@@ -94,74 +133,44 @@ export default function Page() {
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [spot]);
+  }, [spot?.imageUrls?.length]);
 
-  useEffect(() => {
-    async function loadFavorites() {
-      try {
-        const favorites = await fetchFavorites();
-        setFavoriteIds(favorites.map((s: any) => s.id));
-      } catch (e) {
-        console.error("loadFavorites error:", e);
-        setFavoriteIds([]);
-      }
-    }
-
-    loadFavorites();
-  }, [currentArea?.slug]);
-
-  useEffect(() => {
+  // お気に入り切替（apiClientでtoken付き）
+  const toggleFavorite = async () => {
     if (!spot) return;
 
-    setIsFavorite(favoriteIds.includes(spot.id));
-  }, [favoriteIds, spot]);
-
-  const toggleFavorite = async () => {
     try {
       if (isFavorite) {
-        const res = await fetch(`/api/favorites/${spot.id}`, {
-          method: "DELETE",
-        });
-        if (!res.ok) {
-          const detail = await res.text();
-          console.error("DELETE failed:", res.status, detail);
-          throw new Error(`DELETE failed: ${res.status}`);
-        }
+        await apiClient.delete(`/api/favorites/${spot.id}`);
         setIsFavorite(false);
+        setFavoriteIds((prev) => prev.filter((id) => id !== spot.id));
       } else {
-        const res = await fetch(`/api/favorites`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ spot_id: spot.id }),
-        });
-        if (!res.ok) throw new Error(`POST failed: ${res.status}`);
+        await apiClient.post(`/api/favorites`, { spot_id: spot.id });
         setIsFavorite(true);
+        setFavoriteIds((prev) => [...prev, spot.id]);
       }
     } catch (e) {
       console.error("お気に入り切替失敗", e);
     }
   };
 
-  
+  if (loading) return <div className="bg-back min-h-screen p-6">読み込み中...</div>;
+  if (!spot) return <div className="bg-back min-h-screen p-6">スポットが見つかりません</div>;
 
-
-  if (loading) return <div>読み込み中...</div>;
-  if (!spot) return <div>スポットが見つかりません</div>;
+  const images = spot.imageUrls ?? [];
 
   return (
-    <div className="bg-back w-full h-full">
-      <div className="mx-9 pt-5 pb-24">
+    <div className="bg-back w-full min-h-screen pb-24">
+      <div className="mx-9 pt-5">
+        {/* ヘッダー */}
         <div className="relative py-3">
-
           <div className="absolute top-1/2 -translate-y-1/2">
-            <button onClick={() => router.back() }>
+            <button onClick={() => router.back()}>
               <ArrowLeftIcon className="w-7 h-7" />
             </button>
           </div>
 
-          <p className="text-center font-semibold text-lg px-14">
-            {spot.name}
-          </p>
+          <p className="text-center font-semibold text-lg px-14">{spot.name}</p>
 
           <div className="absolute top-1/2 right-0 -translate-y-1/2 flex justify-end">
             <FavoriteButton
@@ -171,7 +180,8 @@ export default function Page() {
             />
           </div>
         </div>
-        
+
+        {/* 画像スライダー */}
         <div
           className="overflow-hidden w-full touch-pan-y"
           onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
@@ -179,10 +189,11 @@ export default function Page() {
             if (touchStartX === null) return;
             const touchEndX = e.changedTouches[0].clientX;
             const diff = touchStartX - touchEndX;
-            if (Math.abs(diff) > 50) {
+
+            if (Math.abs(diff) > 50 && images.length > 0) {
               if (diff > 0) {
                 setCurrentIndex((prev) =>
-                  Math.min(prev + 1, spot.imageUrls.length - 1)
+                  Math.min(prev + 1, images.length - 1)
                 );
               } else {
                 setCurrentIndex((prev) => Math.max(prev - 1, 0));
@@ -195,10 +206,10 @@ export default function Page() {
             className="flex transition-transform duration-300"
             style={{ transform: `translateX(-${currentIndex * 100}%)` }}
           >
-            {spot.imageUrls.map((src, index) => (
+            {(images.length ? images : [""]).map((src, index) => (
               <img
                 key={index}
-                src={src}
+                src={src || "/images/no-image.png"}
                 alt={`${spot.name}-${index + 1}`}
                 className="w-full h-[160px] object-cover flex-shrink-0 rounded-md"
               />
@@ -207,24 +218,21 @@ export default function Page() {
         </div>
 
         <div className="flex justify-center gap-2 my-3">
-          {spot.imageUrls.map((_, index) => (
+          {(images.length ? images : [""]).map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`w-2 h-2 rounded-full ${currentIndex === index
-                ? "bg-holder"
-                : "border border-holder bg-transparent"
-                }`}
+              className={`w-2 h-2 rounded-full ${
+                currentIndex === index ? "bg-holder" : "border border-holder bg-transparent"
+              }`}
             />
           ))}
         </div>
-      
 
+        {/* 基本情報 */}
         <div className="[&>*]:mb-1 mb-2">
           <div className="relative">
-            <p className="font-bold text-2xl leading-tight pr-16">
-              {spot.name}
-            </p>
+            <p className="font-bold text-2xl leading-tight pr-16">{spot.name}</p>
             <div className="absolute top-0 right-0">
               <Link href={`/map?lat=${spot.lat}&lon=${spot.lon}&spotId=${spot.id}`}>
                 <div className="border rounded-lg bg-white p-2 flex flex-col items-center gap-0.5">
@@ -238,83 +246,71 @@ export default function Page() {
           <p>{spot.detail}</p>
         </div>
 
+        {/* タグ */}
         <div className="flex justify-end gap-2 flex-wrap">
-          {spot.tags?.map((tag) => (
-            <span
-              key={tag}
-              className="text-sm py-2.5 px-4 rounded-full bg-main"
-            >
+          {(spot.tags ?? []).map((tag) => (
+            <span key={tag} className="text-sm py-2.5 px-4 rounded-full bg-main">
               {tag}
             </span>
           ))}
         </div>
 
         <div className="[&>*]:mt-7">
+          {/* 天気適正 */}
           <div className="relative border rounded-2xl p-4 pt-6">
             <div className="absolute -top-3 left-6 bg-back px-3 text-lg">
               <div className="flex items-center gap-1 text-lg">
-                <Image
-                  src="/images/weather.svg"
-                  alt="weather"
-                  width={24}
-                  height={18}
-                />
+                <Image src="/images/weather.svg" alt="weather" width={24} height={18} />
                 <span>天気適正</span>
               </div>
             </div>
+
             <div className="flex items-center gap-4 mb-3">
               <div className="flex flex-col items-center gap-1">
-                <Image
-                  src="/images/rainy.svg"
-                  alt="rainy"
-                  width={19}
-                  height={16}
-                />
+                <Image src="/images/rainy.svg" alt="rainy" width={19} height={16} />
                 <div className="flex items-center justify-center">
-                  {spot.is_indoor ? (
-                    <Disc2 className="w-5 h-5" />
-                  ) : (
-                    <X className="w-5 h-5" />
-                  )}
+                  {spot.is_indoor ? <Disc2 className="w-5 h-5" /> : <X className="w-5 h-5" />}
                 </div>
               </div>
 
               <div className="flex flex-col items-center gap-1">
-                <Image
-                  src="/images/sun-icon.svg"
-                  alt="sun"
-                  width={16}
-                  height={16}
-                />
+                <Image src="/images/sun-icon.svg" alt="sun" width={16} height={16} />
                 <div className="flex items-center justify-center">
-                  {spot.weather_ok ? (
-                    <Disc2 className="w-5 h-5" />
-                  ) : (
-                    <X className="w-5 h-5" />
-                  )}
+                  {spot.weather_ok ? <Disc2 className="w-5 h-5" /> : <X className="w-5 h-5" />}
                 </div>
               </div>
             </div>
 
-            <ul className="list-disc list-inside">
-              {spot.weatherSuitability.map((w) => (
-                <li key={w}>{w}</li>
-              ))}
-            </ul>
+            {(spot.weatherSuitability ?? []).length === 0 ? (
+              <p className="text-sm text-holder">情報がありません</p>
+            ) : (
+              <ul className="list-disc list-inside">
+                {(spot.weatherSuitability ?? []).map((w) => (
+                  <li key={w}>{w}</li>
+                ))}
+              </ul>
+            )}
           </div>
 
+          {/* おすすめポイント */}
           <div className="relative border rounded-2xl p-4 pt-6">
             <div className="absolute -top-3 left-6 bg-back px-3 text-lg flex items-center gap-1">
               <StarIcon className="w-5 h-5 stroke-main fill-main" />
               <span>おすすめポイント</span>
             </div>
-            <ul className="list-disc list-inside">
-              {spot.highlights.map((h) => (
-                <li key={h}>{h}</li>
-              ))}
-            </ul>
+
+            {(spot.highlights ?? []).length === 0 ? (
+              <p className="text-sm text-holder">情報がありません</p>
+            ) : (
+              <ul className="list-disc list-inside">
+                {(spot.highlights ?? []).map((h) => (
+                  <li key={h}>{h}</li>
+                ))}
+              </ul>
+            )}
           </div>
 
+          {/* 基本情報 */}
           <div className="relative border rounded-2xl p-4 pt-6">
             <div className="absolute -top-3 left-6 bg-back px-3 text-lg flex items-center gap-1">
               <MapPinSimpleIcon className="w-5 h-5" />
@@ -333,6 +329,8 @@ export default function Page() {
           </div>
         </div>
       </div>
+
+      <NavigationBar />
     </div>
   );
 }

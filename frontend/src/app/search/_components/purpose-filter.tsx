@@ -19,7 +19,7 @@ export function PurposeFilter({ purposeTags, purposeSlug, setPurposeSlug, indoor
                 {purposeTags.map((tag) => (
                     <li
                         key={tag.slug}
-                        className={`w-full py-1 border broder-holder rounded-full text-sm text-center ${tag.slug === purposeSlug
+                        className={`w-full py-1 border border-holder rounded-full text-sm text-center ${tag.slug === purposeSlug
                             ? 'bg-main'
                             : 'bg-white'
                             }`}
