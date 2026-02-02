@@ -1,7 +1,6 @@
 import { apiClient } from "./apiClient";
-import { Spot } from "@/types/spot";
 
-export async function fetchFavorites(): Promise<Spot[]> {
+export async function fetchFavorites() {
   const res = await apiClient.get("/favorites");
 
   const json = res.data;
