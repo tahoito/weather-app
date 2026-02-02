@@ -62,7 +62,9 @@ class SpotSearchController extends Controller
             }
         ]);
 
-        return SpotResource::collection($query->orderBy('id')->get());
+        return SpotResource::collection(
+            $query->orderByDesc('id')->paginate(20)
+        );
     }
 
     public function show(Spot $spot)
