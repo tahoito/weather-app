@@ -28,6 +28,7 @@ type WeatherInfo = {
 };
 
 export default function Page() {
+  console.log("Page rendered");
   const router = useRouter();
 
   useEffect(() => {
@@ -87,6 +88,9 @@ export default function Page() {
           params: { lat: currentArea.lat, lon: currentArea.lon },
           signal: controller.signal,
         });
+
+        const payload = res.data?.data ?? res.data;
+        console.log("weather payload", payload);
 
         setWeather(res.data);
       } catch (e: any) {
@@ -231,9 +235,18 @@ export default function Page() {
               <div className="flex flex-col items-center">
                 {weather ? (
                   (() => {
-                    const weatherInfo = weatherCodeMap[weather.weatherCode];
-                    if (!weatherInfo) return;
+                    const code = Number(weather.weatherCode);
+                    const weatherInfo = (weatherCodeMap as any)[code];
+
+                    if (!weatherInfo) {
+                      return (
+                          <p className="mt-1 text-xs text-red-500">
+                            unknown code: {String(weather.weatherCode)}
+                          </p>
+                        );
+                      }
                     const IconComponent = weatherInfo.Icon;
+                    
                     return (
                       <>
                         <IconComponent className="h-16 w-16" />
