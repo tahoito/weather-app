@@ -59,7 +59,7 @@ export default function Page() {
         setFavoriteIds([]);
       }
     })();
-  }, [currentArea?.slug]);
+  }, []);
 
   // Spot 取得（areas が揃ってから実行して、areaName を確実に付ける）
   useEffect(() => {
