@@ -28,7 +28,6 @@ type WeatherInfo = {
 };
 
 export default function Page() {
-  console.log("Page rendered");
   const router = useRouter();
 
   useEffect(() => {
@@ -90,9 +89,7 @@ export default function Page() {
         });
 
         const payload = res.data?.data ?? res.data;
-        console.log("weather payload", payload);
-
-        setWeather(res.data);
+        setWeather(payload);
       } catch (e: any) {
         if (e?.name !== "CanceledError") console.error("loadWeather error", e);
       }
