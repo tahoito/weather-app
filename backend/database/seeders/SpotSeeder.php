@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\File;
 use App\Models\Spot;
 use App\Models\Tag;
 
@@ -10,106 +11,127 @@ class SpotSeeder extends Seeder
 {
     public function run(): void
     {
-        Spot::insert([
-            [
-                'name' => '名古屋城',
-                'area' => 'meieki',
-                'description' => '名古屋の定番スポット。',
-                'detail' => '天守閣や本丸御殿が見どころ。散歩にもおすすめ。',
-                'image_url' => 'https://placehold.co/300x200?text=Nagoya',
-                'image_urls' => json_encode([
-                    'https://placehold.co/600x400?text=Nagoya+1',
-                    'https://placehold.co/600x400?text=Nagoya+2',
-                ]),
-                'lat' => 35.1850,
-                'lon' => 136.8990,
-                'tag' => 'photo',
-                'is_indoor' => false,
-                'weather_ok' => true,
-                'price' => '大人500円',
-                'opening_hours' => '9:00-16:30',
-                'weather_suitability' => json_encode(['晴れ: 散歩が最高', '小雨: 傘あればOK']),
-                'highlights' => json_encode(['写真映えする', '広いので歩きやすい']),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'ミッドランドスクエア',
-                'area' => 'meieki',
-                'description' => '展望台が人気。',
-                'detail' => '駅直結で行きやすい。屋内なので雨の日にもおすすめ。',
-                'image_url' => 'https://placehold.co/300x200?text=Midland',
-                'image_urls' => json_encode([
-                    'https://placehold.co/600x400?text=Midland+1',
-                    'https://placehold.co/600x400?text=Midland+2',
-                ]),
-                'lat' => 35.1709,
-                'lon' => 136.8847,
-                'tag' => 'photo',
-                'is_indoor' => true,
-                'weather_ok' => true,
-                'price' => '無料（施設によって有料）',
-                'opening_hours' => '10:00-20:30',
-                'weather_suitability' => json_encode(['晴れ: 景色がすごく綺麗', '雨: 屋内で快適']),
-                'highlights' => json_encode(['写真映えする', 'デートスポットに良い']),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'ノリタケの森',
-                'area' => 'meieki',
-                'description' => '緑が多くて落ち着く。ゆっくりしたい日におすすめ。',
-                'detail' => '緑が多くて落ち着く。ゆっくりしたい日におすすめ。',
-                'image_url' => 'https://placehold.co/300x200?text=Noritake',
-                'image_urls' => json_encode([
-                    'https://placehold.co/600x400?text=Noritake+1',
-                    'https://placehold.co/600x400?text=Noritake+2',
-                ]),
-                'lat' => 35.1778,
-                'lon' => 136.8792,
-                'tag' => 'relax',
-                'is_indoor' => false,
-                'weather_ok' => true,
-                'price' => '無料（施設によって有料）',
-                'opening_hours' => '8:00-20:30',
-                'weather_suitability' => json_encode(['晴れ: 季節に触れて楽しい', '小雨: 傘あればOK']),
-                'highlights' => json_encode(['写真映えする', 'ゆっくりおしゃべりできる']),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'KITTE名古屋',
-                'area' => 'meieki',
-                'description' => 'ごはんと買い物。',
-                'detail' => '屋内で過ごしやすい。雨の日の選択肢として強い。',
-                'image_url' => 'https://placehold.co/300x200?text=KITTE',
-                'image_urls' => json_encode([
-                    'https://placehold.co/600x400?text=KITTE+1',
-                    'https://placehold.co/600x400?text=KITTE+2',
-                ]),
-                'lat' => 35.1707,
-                'lon' => 136.8827,
-                'tag' => 'active',
-                'is_indoor' => true,
-                'weather_ok' => true,
-                'price' => '無料',
-                'opening_hours' => '10:00-20:00',
-                'weather_suitability' => json_encode(['晴れ: ついでに散歩もできる', '雨: 屋内で完結']),
-                'highlights' => json_encode(['買い物が便利', 'ごはんも充実']),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        ]);
+        $dir = database_path('seeders/csv');
 
-        $spots = Spot::all();
-
-        foreach ($spots as $spot) {
-            if (!$spot->tag) continue;
-
-            $tag = Tag::where('slug', $spot->tag)->first();
-            if (!$tag) continue;
-
-            $spot->tags()->syncWithoutDetaching([$tag->id]);
+        if (!File::exists($dir)) {
+            $this->command?->warn("CSV dir not found: {$dir}");
+            return;
         }
+
+        $csvFiles = collect(File::files($dir))
+            ->filter(fn ($f) => strtolower($f->getExtension()) === 'csv')
+            ->sortBy(fn ($f) => $f->getFilename())
+            ->values();
+
+        if ($csvFiles->isEmpty()) {
+            $this->command?->warn("No CSV files in: {$dir}");
+            return;
+        }
+
+        $this->command?->info("Found {$csvFiles->count()} CSV files.");
+
+        foreach ($csvFiles as $file) {
+            $path = $file->getPathname();
+            $this->command?->info("Importing: " . $file->getFilename());
+
+            $this->importCsv($path);
+        }
+    }
+
+    private function importCsv(string $path): void
+    {
+        $fp = fopen($path, 'r');
+        if ($fp === false) {
+            $this->command?->error("Failed to open: {$path}");
+            return;
+        }
+
+        // ヘッダー
+        $header = fgetcsv($fp);
+        if (!$header) {
+            fclose($fp);
+            $this->command?->warn("Empty CSV: {$path}");
+            return;
+        }
+
+        // BOM除去（Excel対策）
+        $header[0] = preg_replace('/^\xEF\xBB\xBF/', '', $header[0]);
+
+        $count = 0;
+
+        while (($row = fgetcsv($fp)) !== false) {
+            if (count($row) !== count($header)) continue;
+
+            $data = array_combine($header, $row);
+            if (!$data) continue;
+
+            // 必須: name
+            $name = trim((string)($data['name'] ?? ''));
+            if ($name === '') continue;
+
+            // 文字列→boolean
+            $isIndoor = $this->toBool($data['is_indoor'] ?? null);
+            $weatherOk = $this->toBool($data['weather_ok'] ?? null);
+
+            // "a|b|c" → ["a","b","c"] を想定（必要ならCSV側を合わせる）
+            $imageUrls = $this->splitPipe($data['image_urls'] ?? '');
+            $weatherSuitability = $this->splitPipe($data['weather_suitability'] ?? '');
+            $highlights = $this->splitPipe($data['highlights'] ?? '');
+
+            $spot = Spot::updateOrCreate(
+                ['name' => $name],
+                [
+                    'area' => $data['area'] ?? null,
+                    'description' => $data['description'] ?? null,
+                    'detail' => $data['detail'] ?? null,
+                    'image_url' => $data['image_url'] ?? null,
+                    'image_urls' => json_encode($imageUrls, JSON_UNESCAPED_UNICODE),
+                    'lat' => $this->toFloat($data['lat'] ?? null),
+                    'lon' => $this->toFloat($data['lon'] ?? null),
+                    'tag' => $data['tag'] ?? null,
+                    'is_indoor' => $isIndoor,
+                    'weather_ok' => $weatherOk,
+                    'price' => $data['price'] ?? null,
+                    'opening_hours' => $data['opening_hours'] ?? null,
+                    'weather_suitability' => json_encode($weatherSuitability, JSON_UNESCAPED_UNICODE),
+                    'highlights' => json_encode($highlights, JSON_UNESCAPED_UNICODE),
+                ]
+            );
+
+            // tags リレーション
+            $slug = trim((string)($data['tag'] ?? ''));
+            if ($slug !== '') {
+                $tag = Tag::where('slug', $slug)->first();
+                if ($tag) {
+                    $spot->tags()->syncWithoutDetaching([$tag->id]);
+                }
+            }
+
+            $count++;
+        }
+
+        fclose($fp);
+
+        $this->command?->info("Imported rows: {$count}");
+    }
+
+    private function splitPipe(?string $value): array
+    {
+        $value = trim((string)$value);
+        if ($value === '') return [];
+        return array_values(array_filter(array_map('trim', explode('|', $value)), fn($v) => $v !== ''));
+    }
+
+    private function toBool($v): bool
+    {
+        $s = strtolower(trim((string)$v));
+        return in_array($s, ['1','true','yes','y','on'], true);
+    }
+
+    private function toFloat($v): ?float
+    {
+        $s = trim((string)$v);
+        if ($s === '') return null;
+        return (float)$s;
     }
 }
