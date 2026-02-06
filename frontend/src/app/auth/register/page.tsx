@@ -77,11 +77,11 @@ export default function Page() {
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="パスワード"
+                  placeholder="パスワード(8文字以上)"
                   className="w-full border border-holder rounded-xl bg-white p-3"
                   autoComplete="current-password"
                   {...register("auth.password", {
-                    required: "パスワードを入力してください",
+                    required: "パスワードは8文字以上で入力",
                   })}
                 />
                 <button
