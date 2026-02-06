@@ -33,7 +33,6 @@ class SpotSeeder extends Seeder
         foreach ($csvFiles as $file) {
             $path = $file->getPathname();
             $this->command?->info("Importing: " . $file->getFilename());
-
             $this->importCsv($path);
         }
     }
@@ -46,7 +45,6 @@ class SpotSeeder extends Seeder
             return;
         }
 
-        // ヘッダー
         $header = fgetcsv($fp);
         if (!$header) {
             fclose($fp);
@@ -60,23 +58,30 @@ class SpotSeeder extends Seeder
         $count = 0;
 
         while (($row = fgetcsv($fp)) !== false) {
-            if (count($row) !== count($header)) continue;
+            // 列ズレ検出（CSV壊れてるとここで弾かれる）
+            if (count($row) !== count($header)) {
+                // デバッグしたいなら次行のコメント外して
+                // $this->command?->warn("Column mismatch: {$path} -> " . implode(',', $row));
+                continue;
+            }
 
             $data = array_combine($header, $row);
             if (!$data) continue;
 
-            // 必須: name
             $name = trim((string)($data['name'] ?? ''));
             if ($name === '') continue;
 
-            // 文字列→boolean
             $isIndoor = $this->toBool($data['is_indoor'] ?? null);
             $weatherOk = $this->toBool($data['weather_ok'] ?? null);
 
-            // "a|b|c" → ["a","b","c"] を想定（必要ならCSV側を合わせる）
-            $imageUrls = $this->splitPipe($data['image_urls'] ?? '');
-            $weatherSuitability = $this->splitPipe($data['weather_suitability'] ?? '');
-            $highlights = $this->splitPipe($data['highlights'] ?? '');
+            // image_urls は "|" 区切り推奨だけど、","も来るので両対応
+            $imageUrls = $this->splitList($data['image_urls'] ?? '');
+
+            // weather_suitability / weather_sutability 両対応
+            $wsRaw = $data['weather_suitability'] ?? ($data['weather_sutability'] ?? '');
+            $weatherSuitability = $this->splitList($wsRaw);
+
+            $highlights = $this->splitList($data['highlights'] ?? '');
 
             $spot = Spot::updateOrCreate(
                 ['name' => $name],
@@ -88,7 +93,7 @@ class SpotSeeder extends Seeder
                     'image_urls' => json_encode($imageUrls, JSON_UNESCAPED_UNICODE),
                     'lat' => $this->toFloat($data['lat'] ?? null),
                     'lon' => $this->toFloat($data['lon'] ?? null),
-                    'tag' => $data['tag'] ?? null,
+                    'tag' => $data['tag'] ?? null, // カラム残してるなら入れておく
                     'is_indoor' => $isIndoor,
                     'weather_ok' => $weatherOk,
                     'price' => $data['price'] ?? null,
@@ -98,12 +103,18 @@ class SpotSeeder extends Seeder
                 ]
             );
 
-            // tags リレーション
-            $slug = trim((string)($data['tag'] ?? ''));
-            if ($slug !== '') {
-                $tag = Tag::where('slug', $slug)->first();
-                if ($tag) {
-                    $spot->tags()->syncWithoutDetaching([$tag->id]);
+            // tags リレーション（tags / tag どっちでもOK、区切りは "|" or ","）
+            $rawTags = trim((string)($data['tags'] ?? ($data['tag'] ?? '')));
+            if ($rawTags !== '') {
+                $slugs = preg_split('/[|,]/', $rawTags);
+                foreach ($slugs as $slug) {
+                    $slug = trim($slug);
+                    if ($slug === '') continue;
+
+                    $tag = Tag::where('slug', $slug)->first();
+                    if ($tag) {
+                        $spot->tags()->syncWithoutDetaching([$tag->id]);
+                    }
                 }
             }
 
@@ -115,11 +126,20 @@ class SpotSeeder extends Seeder
         $this->command?->info("Imported rows: {$count}");
     }
 
-    private function splitPipe(?string $value): array
+    private function splitList(?string $value): array
     {
         $value = trim((string)$value);
         if ($value === '') return [];
-        return array_values(array_filter(array_map('trim', explode('|', $value)), fn($v) => $v !== ''));
+
+        // "|" 優先、なければ "," で分割
+        $delimiter = str_contains($value, '|') ? '|' : ',';
+
+        return array_values(
+            array_filter(
+                array_map('trim', explode($delimiter, $value)),
+                fn($v) => $v !== ''
+            )
+        );
     }
 
     private function toBool($v): bool
