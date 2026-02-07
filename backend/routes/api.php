@@ -38,7 +38,7 @@ Route::post('/sign-up-login/signup', function (Request $request) {
         ],
     ])->cookie(
         cookie(
-            'auth-token',
+            'auth_token',
             $token,
             60 * 24 * 7,
             '/',
@@ -46,7 +46,7 @@ Route::post('/sign-up-login/signup', function (Request $request) {
             true,
             true,
             false,
-            'Lax',
+            'None',
         )
     );
 });
@@ -81,7 +81,7 @@ Route::post('/sign-up-login/login', function (Request $request) {
         ],
     ])->cookie(
         cookie(
-            'auth-token',
+            'auth_token',
             $token,
             60 * 24 * 7,
             '/',
@@ -89,7 +89,7 @@ Route::post('/sign-up-login/login', function (Request $request) {
             true,
             true,
             false,
-            'Lax',
+            'None',
         )
     );
 });
