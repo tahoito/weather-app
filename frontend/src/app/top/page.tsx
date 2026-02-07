@@ -135,23 +135,18 @@ export default function Page() {
   // ----------------------------
   useEffect(() => {
     if (!authed) return;
+    if (areas.length === 0) return; // ←追加（ボタン一覧が空のモーダルを防ぐ）
 
-    // フラグ方式（あれば優先）
     const shouldShow = localStorage.getItem("showAreaModal") === "true";
-    if (shouldShow) {
+    const selected = localStorage.getItem("selectedAreaSlug");
+
+    if (shouldShow || !selected) {
       setAreaModalMode("initial");
       setIsAreaModalOpen(true);
       localStorage.removeItem("showAreaModal");
-      return;
     }
+  }, [authed, areas.length]);
 
-    // フラグが無いなら「未選択」を初回扱いにする
-    const selected = localStorage.getItem("selectedAreaSlug");
-    if (!selected) {
-      setAreaModalMode("initial");
-      setIsAreaModalOpen(true);
-    }
-  }, [authed]);
 
 
   // ----------------------------
