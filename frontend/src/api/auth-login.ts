@@ -1,4 +1,4 @@
-import { apiClient } from "./apiClient"; 
+import { apiClient } from "@/api/apiClient";
 
 export type AuthLoginRequest = {
   auth: {
@@ -7,31 +7,14 @@ export type AuthLoginRequest = {
   };
 };
 
-export type AuthLoginResponse = {
+export type AuthResponse = {
   success: boolean;
   message: string;
-  user?: {
-    id: number;
-    name: string;
-    email: string;
-  };
+  authToken?: string;
+  user?: { id: number; name: string; email: string };
 };
 
-export async function authLogin(
-  { auth }: AuthLoginRequest
-): Promise<AuthLoginResponse> {
-  try {
-    const res = await apiClient.post<AuthLoginResponse>(
-      "/sign-up-login/login",
-      { auth }
-    );
-
-    // CookieはSet-Cookieで自動保存される
-    return res.data;
-  } catch (err: any) {
-    return {
-      success: false,
-      message: err.response?.data?.message || "ログインに失敗しました",
-    };
-  }
+export async function authLogin(payload: AuthLoginRequest): Promise<AuthResponse> {
+  const res = await apiClient.post("/sign-up-login/login", payload);
+  return res.data as AuthResponse;
 }

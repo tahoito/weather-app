@@ -31,27 +31,44 @@ export default function Page() {
     watch,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<FormInput>({
-    mode: "onSubmit",
-  });
+  } = useForm<FormInput>({ mode: "onSubmit" });
 
   const password = watch("auth.password");
   const canSubmit = useMemo(() => !isSubmitting, [isSubmitting]);
 
   const onSubmit = async (data: FormInput) => {
+    setFormError(null);
+
+    // 念のため：確認不一致なら送らない
+    if (data.confirmPassword !== data.auth.password) {
+      setError("confirmPassword", { message: "パスワードが一致しません" });
+      return;
+    }
+
     const payload: AuthSignUpRequest = {
-      auth: {
-        email: data.auth.email,
-        password: data.auth.password,
-      },
+      auth: { email: data.auth.email, password: data.auth.password },
     };
 
-    const res = await authSignUp(payload);
-    if (res.success) router.replace("/top");
-    else console.log(res.message);
-  };
+    try {
+      const res = await authSignUp(payload);
 
-  
+      if (res.success) {
+        if (res.authToken) localStorage.setItem("token", res.authToken);
+
+        localStorage.setItem("showAreaModal", "true");
+        localStorage.removeItem("selectedAreaSlug");
+        sessionStorage.removeItem("top_cache_v1");
+
+        router.replace("/top"); // ← pushよりおすすめ
+        return;
+      }
+
+      // APIが success:false を返したとき
+      setFormError(res.message || "登録に失敗しました");
+    } catch (e) {
+      setFormError(getErrorMessage(e));
+    }
+  };
 
   return (
     <div className="min-h-screen bg-back flex items-center justify-center">
@@ -66,7 +83,6 @@ export default function Page() {
         <div className="flex flex-col">
           <h1 className="text-2xl font-semibold text-center mb-12">新規登録</h1>
 
-          {/* フォーム全体のエラー */}
           {formError && (
             <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {formError}
@@ -86,9 +102,9 @@ export default function Page() {
                 className="border border-holder rounded-xl bg-white p-3"
                 autoComplete="email"
                 inputMode="email"
+                disabled={isSubmitting}
                 {...register("auth.email", {
                   required: "メールアドレスを入力してください",
-                  // ざっくり検証（厳密にしすぎない）
                   pattern: {
                     value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                     message: "メールアドレスの形式が正しくありません",
@@ -114,6 +130,7 @@ export default function Page() {
                   placeholder="パスワード(8文字以上)"
                   className="w-full border border-holder rounded-xl bg-white p-3 pr-12"
                   autoComplete="new-password"
+                  disabled={isSubmitting}
                   {...register("auth.password", {
                     required: "パスワードは8文字以上で入力",
                     minLength: { value: 8, message: "パスワードは8文字以上で入力" },
@@ -122,8 +139,9 @@ export default function Page() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 disabled:opacity-50"
                   aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
+                  disabled={isSubmitting}
                 >
                   {showPassword ? <EyeIcon /> : <EyeOffIcon />}
                 </button>
@@ -147,17 +165,20 @@ export default function Page() {
                   placeholder="パスワード確認"
                   className="w-full border border-holder rounded-xl bg-white p-3 pr-12"
                   autoComplete="new-password"
+                  disabled={isSubmitting}
                   {...register("confirmPassword", {
                     required: "確認用パスワードを入力してください",
-                    validate: (value) =>
-                      value === password || "パスワードが一致しません",
+                    validate: (value) => value === password || "パスワードが一致しません",
                   })}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-                  aria-label={showConfirmPassword ? "確認用パスワードを隠す" : "確認用パスワードを表示"}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 disabled:opacity-50"
+                  aria-label={
+                    showConfirmPassword ? "確認用パスワードを隠す" : "確認用パスワードを表示"
+                  }
+                  disabled={isSubmitting}
                 >
                   {showConfirmPassword ? <EyeIcon /> : <EyeOffIcon />}
                 </button>
@@ -173,13 +194,17 @@ export default function Page() {
 
         <div className="flex flex-col mt-24 justify-end">
           <button
+            type="submit"
             disabled={!canSubmit}
             className="rounded-full bg-main font-semibold p-3 shadow-[1px_2px_1px_rgba(0,0,0,0.25)] disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isSubmitting ? "送信中..." : "新規登録"}
           </button>
 
-          <Link href="/auth/login" className="text-sm text-center pt-3">
+          <Link
+            href="/auth/login"
+            className={`text-sm text-center pt-3 ${isSubmitting ? "pointer-events-none opacity-50" : ""}`}
+          >
             ログインの方はこちら
           </Link>
         </div>
