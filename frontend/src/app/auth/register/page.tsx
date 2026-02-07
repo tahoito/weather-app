@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { EyeOffIcon } from "@/components/icon/eye-off-icon";
 import { EyeIcon } from "@/components/icon/eye-icon";
@@ -13,21 +13,58 @@ type FormInput = AuthSignUpRequest & {
   confirmPassword?: string;
 };
 
+function getErrorMessage(e: unknown) {
+  if (e instanceof Error) return e.message;
+  return "通信エラーが発生しました";
+}
+
 export default function Page() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
   const router = useRouter();
+
   const {
     register,
     handleSubmit,
     watch,
+    setError,
     formState: { errors, isSubmitting },
-  } = useForm<FormInput>();
+  } = useForm<FormInput>({
+    mode: "onSubmit",
+  });
+
   const password = watch("auth.password");
+  const canSubmit = useMemo(() => !isSubmitting, [isSubmitting]);
 
   const onSubmit = async (data: AuthSignUpRequest) => {
-    const res = await authSignUp(data);
-    if (res.success) router.push("/top");
+    setFormError(null);
+
+    // 念のため：最低8文字チェック（UI側）
+    if (!data?.auth?.password || data.auth.password.length < 8) {
+      setError("auth.password", { type: "manual", message: "パスワードは8文字以上で入力" });
+      return;
+    }
+
+    try {
+      const res = await authSignUp(data);
+
+      if (res?.success) {
+        // 戻るで登録画面に戻らせない
+        router.replace("/top");
+        return;
+      }
+
+      // 失敗時：メッセージがあれば表示
+      const msg =
+        (res as any)?.message ||
+        (res as any)?.error ||
+        "登録に失敗しました（入力内容をご確認ください）";
+      setFormError(String(msg));
+    } catch (e) {
+      setFormError(getErrorMessage(e));
+    }
   };
 
   return (
@@ -35,6 +72,7 @@ export default function Page() {
       <Link href="/" className="absolute top-16 left-9 w-6 h-6 text-fg">
         <ArrowLeftIcon />
       </Link>
+
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="w-full max-w-md text-fg px-9 flex flex-col justify-center min-h-[70vh]"
@@ -42,7 +80,15 @@ export default function Page() {
         <div className="flex flex-col">
           <h1 className="text-2xl font-semibold text-center mb-12">新規登録</h1>
 
-          <div className="gap-4 flex flex-col ">
+          {/* フォーム全体のエラー */}
+          {formError && (
+            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {formError}
+            </div>
+          )}
+
+          <div className="gap-4 flex flex-col">
+            {/* Email */}
             <div className="flex flex-col">
               <label htmlFor="email" className="mx-3 mb-1">
                 メールアドレス
@@ -52,9 +98,15 @@ export default function Page() {
                 type="email"
                 placeholder="example@gmail.com"
                 className="border border-holder rounded-xl bg-white p-3"
-                autoComplete="current-email"
+                autoComplete="email"
+                inputMode="email"
                 {...register("auth.email", {
                   required: "メールアドレスを入力してください",
+                  // ざっくり検証（厳密にしすぎない）
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: "メールアドレスの形式が正しくありません",
+                  },
                 })}
               />
               {errors.auth?.email && (
@@ -64,6 +116,7 @@ export default function Page() {
               )}
             </div>
 
+            {/* Password */}
             <div className="flex flex-col">
               <label htmlFor="password" className="mx-3 mb-1">
                 パスワード
@@ -73,22 +126,30 @@ export default function Page() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="パスワード(8文字以上)"
-                  className="w-full border border-holder rounded-xl bg-white p-3"
-                  autoComplete="current-password"
+                  className="w-full border border-holder rounded-xl bg-white p-3 pr-12"
+                  autoComplete="new-password"
                   {...register("auth.password", {
                     required: "パスワードは8文字以上で入力",
+                    minLength: { value: 8, message: "パスワードは8文字以上で入力" },
                   })}
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                  aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
                 >
                   {showPassword ? <EyeIcon /> : <EyeOffIcon />}
                 </button>
               </div>
+              {errors.auth?.password && (
+                <p className="text-red-500 text-xs mt-1 mx-3">
+                  {errors.auth.password.message}
+                </p>
+              )}
             </div>
 
+            {/* Confirm Password */}
             <div className="flex flex-col">
               <label htmlFor="confirmPassword" className="mx-3 mb-1">
                 パスワード確認
@@ -98,8 +159,8 @@ export default function Page() {
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="パスワード確認"
-                  className="w-full border border-holder rounded-xl bg-white p-3"
-                  autoComplete="current-password"
+                  className="w-full border border-holder rounded-xl bg-white p-3 pr-12"
+                  autoComplete="new-password"
                   {...register("confirmPassword", {
                     required: "確認用パスワードを入力してください",
                     validate: (value) =>
@@ -108,8 +169,9 @@ export default function Page() {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  onClick={() => setShowConfirmPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                  aria-label={showConfirmPassword ? "確認用パスワードを隠す" : "確認用パスワードを表示"}
                 >
                   {showConfirmPassword ? <EyeIcon /> : <EyeOffIcon />}
                 </button>
@@ -124,9 +186,13 @@ export default function Page() {
         </div>
 
         <div className="flex flex-col mt-24 justify-end">
-          <button className="rounded-full bg-main font-semibold p-3 shadow-[1px_2px_1px_rgba(0,0,0,0.25)]">
-            新規登録
+          <button
+            disabled={!canSubmit}
+            className="rounded-full bg-main font-semibold p-3 shadow-[1px_2px_1px_rgba(0,0,0,0.25)] disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? "送信中..." : "新規登録"}
           </button>
+
           <Link href="/auth/login" className="text-sm text-center pt-3">
             ログインの方はこちら
           </Link>
