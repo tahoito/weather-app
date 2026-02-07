@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fetchAreas, Area } from "@/api/area-index";
 import { fetchFavorites } from "@/api/favorite-index";
 import { UmbrellaIcon } from "@/components/icon/umbrella-icon";
@@ -72,25 +72,49 @@ export default function Page() {
     "change"
   );
 
+  const [authed, setAuthed] = useState(false);
+  const [authChecking, setAuthChecking] = useState(true);
+
   const fmt = (v?: number, suffix = "") =>
     typeof v === "number" ? `${v}${suffix}` : "--";
 
-  // ログインチェック
+  // ----------------------------
+  // 1) ログインチェック（cookie反映ズレ対策で軽くリトライ）
+  // ----------------------------
   useEffect(() => {
-    apiClient.get("/me").catch(() => router.push("/auth/login"));
+    let alive = true;
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+    async function check() {
+      try {
+        await apiClient.get("/me");
+        if (!alive) return;
+        setAuthed(true);
+      } catch {
+        // 登録直後などのcookie反映待ち
+        await sleep(300);
+        try {
+          await apiClient.get("/me");
+          if (!alive) return;
+          setAuthed(true);
+        } catch {
+          if (!alive) return;
+          router.replace("/auth/login");
+        }
+      } finally {
+        if (alive) setAuthChecking(false);
+      }
+    }
+
+    check();
+    return () => {
+      alive = false;
+    };
   }, [router]);
 
-  // 初回：エリアモーダル表示フラグ
-  useEffect(() => {
-    const shouldShow = localStorage.getItem("showAreaModal") === "true";
-    if (shouldShow) {
-      setAreaModalMode("initial");
-      setIsAreaModalOpen(true);
-      localStorage.removeItem("showAreaModal");
-    }
-  }, []);
-
-  // 初回：キャッシュ復元
+  // ----------------------------
+  // 2) 初回：キャッシュ復元（※API叩かないので authed 前でもOK）
+  // ----------------------------
   useEffect(() => {
     const cache = loadTopCache();
     if (!cache) return;
@@ -106,8 +130,26 @@ export default function Page() {
     setFavoriteIds(cache.favoriteIds ?? []);
   }, []);
 
-  // areas を取得
+  // ----------------------------
+  // 3) 初回：エリアモーダル表示フラグ（ログイン後のみ）
+  // ----------------------------
   useEffect(() => {
+    if (!authed) return;
+
+    const shouldShow = localStorage.getItem("showAreaModal") === "true";
+    if (shouldShow) {
+      setAreaModalMode("initial");
+      setIsAreaModalOpen(true);
+      localStorage.removeItem("showAreaModal");
+    }
+  }, [authed]);
+
+  // ----------------------------
+  // 4) areas取得（ログイン後のみ）
+  // ----------------------------
+  useEffect(() => {
+    if (!authed) return;
+
     let mounted = true;
 
     async function loadAreas() {
@@ -130,10 +172,14 @@ export default function Page() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [authed]);
 
-  // favorites を取得
+  // ----------------------------
+  // 5) favorites取得（ログイン後のみ）
+  // ----------------------------
   useEffect(() => {
+    if (!authed) return;
+
     let mounted = true;
 
     async function loadFavorites() {
@@ -141,9 +187,10 @@ export default function Page() {
         const favorites = await fetchFavorites();
         if (!mounted) return;
 
-        // fetchFavorites の返りが Spot[] / {id:number}[] を想定
         const ids = Array.isArray(favorites)
-          ? favorites.map((s: any) => Number(s.id)).filter((n) => !Number.isNaN(n))
+          ? favorites
+              .map((s: any) => Number(s.id))
+              .filter((n) => !Number.isNaN(n))
           : [];
 
         setFavoriteIds(ids);
@@ -157,10 +204,13 @@ export default function Page() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [authed]);
 
-  // currentArea が変わったら天気取得
+  // ----------------------------
+  // 6) currentAreaが変わったら天気取得（ログイン後のみ）
+  // ----------------------------
   useEffect(() => {
+    if (!authed) return;
     if (!currentArea) return;
 
     const controller = new AbortController();
@@ -181,10 +231,13 @@ export default function Page() {
 
     loadWeather();
     return () => controller.abort();
-  }, [currentArea]);
+  }, [authed, currentArea?.slug]); // slugで十分
 
-  // 天気が取れたらおすすめスポット取得
+  // ----------------------------
+  // 7) 天気が取れたらおすすめスポット取得（ログイン後のみ）
+  // ----------------------------
   useEffect(() => {
+    if (!authed) return;
     if (!currentArea || areas.length === 0 || !weather) return;
 
     let mounted = true;
@@ -202,9 +255,11 @@ export default function Page() {
 
         if (!mounted) return;
 
+        const areaNameMap = new Map(areas.map((a) => [a.slug, a.name] as const));
+
         const normalized = spotsData.map((spot) => ({
           ...spot,
-          areaName: areas.find((a) => a.slug === spot.area)?.name || spot.area,
+          areaName: areaNameMap.get(spot.area) || spot.area,
         }));
 
         setSpots(normalized);
@@ -218,6 +273,7 @@ export default function Page() {
       mounted = false;
     };
   }, [
+    authed,
     currentArea?.slug,
     areas,
     weather?.precipitation,
@@ -226,7 +282,9 @@ export default function Page() {
     weather?.temperature,
   ]);
 
-  // 重要な状態が揃ったらキャッシュ保存（副作用は useEffect に寄せる）
+  // ----------------------------
+  // 8) キャッシュ保存
+  // ----------------------------
   useEffect(() => {
     saveTopCache({
       areas,
@@ -241,6 +299,15 @@ export default function Page() {
     const slug = localStorage.getItem("selectedAreaSlug") ?? "meieki";
     router.push(`/map?area=${encodeURIComponent(slug)}`);
   };
+
+  // 認証確認中のチラつき防止
+  if (authChecking) {
+    return (
+      <div className="min-h-screen grid place-items-center bg-back text-fg">
+        読み込み中...
+      </div>
+    );
+  }
 
   return (
     <div className="bg-back min-h-screen pb-20 [&>*]:text-fg ">
