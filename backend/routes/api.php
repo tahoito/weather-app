@@ -36,19 +36,7 @@ Route::post('/sign-up-login/signup', function (Request $request) {
             'name' => $user->name,
             'email' => $user->email,
         ],
-    ])->cookie(
-        cookie(
-            'auth_token',
-            $token,
-            60 * 24 * 7,
-            '/',
-            null,
-            true,
-            true,
-            false,
-            'None',
-        )
-    );
+    ]);
 });
 
 Route::post('/sign-up-login/login', function (Request $request) {
@@ -79,22 +67,10 @@ Route::post('/sign-up-login/login', function (Request $request) {
             'name' => $user->name,
             'email' => $user->email,
         ],
-    ])->cookie(
-        cookie(
-            'auth_token',
-            $token,
-            60 * 24 * 7,
-            '/',
-            null,
-            true,
-            true,
-            false,
-            'None',
-        )
-    );
+    ]);
 });
 
-Route::middleware('cookie.bearer','auth:sanctum')->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/me', function (Request $request) {
         return response()->json([

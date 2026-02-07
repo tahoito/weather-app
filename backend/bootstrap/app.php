@@ -15,15 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->alias([
-            'cookie.bearer' => \App\Http\Middleware\AttachBearerTokenFromCookie::class,
-        ]);
-
-        // auth より先に cookie.bearer を確実に動かす
-        $middleware->priority([
-            \App\Http\Middleware\AttachBearerTokenFromCookie::class,
-            \Illuminate\Auth\Middleware\Authenticate::class,
-        ]);
+       //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (Request $request, RouteNotFoundException $e) {

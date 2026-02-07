@@ -24,8 +24,9 @@ export default function Page() {
   const onSubmit: SubmitHandler<FormInput> = async (data) => {
     try {
       const res = await authLogin(data);
-
       if (res.success) {
+        if (res.authToken) localStorage.setItem("token", res.authToken);
+
         router.push("/top");
         return;
       }

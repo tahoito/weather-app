@@ -1,4 +1,4 @@
-import { apiClient } from "./apiClient";
+import { apiClient } from "@/api/apiClient";
 
 export type AuthSignUpRequest = {
   auth: {
@@ -7,25 +7,26 @@ export type AuthSignUpRequest = {
   };
 };
 
-export type AuthSignUpResponse = {
+export type AuthResponse = {
   success: boolean;
   message: string;
+  authToken?: string;
   user?: { id: number; name: string; email: string };
 };
 
-export async function authSignUp(
-  { auth }: AuthSignUpRequest
-): Promise<AuthSignUpResponse> {
-  try {
-    const res = await apiClient.post<AuthSignUpResponse>(
-      "/sign-up-login/signup",
-      { auth }
-    );
-    return res.data;
-  } catch (err: any) {
-    return {
-      success: false,
-      message: err.response?.data?.message || "サインアップに失敗しました",
-    };
-  }
+function pickToken(data: any): string | null {
+  return (
+    data?.authToken ??
+    data?.token ??
+    data?.access_token ??
+    data?.accessToken ??
+    data?.data?.token ??
+    null
+  );
 }
+
+export async function authSignUp(payload: AuthSignUpRequest): Promise<AuthResponse> {
+  const res = await apiClient.post("/sign-up-login/signup", payload);
+  return res.data as AuthResponse;
+}
+

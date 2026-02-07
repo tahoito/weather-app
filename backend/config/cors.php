@@ -15,11 +15,9 @@ return [
 
     'allowed_headers' => ['*'],
 
-    'supports_credentials' => true,
-
     'exposed_headers' => [],
 
-    'supports_credentials' => true,
+    'supports_credentials' => false,
 
     'max_age' => 0,
 
