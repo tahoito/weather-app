@@ -136,13 +136,23 @@ export default function Page() {
   useEffect(() => {
     if (!authed) return;
 
+    // フラグ方式（あれば優先）
     const shouldShow = localStorage.getItem("showAreaModal") === "true";
     if (shouldShow) {
       setAreaModalMode("initial");
       setIsAreaModalOpen(true);
       localStorage.removeItem("showAreaModal");
+      return;
+    }
+
+    // フラグが無いなら「未選択」を初回扱いにする
+    const selected = localStorage.getItem("selectedAreaSlug");
+    if (!selected) {
+      setAreaModalMode("initial");
+      setIsAreaModalOpen(true);
     }
   }, [authed]);
+
 
   // ----------------------------
   // 4) areas取得（ログイン後のみ）
