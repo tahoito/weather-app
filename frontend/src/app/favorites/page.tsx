@@ -14,6 +14,29 @@ export default function Page() {
   const [spots, setSpots] = useState<Spot[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
 
+  const FAV_CACHE_KEY = "favorite_spots_v1";
+  const FAV_CACHE_TTL = 1000 * 60 * 10;
+
+  function loadFavCache() {
+    try {
+      const raw = sessionStorage.getItem(FAV_CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (Date.now() - parsed.savedAt > FAV_CACHE_TTL) return null;
+      return parsed;
+    } catch {
+      return null;
+    }
+  }
+
+  function saveFavCache(data: { favoriteIds: number[]; spots: Spot[] }) {
+    sessionStorage.setItem(
+      FAV_CACHE_KEY,
+      JSON.stringify({ ...data, savedAt: Date.now() })
+    );
+  }
+
+
   const normalizeTags = (raw: unknown): string[] => {
     if (Array.isArray(raw)) {
       return raw
@@ -27,6 +50,15 @@ export default function Page() {
     if (typeof raw === "string") return [raw];
     return [];
   };
+
+  useEffect(() => {
+    const cache = loadFavCache();
+    if (!cache) return;
+
+    setFavoriteIds(cache.favoriteIds);
+    setSpots(cache.spots);
+  }, []);
+
 
   const tagToLabel = (slug: string) =>
     purposeTags.find((t) => t.slug === slug)?.label ?? slug;
@@ -42,19 +74,25 @@ export default function Page() {
     })();
   }, []);
 
-  
+
   useEffect(() => {
-    if (areas.length === 0) return;
+    let mounted = true;
 
     (async () => {
       try {
-        const favorites = await fetchFavorites();
+        const [areasData, favorites] = await Promise.all([
+          fetchAreas(),
+          fetchFavorites(),
+        ]);
 
+        if (!mounted) return;
+
+        setAreas(areasData);
         setFavoriteIds(favorites.map((s: any) => s.id));
 
         const spotsWithAreaName = favorites.map((s: any) => {
           const areaName =
-            areas.find((a) => a.slug === s.area)?.name ?? s.area;
+            areasData.find((a) => a.slug === s.area)?.name ?? s.area;
 
           const image_url =
             s.image_url ??
@@ -66,22 +104,23 @@ export default function Page() {
 
           const tags = normalizeTags(s.tags ?? s.tag).map(tagToLabel);
 
-          return {
-            ...s,
-            areaName,
-            image_url,
-            tags,
-          };
+          return { ...s, areaName, image_url, tags };
         });
 
         setSpots(spotsWithAreaName);
+        saveFavCache({
+          favoriteIds: favorites.map((s: any) => s.id),
+          spots: spotsWithAreaName,
+        });
       } catch (e) {
         console.error("loadFavoriteSpots error:", e);
-        setFavoriteIds([]);
-        setSpots([]);
       }
     })();
-  }, [areas]);
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
 
   return (

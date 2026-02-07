@@ -58,6 +58,35 @@ function saveTopCache(data: Omit<TopCache, "savedAt">) {
   sessionStorage.setItem(TOP_CACHE_KEY, JSON.stringify(payload));
 }
 
+
+const AUTH_CACHE_KEY = "auth_ok_v1";
+const AUTH_CACHE_TTL_MS = 1000 * 60 * 10; // 10分
+
+function loadAuthOk(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = sessionStorage.getItem(AUTH_CACHE_KEY);
+    if (!raw) return false;
+    const { ok, savedAt } = JSON.parse(raw);
+    if (!ok || !savedAt) return false;
+    if (Date.now() - savedAt > AUTH_CACHE_TTL_MS) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function saveAuthOk() {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(AUTH_CACHE_KEY, JSON.stringify({ ok: true, savedAt: Date.now() }));
+}
+
+function clearAuthOk() {
+  if (typeof window === "undefined") return;
+  sessionStorage.removeItem(AUTH_CACHE_KEY);
+}
+
+
 export default function Page() {
   const router = useRouter();
 
@@ -85,34 +114,47 @@ export default function Page() {
   // ----------------------------
   useEffect(() => {
     let alive = true;
-    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-    async function check() {
+    // まずはキャッシュがあれば即表示（塞がない）
+    const cachedOk = loadAuthOk();
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+    if (cachedOk && token) {
+      setAuthed(true);
+      setAuthChecking(false);
+    }
+
+    if (!token) {
+      clearAuthOk();
+      router.replace("/auth/login");
+      setAuthChecking(false);
+      return;
+    }
+
+
+    async function verify() {
       try {
         await apiClient.get("/me");
         if (!alive) return;
         setAuthed(true);
+        saveAuthOk();
       } catch {
-        // 登録直後などのcookie反映待ち
-        await sleep(300);
-        try {
-          await apiClient.get("/me");
-          if (!alive) return;
-          setAuthed(true);
-        } catch {
-          if (!alive) return;
-          router.replace("/auth/login");
-        }
+        if (!alive) return;
+        clearAuthOk();
+        router.replace("/auth/login");
       } finally {
-        if (alive) setAuthChecking(false);
+        if (!alive) return;
+        // キャッシュで既に false にしてても、最後に念押し
+        setAuthChecking(false);
       }
     }
 
-    check();
+    verify();
     return () => {
       alive = false;
     };
   }, [router]);
+
 
   // ----------------------------
   // 2) 初回：キャッシュ復元（※API叩かないので authed 前でもOK）
@@ -321,10 +363,12 @@ export default function Page() {
   };
 
   // 認証確認中のチラつき防止
-  if (authChecking) {
+  if (authChecking && !authed) {
     return (
-      <div className="min-h-screen grid place-items-center bg-back text-fg">
-        読み込み中...
+      <div className="bg-back min-h-screen pb-20 [&>*]:text-fg">
+        {/* 最低限の骨組みだけ出す */}
+        <div className="pt-10 text-center">読み込み中...</div>
+        <NavigationBar />
       </div>
     );
   }
