@@ -302,7 +302,7 @@ export default function Page() {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-30 pointer-events-none">
+        <div className="fixed inset-0 z-9 pointer-events-none">
           <div className="pointer-events-auto">
             <Modal isOpen onClose={handleCloseModal} showOverlay={false}>
               <div className="w-full max-w-[420px] mx-auto">
@@ -320,7 +320,7 @@ export default function Page() {
                   </div>
 
                   <div className="overflow-y-auto px-6 pb-6">
-                    <div className="grid gap-6">
+                    <div className="grid gap-6 justify-items-center">
                       {modalSpots.map((location) => {
                         const spot = locationToSpot(location);
                         return (
