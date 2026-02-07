@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/_backend/:path*",
+      "destination": "https://backend-autumn-pond-8461.fly.dev/api/:path*"
+    }
+  ]
+}
