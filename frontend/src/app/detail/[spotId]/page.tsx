@@ -385,6 +385,7 @@ export default function Page() {
             )}
           </div>
 
+          
           {/* 基本情報 */}
           <div className="relative border rounded-2xl p-4 pt-6">
             <div className="absolute -top-3 left-6 bg-back px-3 text-lg flex items-center gap-1">
@@ -392,42 +393,36 @@ export default function Page() {
               <span>基本情報</span>
             </div>
 
-            <div className="grid gap-4">
-              {/* 料金 */}
-              <div className="grid gap-2">
-                <p className="font-medium">料金</p>
+            {(() => {
+              const lines = parsePriceLines(spot.price);
 
-                {parsePriceLines(spot.price).length === 0 ? (
-                  <p className="text-sm text-holder">情報がありません</p>
-                ) : (
-                  <div className="grid gap-2">
-                    {parsePriceLines(spot.price).map((row, i) => (
-                      <div
-                        key={`${row.label}-${i}`}
-                        className="grid grid-cols-[auto_1fr] items-baseline gap-x-3"
-                      >
-                        <span className="text-sm text-fg/70 whitespace-nowrap">
-                          {row.label ? `${row.label}：` : "料金："}
-                        </span>
+              const priceText =
+                lines.length === 0
+                  ? "情報がありません"
+                  : lines
+                      .map((r) => (r.label ? `${r.label} ${r.value}` : r.value))
+                      .join(" / ");
 
-                        <span className="text-sm font-medium text-right break-words">
-                          {row.value}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              const hoursText = spot.openingHours?.trim()
+                ? spot.openingHours
+                : "情報がありません";
 
-              {/* 営業時間 */}
-              <div className="grid grid-cols-[auto_1fr] items-baseline gap-x-3">
-                <span className="text-sm text-fg/70 whitespace-nowrap">営業時間：</span>
-                <span className="text-sm font-medium text-right break-words">
-                  {spot.openingHours || "情報がありません"}
-                </span>
-              </div>
-            </div>
+              return (
+                <div className="grid gap-2 text-base">
+                  <p className="flex items-baseline gap-3">
+                    <span className="whitespace-nowrap text-fg/80">料金：</span>
+                    <span className="font-medium">{priceText}</span>
+                  </p>
+
+                  <p className="flex items-baseline gap-3">
+                    <span className="whitespace-nowrap text-fg/80">営業時間：</span>
+                    <span className="font-medium">{hoursText}</span>
+                  </p>
+                </div>
+              );
+            })()}
           </div>
+
         </div>
       </div>
 
