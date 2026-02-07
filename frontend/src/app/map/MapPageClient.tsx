@@ -302,42 +302,44 @@ export default function Page() {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-9 pointer-events-none">
+        <div className="fixed inset-0 z-30 pointer-events-none">
           <div className="pointer-events-auto">
             <Modal isOpen onClose={handleCloseModal} showOverlay={false}>
-              <div className="pb-[80px] max-h-[90vh] flex flex-col">
-                <div className="max-h-[80vh] flex flex-col">
-                  <div className="shrink-0 relative">
-                    <button
-                      onClick={handleCloseModal}
-                      className="absolute top-4 right-4 z-10"
-                    >
-                      <X size={28} />
-                    </button>
-                    <p className="text-2xl my-4 mx-6">{modalTitle}</p>
+              <div className="w-full max-w-[420px] mx-auto">
+                <div className="pb-[80px] max-h-[90vh] flex flex-col">
+                  <div className="max-h-[80vh] flex flex-col">
+                    <div className="shrink-0 relative">
+                      <button
+                        onClick={handleCloseModal}
+                        className="absolute top-4 right-4 z-10"
+                      >
+                        <X size={28} />
+                      </button>
+                      <p className="text-2xl my-4 mx-6">{modalTitle}</p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="overflow-y-auto px-6 pb-6">
-                  <div className="grid gap-6">
-                    {modalSpots.map((location) => {
-                      const spot = locationToSpot(location);
-                      return (
-                        <SpotCardContainer
-                          key={spot.id}
-                          spot={spot}
-                          initialIsFavorite={true}
-                        >
-                          {({ spot, isFavorite, toggleFavorite }) => (
-                            <SpotCardModal
-                              spot={spot}
-                              isFavorite={isFavorite}
-                              toggleFavorite={toggleFavorite}
-                            />
-                          )}
-                        </SpotCardContainer>
-                      );
-                    })}
+                  <div className="overflow-y-auto px-6 pb-6">
+                    <div className="grid gap-6">
+                      {modalSpots.map((location) => {
+                        const spot = locationToSpot(location);
+                        return (
+                          <SpotCardContainer
+                            key={spot.id}
+                            spot={spot}
+                            initialIsFavorite={true}
+                          >
+                            {({ spot, isFavorite, toggleFavorite }) => (
+                              <SpotCardModal
+                                spot={spot}
+                                isFavorite={isFavorite}
+                                toggleFavorite={toggleFavorite}
+                              />
+                            )}
+                          </SpotCardContainer>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               </div>
