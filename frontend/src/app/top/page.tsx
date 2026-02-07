@@ -15,9 +15,8 @@ import { useRouter } from "next/navigation";
 import { fetchSpotsRecommended } from "@/api/spot-recommend";
 import { SpotCardTop } from "@/components/spot-card/SpotCardTop";
 import { SpotCardContainer } from "@/components/spot-card/SpotCardContainer";
-import { apiClient } from "@/api/apiClient"; 
+import { apiClient } from "@/api/apiClient";
 import { createPortal } from "react-dom";
-
 
 type WeatherInfo = {
   precipitation: number;
@@ -27,26 +26,61 @@ type WeatherInfo = {
   weatherCode: number;
 };
 
+type TopCache = {
+  savedAt: number;
+  areas: Area[];
+  currentAreaSlug: string | null;
+  weather: WeatherInfo | null;
+  spots: Spot[];
+  favoriteIds: number[];
+};
+
+const TOP_CACHE_KEY = "top_cache_v1";
+const TOP_CACHE_TTL_MS = 1000 * 60 * 10; // 10分
+
+function loadTopCache(): TopCache | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(TOP_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as TopCache;
+    if (!parsed?.savedAt) return null;
+    if (Date.now() - parsed.savedAt > TOP_CACHE_TTL_MS) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function saveTopCache(data: Omit<TopCache, "savedAt">) {
+  if (typeof window === "undefined") return;
+  const payload: TopCache = { savedAt: Date.now(), ...data };
+  sessionStorage.setItem(TOP_CACHE_KEY, JSON.stringify(payload));
+}
+
 export default function Page() {
   const router = useRouter();
 
-  useEffect(() => {
-    apiClient.get("/me")
-      .catch(() => router.push("/auth/login"));
-  }, [router]);
-
   const [weather, setWeather] = useState<WeatherInfo | null>(null);
-  const fmt = (v?: number, suffix = "") =>
-    typeof v === "number" ? `${v}${suffix}` : "--";
   const [spots, setSpots] = useState<Spot[]>([]);
-  const [isAreaModalOpen, setIsAreaModalOpen] = useState(false);
-  const [areaModalMode, setAreaModalMode] = useState<"initial" | "change">(
-    "change"
-  );
   const [areas, setAreas] = useState<Area[]>([]);
   const [currentArea, setCurrentArea] = useState<Area | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
 
+  const [isAreaModalOpen, setIsAreaModalOpen] = useState(false);
+  const [areaModalMode, setAreaModalMode] = useState<"initial" | "change">(
+    "change"
+  );
+
+  const fmt = (v?: number, suffix = "") =>
+    typeof v === "number" ? `${v}${suffix}` : "--";
+
+  // ログインチェック
+  useEffect(() => {
+    apiClient.get("/me").catch(() => router.push("/auth/login"));
+  }, [router]);
+
+  // 初回：エリアモーダル表示フラグ
   useEffect(() => {
     const shouldShow = localStorage.getItem("showAreaModal") === "true";
     if (shouldShow) {
@@ -56,11 +90,30 @@ export default function Page() {
     }
   }, []);
 
-
+  // 初回：キャッシュ復元
   useEffect(() => {
+    const cache = loadTopCache();
+    if (!cache) return;
+
+    setAreas(cache.areas ?? []);
+    const saved = cache.currentAreaSlug
+      ? cache.areas.find((a) => a.slug === cache.currentAreaSlug) ?? null
+      : null;
+
+    setCurrentArea(saved ?? cache.areas[0] ?? null);
+    setWeather(cache.weather ?? null);
+    setSpots(cache.spots ?? []);
+    setFavoriteIds(cache.favoriteIds ?? []);
+  }, []);
+
+  // areas を取得
+  useEffect(() => {
+    let mounted = true;
+
     async function loadAreas() {
       try {
         const data = await fetchAreas();
+        if (!mounted) return;
 
         setAreas(data);
 
@@ -74,8 +127,39 @@ export default function Page() {
     }
 
     loadAreas();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
+  // favorites を取得
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadFavorites() {
+      try {
+        const favorites = await fetchFavorites();
+        if (!mounted) return;
+
+        // fetchFavorites の返りが Spot[] / {id:number}[] を想定
+        const ids = Array.isArray(favorites)
+          ? favorites.map((s: any) => Number(s.id)).filter((n) => !Number.isNaN(n))
+          : [];
+
+        setFavoriteIds(ids);
+      } catch (e) {
+        console.error("loadFavorites error:", e);
+        setFavoriteIds([]);
+      }
+    }
+
+    loadFavorites();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // currentArea が変わったら天気取得
   useEffect(() => {
     if (!currentArea) return;
 
@@ -99,8 +183,11 @@ export default function Page() {
     return () => controller.abort();
   }, [currentArea]);
 
+  // 天気が取れたらおすすめスポット取得
   useEffect(() => {
     if (!currentArea || areas.length === 0 || !weather) return;
+
+    let mounted = true;
 
     async function loadSpots() {
       try {
@@ -113,42 +200,42 @@ export default function Page() {
           limit: 10,
         });
 
-        setSpots(
-          spotsData.map((spot) => ({
-            ...spot,
-            areaName:
-              areas.find((a) => a.slug === spot.area)?.name || spot.area,
-          }))
-        );
+        if (!mounted) return;
+
+        const normalized = spotsData.map((spot) => ({
+          ...spot,
+          areaName: areas.find((a) => a.slug === spot.area)?.name || spot.area,
+        }));
+
+        setSpots(normalized);
       } catch (err) {
         console.error("loadSpots error:", err);
       }
     }
 
     loadSpots();
+    return () => {
+      mounted = false;
+    };
   }, [
     currentArea?.slug,
-    areas.length,
+    areas,
     weather?.precipitation,
     weather?.humidity,
     weather?.windSpeed,
     weather?.temperature,
   ]);
 
+  // 重要な状態が揃ったらキャッシュ保存（副作用は useEffect に寄せる）
   useEffect(() => {
-    async function loadFavorites() {
-      try {
-        const favorites = await fetchFavorites();
-        setFavoriteIds(favorites.map((s: any) => s.id));
-      } catch (e) {
-        console.error("loadFavorites error:", e);
-        setFavoriteIds([]);
-      }
-    }
-
-    loadFavorites();
-  }, []);
-
+    saveTopCache({
+      areas,
+      currentAreaSlug: currentArea?.slug ?? null,
+      weather,
+      spots,
+      favoriteIds,
+    });
+  }, [areas, currentArea?.slug, weather, spots, favoriteIds]);
 
   const handleMapClick = () => {
     const slug = localStorage.getItem("selectedAreaSlug") ?? "meieki";
@@ -164,6 +251,7 @@ export default function Page() {
             {currentArea?.name ?? "読み込み中"}
           </p>
         </div>
+
         <div className="mr-6">
           <button
             onClick={() => {
@@ -175,6 +263,7 @@ export default function Page() {
             <PencilLineIcon className="h-4 w-4" />
             変更
           </button>
+
           {typeof window !== "undefined" &&
             isAreaModalOpen &&
             createPortal(
@@ -219,7 +308,6 @@ export default function Page() {
               </div>,
               document.body
             )}
-
         </div>
       </div>
 
@@ -237,13 +325,13 @@ export default function Page() {
 
                     if (!weatherInfo) {
                       return (
-                          <p className="mt-1 text-xs text-red-500">
-                            unknown code: {String(weather.weatherCode)}
-                          </p>
-                        );
-                      }
+                        <p className="mt-1 text-xs text-red-500">
+                          unknown code: {String(weather.weatherCode)}
+                        </p>
+                      );
+                    }
+
                     const IconComponent = weatherInfo.Icon;
-                    
                     return (
                       <>
                         <IconComponent className="h-16 w-16" />
@@ -259,7 +347,7 @@ export default function Page() {
               <div className="flex flex-col items-center">
                 <div className="flex items-end justify-center h-16">
                   <span className="text-6xl leading-none">
-                    {weather?.temperature}
+                    {weather?.temperature ?? "--"}
                   </span>
                   <span className="text-2xl">℃</span>
                 </div>
@@ -280,18 +368,18 @@ export default function Page() {
               </div>
               <div className="flex justify-center items-center gap-1">
                 <WindIcon className="h-5 w-5" />
-                <span className="text-xs">
-                  {fmt(weather?.windSpeed, "m/s")}
-                </span>
+                <span className="text-xs">{fmt(weather?.windSpeed, "m/s")}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
+
       <div className="bg-white rounded-xl p-4 shadow-[0_0_6px_0_rgba(0,0,0,0.3)]">
         <p className="text-center text-lg font-semibold mb-8">
           今日のおすすめスポット
         </p>
+
         <div className="flex justify-center ">
           <div className="grid grid-cols-2 gap-2">
             {spots.map((spot) => (
@@ -312,6 +400,7 @@ export default function Page() {
           </div>
         </div>
       </div>
+
       <NavigationBar />
     </div>
   );
