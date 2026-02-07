@@ -221,10 +221,18 @@ export default function Page() {
 
         setAreas(data);
 
-        const savedSlug = localStorage.getItem("selectedAreaSlug");
-        const saved = savedSlug ? data.find((a) => a.slug === savedSlug) : null;
+        const DEFAULT_AREA_SLUG = "meieki"; 
 
-        setCurrentArea(saved ?? data[0] ?? null);
+        const savedSlug =
+          localStorage.getItem("selectedAreaSlug") ?? DEFAULT_AREA_SLUG;
+
+        const saved =
+          data.find((a) => a.slug === savedSlug) ??
+          data.find((a) => a.slug === DEFAULT_AREA_SLUG) ??
+          null;
+
+        setCurrentArea(saved);
+
       } catch (e) {
         console.error("loadAreas error", e);
       }
