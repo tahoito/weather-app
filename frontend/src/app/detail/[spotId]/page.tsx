@@ -42,6 +42,7 @@ export default function Page() {
         const savedSlug = localStorage.getItem("selectedAreaSlug");
         const saved = savedSlug ? data.find((a) => a.slug === savedSlug) : null;
         setCurrentArea(saved ?? data[0] ?? null);
+        
       } catch (e) {
         console.error("loadAreas error", e);
       }
@@ -140,17 +141,25 @@ export default function Page() {
   const toggleFavorite = async () => {
     if (!spot) return;
 
+    const next = !isFavorite;
+
+    setIsFavorite(next);
+    setFavoriteIds((prev) => 
+      next ? [...prev, spot.id] : prev.filter((id) => id !== spot.id)
+    );
+
     try {
-      if (isFavorite) {
-        await apiClient.delete(`/favorites/${spot.id}`);
-        setIsFavorite(false);
-        setFavoriteIds((prev) => prev.filter((id) => id !== spot.id));
-      } else {
+      if (next) {
         await apiClient.post(`/favorites`, { spot_id: spot.id });
-        setIsFavorite(true);
-        setFavoriteIds((prev) => [...prev, spot.id]);
+      } else {
+        await apiClient.delete(`/favorites/${spot.id}`);
       }
     } catch (e) {
+      // 失敗したら元に戻す
+      setIsFavorite(!next);
+      setFavoriteIds((prev) =>
+        !next ? [...prev, spot.id] : prev.filter((id) => id !== spot.id)
+      );
       console.error("お気に入り切替失敗", e);
     }
   };
