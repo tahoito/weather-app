@@ -38,34 +38,20 @@ export default function Page() {
   const password = watch("auth.password");
   const canSubmit = useMemo(() => !isSubmitting, [isSubmitting]);
 
-  const onSubmit = async (data: AuthSignUpRequest) => {
-    setFormError(null);
+  const onSubmit = async (data: FormInput) => {
+    const payload: AuthSignUpRequest = {
+      auth: {
+        email: data.auth.email,
+        password: data.auth.password,
+      },
+    };
 
-    // 念のため：最低8文字チェック（UI側）
-    if (!data?.auth?.password || data.auth.password.length < 8) {
-      setError("auth.password", { type: "manual", message: "パスワードは8文字以上で入力" });
-      return;
-    }
-
-    try {
-      const res = await authSignUp(data);
-
-      if (res?.success) {
-        // 戻るで登録画面に戻らせない
-        router.replace("/top");
-        return;
-      }
-
-      // 失敗時：メッセージがあれば表示
-      const msg =
-        (res as any)?.message ||
-        (res as any)?.error ||
-        "登録に失敗しました（入力内容をご確認ください）";
-      setFormError(String(msg));
-    } catch (e) {
-      setFormError(getErrorMessage(e));
-    }
+    const res = await authSignUp(payload);
+    if (res.success) router.replace("/top");
+    else console.log(res.message);
   };
+
+  
 
   return (
     <div className="min-h-screen bg-back flex items-center justify-center">
