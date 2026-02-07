@@ -391,28 +391,41 @@ export default function Page() {
               <MapPinSimpleIcon className="w-5 h-5" />
               <span>基本情報</span>
             </div>
-            <div>
-              <div className="grid gap-1">
+
+            <div className="grid gap-4">
+              {/* 料金 */}
+              <div className="grid gap-2">
                 <p className="font-medium">料金</p>
 
                 {parsePriceLines(spot.price).length === 0 ? (
                   <p className="text-sm text-holder">情報がありません</p>
                 ) : (
-                  <div className="grid gap-1">
+                  <div className="grid gap-2">
                     {parsePriceLines(spot.price).map((row, i) => (
-                      <div key={`${row.label}-${i}`} className="flex justify-between gap-4">
-                        <span className="text-sm text-fg/80">{row.label || " "}</span>
-                        <span className="text-sm font-medium">{row.value}</span>
+                      <div
+                        key={`${row.label}-${i}`}
+                        className="grid grid-cols-[auto_1fr] items-baseline gap-x-3"
+                      >
+                        <span className="text-sm text-fg/70 whitespace-nowrap">
+                          {row.label ? `${row.label}：` : "料金："}
+                        </span>
+
+                        <span className="text-sm font-medium text-right break-words">
+                          {row.value}
+                        </span>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
 
-              <p>
-                <span className="mr-4">営業時間：</span>
-                {spot.openingHours}
-              </p>
+              {/* 営業時間 */}
+              <div className="grid grid-cols-[auto_1fr] items-baseline gap-x-3">
+                <span className="text-sm text-fg/70 whitespace-nowrap">営業時間：</span>
+                <span className="text-sm font-medium text-right break-words">
+                  {spot.openingHours || "情報がありません"}
+                </span>
+              </div>
             </div>
           </div>
         </div>
