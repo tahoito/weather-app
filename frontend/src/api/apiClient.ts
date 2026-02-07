@@ -14,6 +14,7 @@ export const apiClient = axios.create({
     Accept: "application/json",
   },
   timeout: 30000,
+  withCredentials: true,
 });
 
 
@@ -37,7 +38,7 @@ apiClient.interceptors.response.use(
     const status = error.response?.status;
 
     if (status === 401 && typeof window !== "undefined") {
-      window.location.href = "/login";
+      window.location.href = "/auth/login";
     }
 
     return Promise.reject(error);

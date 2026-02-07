@@ -10,23 +10,28 @@ export type AuthLoginRequest = {
 export type AuthLoginResponse = {
   success: boolean;
   message: string;
-  authToken: string;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+  };
 };
 
-export async function authLogin({
-  auth,
-}: AuthLoginRequest): Promise<AuthLoginResponse> {
+export async function authLogin(
+  { auth }: AuthLoginRequest
+): Promise<AuthLoginResponse> {
   try {
     const res = await apiClient.post<AuthLoginResponse>(
       "/sign-up-login/login",
       { auth }
     );
+
+    // CookieはSet-Cookieで自動保存される
     return res.data;
   } catch (err: any) {
     return {
       success: false,
       message: err.response?.data?.message || "ログインに失敗しました",
-      authToken: "",
     };
   }
 }

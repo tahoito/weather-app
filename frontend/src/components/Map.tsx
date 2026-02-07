@@ -49,8 +49,6 @@ export default function Map({
     }
   };
 
-  console.log(initialLat, initialLon);
-
   return (
     <MapContainer
       center={[initialLat, initialLon]}
