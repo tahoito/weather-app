@@ -94,9 +94,10 @@ export function SpotCard({ spot, initialIsFavorite }: Props) {
       <div className="relative w-full aspect-[3/2] rounded-md overflow-hidden bg-gray-200">
         {hasImage ? (
           <img
-            src={imgSrc!}
+            src={imgSrc}
             alt={spot.name}
-            className="absolute inset-0 w-full h-full object-cover"
+            className="w-full h-full object-cover"
+            loading="lazy"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-sm text-gray-500">
@@ -104,7 +105,6 @@ export function SpotCard({ spot, initialIsFavorite }: Props) {
           </div>
         )}
       </div>
-
 
       <div className="p-2">
         <div className="min-h-[68px]">

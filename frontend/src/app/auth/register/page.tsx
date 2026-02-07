@@ -39,11 +39,14 @@ export default function Page() {
   const onSubmit = async (data: FormInput) => {
     setFormError(null);
 
-    // 念のため：確認不一致なら送らない
     if (data.confirmPassword !== data.auth.password) {
       setError("confirmPassword", { message: "パスワードが一致しません" });
       return;
     }
+
+    localStorage.removeItem("token");
+    sessionStorage.removeItem("favorite_spots_v1");
+    sessionStorage.removeItem("top_cache_v1");
 
     const payload: AuthSignUpRequest = {
       auth: { email: data.auth.email, password: data.auth.password },
@@ -53,22 +56,33 @@ export default function Page() {
       const res = await authSignUp(payload);
 
       if (res.success) {
-        if (res.authToken) localStorage.setItem("token", res.authToken);
+        const token = res.authToken;
+        if (!token) {
+          setFormError("登録はできたけどトークンが返ってきてない");
+          return;
+        }
 
+        // ★ここで確実に新tokenを保存
+        localStorage.setItem("token", token);
+
+        // ★UI系の状態リセット
         localStorage.setItem("showAreaModal", "true");
         localStorage.removeItem("selectedAreaSlug");
+
+        // ★キャッシュは全部消す
+        sessionStorage.removeItem("favorite_spots_v1");
         sessionStorage.removeItem("top_cache_v1");
 
-        router.replace("/top"); // ← pushよりおすすめ
+        router.replace("/top");
         return;
       }
 
-      // APIが success:false を返したとき
       setFormError(res.message || "登録に失敗しました");
     } catch (e) {
       setFormError(getErrorMessage(e));
     }
   };
+
 
   return (
     <div className="min-h-screen bg-back flex items-center justify-center">
