@@ -22,7 +22,7 @@ export async function authLogin(
 ): Promise<AuthLoginResponse> {
   try {
     const res = await apiClient.post<AuthLoginResponse>(
-      "/sign-up-login/login",
+      "/auth/login",
       { auth }
     );
 
