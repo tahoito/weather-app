@@ -154,6 +154,38 @@ export default function Page() {
     }
   };
 
+  function parseWeatherLine(s: string) {
+    const t = (s ?? "").trim();
+
+    const m = t.match(/^([^:：｜|]+)\s*[:：｜|]\s*(.+)$/);
+    if (!m) return { label: "", text: t};
+      return { label: m[1].trim(), text:m[2].trim() };
+    }
+
+    function parsePriceLines(price?: string) {
+    const s = (price ?? "").trim();
+    if (!s || s === "なし") return [];
+
+    // 区切り：改行 / ・ / 　/ スペース多め
+    // CSVだと全角スペースや "　" が混ざりやすいので雑に対応
+    const rough = s
+      .replace(/　/g, " ")
+      .replace(/・/g, "\n")
+      .replace(/\s{2,}/g, "\n")
+      .split(/\n+/)
+      .map((x) => x.trim())
+      .filter(Boolean);
+
+    // "一般:2900円" みたいなのを key/value に
+    return rough.map((line) => {
+      const m = line.match(/^(.+?)[:：]\s*(.+)$/);
+      if (!m) return { label: "", value: line };
+      return { label: m[1].trim(), value: m[2].trim() };
+    });
+  }
+
+  
+
   if (loading) return <div className="bg-back min-h-screen p-6">読み込み中...</div>;
   if (!spot) return <div className="bg-back min-h-screen p-6">スポットが見つかりません</div>;
 
@@ -284,11 +316,26 @@ export default function Page() {
             {(spot.weatherSuitability ?? []).length === 0 ? (
               <p className="text-sm text-holder">情報がありません</p>
             ) : (
-              <ul className="list-disc list-inside">
-                {(spot.weatherSuitability ?? []).map((w) => (
-                  <li key={w}>{w}</li>
-                ))}
-              </ul>
+              <div className="grid gap-2">
+                {(spot.weatherSuitability ?? []).map((w) => {
+                  const { label, text } = parseWeatherLine(w);
+                  return (
+                    <div 
+                      key={w} className="rounded-xl border border-holder/50 bg-white/70 px-3 py-2">
+                        { label ? (
+                          <div className="flex items-start gap-2">
+                            <span className="shrink-0 rounded-full bg-main px-2 py-0.5 text-xs">
+                              { label }
+                            </span>
+                            <p className="text-sm leading-relaxed">{text}</p>
+                          </div>
+                        ) : (
+                          <p className="text-sm leading-relaxed">{text}</p>
+                        )}
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
 
@@ -317,10 +364,23 @@ export default function Page() {
               <span>基本情報</span>
             </div>
             <div>
-              <p>
-                <span className="mr-4">料金：</span>
-                {spot.price}
-              </p>
+              <div className="grid gap-1">
+                <p className="font-medium">料金</p>
+
+                {parsePriceLines(spot.price).length === 0 ? (
+                  <p className="text-sm text-holder">情報がありません</p>
+                ) : (
+                  <div className="grid gap-1">
+                    {parsePriceLines(spot.price).map((row, i) => (
+                      <div key={`${row.label}-${i}`} className="flex justify-between gap-4">
+                        <span className="text-sm text-fg/80">{row.label || " "}</span>
+                        <span className="text-sm font-medium">{row.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <p>
                 <span className="mr-4">営業時間：</span>
                 {spot.openingHours}
