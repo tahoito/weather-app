@@ -21,7 +21,6 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("token");
-
     if (token) {
       const headers = AxiosHeaders.from(config.headers);
       headers.set("Authorization", `Bearer ${token}`);
@@ -31,14 +30,23 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// レスポンス後：401ならログインへ
 apiClient.interceptors.response.use(
   (res) => res,
   (error: AxiosError) => {
     const status = error.response?.status;
 
     if (status === 401 && typeof window !== "undefined") {
-      window.location.href = "/auth/login";
+      const reqUrl = error.config?.url ?? "";
+      const path = window.location.pathname;
+
+      // authページでは飛ばない
+      if (path.startsWith("/auth/")) return Promise.reject(error);
+
+      // 「ログイン必須のAPIだけ」ログインへ
+      const needsAuth = reqUrl.startsWith("/auth/me") || reqUrl.startsWith("/favorites") || reqUrl.startsWith("/user");
+      if (needsAuth) {
+        window.location.href = "/auth/login";
+      }
     }
 
     return Promise.reject(error);
