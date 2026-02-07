@@ -49,7 +49,7 @@ export function SpotCardModal({ spot, isFavorite, toggleFavorite }: Props) {
   return (
     <Link
       href={`/detail/${spot.id}`}
-      className="relative h-[162px] w-[353px] bg-card-back rounded-lg p-2 shadow-[0_0_6px_0_rgba(0,0,0,0.3)]"
+      className="relative h-[162px] w-full bg-card-back rounded-lg p-2 shadow-[0_0_6px_0_rgba(0,0,0,0.3)]"
     >
       <div className="flex items-center gap-2 h-full">
         {hasImage ? (
