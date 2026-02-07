@@ -17,6 +17,8 @@ return [
 
     'exposed_headers' => [],
 
+    'supports_credentials' => true,
+
     'max_age' => 0,
 
     // ✅ Bearerトークン運用なら基本 false でOK（Cookie送らないから）
