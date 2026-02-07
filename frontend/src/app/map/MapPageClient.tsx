@@ -210,7 +210,18 @@ export default function Page() {
       : spots;
 
   return (
-    <>
+    <div className="relative h-[100dvh] overflow-hidden">
+      {/* map は最背面で全画面 */}
+      <div className="absolute inset-0">
+        <MapComponent
+          spots={spots}
+          selectedSpotId={selectedSpotId}
+          onSpotSelect={handleSpotSelect}
+          initialLat={initialMapState.lat}
+          initialLon={initialMapState.lon}
+        />
+      </div>
+
       <div className="fixed top-5 left-0 flex items-center gap-4 w-full h-12 px-5 z-10">
         <div className="relative w-full">
           <input
@@ -290,14 +301,6 @@ export default function Page() {
         </div>
       </div>
 
-      <MapComponent
-        spots={spots}
-        selectedSpotId={selectedSpotId}
-        onSpotSelect={handleSpotSelect}
-        initialLat={initialMapState.lat}
-        initialLon={initialMapState.lon}
-      />
-
       {isModalOpen && (
         <div className="fixed inset-0 z-9 pointer-events-none">
           <div className="pointer-events-auto">
@@ -343,7 +346,9 @@ export default function Page() {
         </div>
       )}
 
-      <NavigationBar />
-    </>
+      <div className="fixed inset-x-0 bottom-0 z-20">
+        <NavigationBar />
+      </div>
+    </div>
   );
 }
