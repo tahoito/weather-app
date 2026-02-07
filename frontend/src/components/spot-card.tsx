@@ -91,13 +91,20 @@ export function SpotCard({ spot, initialIsFavorite }: Props) {
       href={`/detail/${spot.id}`}
       className="bg-card-back rounded-lg p-2 shadow-[0_0_6px_0_rgba(0,0,0,0.3)]"
     >
-      {hasImage ? (
-        <img src={imgSrc!} alt={spot.name} className="rounded-md" />
-      ) : (
-        <div className="rounded-md bg-gray-200 aspect-[3/2] flex items-center justify-center text-sm text-gray-500">
-          No Image
-        </div>
-      )}
+      <div className="relative w-full aspect-[3/2] rounded-md overflow-hidden bg-gray-200">
+        {hasImage ? (
+          <img
+            src={imgSrc!}
+            alt={spot.name}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-sm text-gray-500">
+            No Image
+          </div>
+        )}
+      </div>
+
 
       <div className="p-2">
         <div className="min-h-[68px]">

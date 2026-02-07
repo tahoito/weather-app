@@ -74,6 +74,8 @@ export default function Page() {
 
   const [authed, setAuthed] = useState(false);
   const [authChecking, setAuthChecking] = useState(true);
+  const [pendingInitialAreaModal, setPendingInitialAreaModal] = useState(false);
+
 
   const fmt = (v?: number, suffix = "") =>
     typeof v === "number" ? `${v}${suffix}` : "--";
@@ -130,23 +132,36 @@ export default function Page() {
     setFavoriteIds(cache.favoriteIds ?? []);
   }, []);
 
-  // ----------------------------
-  // 3) 初回：エリアモーダル表示フラグ（ログイン後のみ）
-  // ----------------------------
+
   useEffect(() => {
-    if (!authed) return;
-    if (areas.length === 0) return; // ←追加（ボタン一覧が空のモーダルを防ぐ）
+    if (typeof window === "undefined") return;
 
     const shouldShow = localStorage.getItem("showAreaModal") === "true";
     const selected = localStorage.getItem("selectedAreaSlug");
 
     if (shouldShow || !selected) {
-      setAreaModalMode("initial");
-      setIsAreaModalOpen(true);
-      localStorage.removeItem("showAreaModal");
+      setPendingInitialAreaModal(true);
     }
-  }, [authed, areas.length]);
+  }, []);
 
+
+
+  // ----------------------------
+  // 3) 初回：エリアモーダル表示フラグ（ログイン後のみ）
+  // ----------------------------
+  useEffect(() => {
+    if (!authed) return;
+    if (!pendingInitialAreaModal) return;
+
+    // areasがまだなら待つ（ボタン空を防ぐ）
+    if (areas.length === 0) return;
+
+    setAreaModalMode("initial");
+    setIsAreaModalOpen(true);
+
+    localStorage.removeItem("showAreaModal"); // ここで初めて消す
+    setPendingInitialAreaModal(false);
+  }, [authed, pendingInitialAreaModal, areas.length]);
 
 
   // ----------------------------
