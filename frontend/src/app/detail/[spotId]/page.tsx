@@ -85,9 +85,10 @@ export default function Page() {
           ? apiSpot.imageUrls.filter((u: any) => typeof u === "string")
           : [];
 
-        const weatherSuitability: string[] = Array.isArray(apiSpot.weatherSuitability)
-          ? apiSpot.weatherSuitability.filter((v: any) => typeof v === "string")
-          : [];
+        const weatherSuitability = normalizeWeatherSuitability(
+          apiSpot.weatherSuitability ?? apiSpot.weather_suitability
+        );
+
 
         const highlights: string[] = Array.isArray(apiSpot.highlights)
           ? apiSpot.highlights.filter((v: any) => typeof v === "string")
@@ -162,7 +163,25 @@ export default function Page() {
       return { label: m[1].trim(), text:m[2].trim() };
     }
 
-    function parsePriceLines(price?: string) {
+  function normalizeWeatherSuitability(raw: unknown): string[] {
+    if (Array.isArray(raw)) {
+      // すでに配列なら、その中身が "晴れ：..." を含む場合もあるので平坦化
+      return raw
+        .flatMap((v) => normalizeWeatherSuitability(v))
+        .filter((v): v is string => typeof v === "string" && v.trim().length > 0);
+    }
+
+    if (typeof raw !== "string") return [];
+
+    // 例: "晴れ：...｜くもり：...｜雨：..."
+    // 区切りが "|" の時もあるので両対応
+    return raw
+      .split(/[｜|]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+
+  function parsePriceLines(price?: string) {
     const s = (price ?? "").trim();
     if (!s || s === "なし") return [];
 
