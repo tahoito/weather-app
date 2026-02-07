@@ -27,12 +27,7 @@ export default function Page() {
 
   const onSubmit = async (data: AuthSignUpRequest) => {
     const res = await authSignUp(data);
-
-    if (res.success) {
-      localStorage.setItem("authToken", res.authToken);
-      localStorage.setItem("showAreaModal", "true");
-      router.push("/top");
-    }
+    if (res.success) router.push("/top");
   };
 
   return (

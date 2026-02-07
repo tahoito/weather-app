@@ -10,13 +10,12 @@ export type AuthSignUpRequest = {
 export type AuthSignUpResponse = {
   success: boolean;
   message: string;
-  authToken: string;
   user?: { id: number; name: string; email: string };
 };
 
-export async function authSignUp({
-  auth,
-}: AuthSignUpRequest): Promise<AuthSignUpResponse> {
+export async function authSignUp(
+  { auth }: AuthSignUpRequest
+): Promise<AuthSignUpResponse> {
   try {
     const res = await apiClient.post<AuthSignUpResponse>(
       "/sign-up-login/signup",
@@ -27,7 +26,6 @@ export async function authSignUp({
     return {
       success: false,
       message: err.response?.data?.message || "サインアップに失敗しました",
-      authToken: "",
     };
   }
 }
