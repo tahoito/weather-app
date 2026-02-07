@@ -18,7 +18,7 @@ export async function authSignUp(
 ): Promise<AuthSignUpResponse> {
   try {
     const res = await apiClient.post<AuthSignUpResponse>(
-      "/auth/signup",
+      "/sign-up-login/signup",
       { auth }
     );
     return res.data;
