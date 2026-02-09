@@ -11,9 +11,10 @@
 
 <!-- ここにスクリーンショットを追加 -->
 <p align="center">
-  <img src="images/top.png" width="250" />
-  <img src="images/search.png" width="250" />
-  <img src="images/map.png" width="250" />
+  <img src="screenshots/welcome.png" width="200" />
+  <img src="screenshots/top.png" width="200" />
+  <img src="screenshots/search.png" width="200" />
+  <img src="screenshots/map.png" width="200" />
 </p>
 
 
