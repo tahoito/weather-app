@@ -8,7 +8,7 @@ export const areaKeyMap : Record<string, string> = {
     "矢場町":"yabatyo",
     "千種":"chikusa",
     "上前津":"kamimaezu",
-    "鶴舞":"turumai",
+    "鶴舞":"tsurumai",
     "星ヶ丘":"hosigaoka",
     "八事":"yagoto",
     "桜山":"sakurayama",
