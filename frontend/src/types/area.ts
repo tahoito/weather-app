@@ -8,7 +8,7 @@ export const areaLabelMap: Record<string, string> = {
   yabatyo:"矢場町",
   chikusa: "千種",
   kamimaezu:"上前津",
-  turumai:"鶴舞",
+  tsurumai:"鶴舞",
   hosigaoka:"星ヶ丘",
   yagoto:"八事",
   sakurayama:"桜山",
