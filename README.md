@@ -84,11 +84,10 @@
 
 ### Backend
 - Laravel
-- MySQL
+- PostgreSQL (Neon)
 
 ### Map
-- Leaflet
-- OpenStreetMap
+- GoogleMap
 
 ### API
 - Weathernews API
