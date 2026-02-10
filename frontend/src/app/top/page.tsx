@@ -109,6 +109,8 @@ export default function Page() {
   const fmt = (v?: number, suffix = "") =>
     typeof v === "number" ? `${v}${suffix}` : "--";
 
+  const isRain = (weather?.precipitation ?? 0) > 0;
+
   // ----------------------------
   // 1) ログインチェック（cookie反映ズレ対策で軽くリトライ）
   // ----------------------------

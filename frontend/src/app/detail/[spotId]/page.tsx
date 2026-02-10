@@ -16,6 +16,15 @@ import { fetchAreas, Area } from "@/api/area-index";
 import { fetchFavorites } from "@/api/favorite-index";
 import { Spot } from "@/types/spot";
 
+type WeatherInfo = {
+  precipitation: number;
+  humidity: number;
+  windSpeed: number;
+  temperature: number;
+  weatherCode: number;
+};
+
+
 export default function Page() {
   const params = useParams();
   const router = useRouter();
@@ -213,7 +222,26 @@ export default function Page() {
     });
   }
 
+  function loadCachedWeather(): WeatherInfo | null {
+    if (typeof window === "undefined") return null;
+
+    try {
+      const raw = sessionStorage.getItem("top_cache_v1");
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed?.weather ?? null;
+     } catch {
+      return null;
+     }
+  }
   
+  const [ weather, setWeather ] = useState<WeatherInfo | null>(null);
+
+  useEffect(() => {
+    setWeather(loadCachedWeather());
+  }, []);
+
+  const isRain = (weather?.precipitation ?? 0) > 0; 
 
   if (loading) return <div className="bg-back min-h-screen p-6">読み込み中...</div>;
   if (!spot) return <div className="bg-back min-h-screen p-6">スポットが見つかりません</div>;
@@ -311,14 +339,21 @@ export default function Page() {
             </span>
 
             {spot.is_indoor && (
-              <button type="button" 
-                className="inline-flex items-center gap-1 rounded-xl px-2 py-1 border border-[0.5px] bg-white text-placeholder text-sm
-                 active:scale-[0.98] transition">
-                    <RainCouponIcon className="w-4 h-4 text-sub" />
-                    <span>雨の日特典</span>
+              <button
+                type="button"
+                className={`inline-flex items-center gap-1 rounded-xl px-2 py-1
+                  border border-[0.5px] border-fg bg-white text-sm
+                  active:scale-[0.98] transition
+                  ${isRain ? "text-rainy" : "text-placeholder"}
+                `}
+              >
+                <RainCouponIcon
+                  className={`w-4 h-4 ${isRain ? "text-rainy" : "text-sub"}`}
+                />
+                <span>雨の日特典</span>
               </button>
             )}
-          </div>
+            </div>
           <p>{spot.detail}</p>
         </div>
 
