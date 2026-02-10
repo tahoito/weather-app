@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -13,24 +13,28 @@ const geistMono = Geist_Mono({
 });
 
 
+export const viewport: Viewport = {
+  themeColor: "#F9DC72",
+};
+
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
+  ),
   title: "あますぽ",
   description: "天気、見てから行き先決めない？",
   manifest: "/manifest.webmanifest",
-  themeColor: "#F9DC72",
   icons: {
     icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png"
+    apple: "/apple-touch-icon.png",
   },
   openGraph: {
     title: "あますぽ",
     description: "天気、見てから行き先決めない？",
-    images: ["/og.png"]
-  }
+    images: ["/og.png"],
+  },
 };
-
-
 
 export default function RootLayout({
   children,
@@ -39,7 +43,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body className={`min-h-[100dvh] bg-back ${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body
+        className={`min-h-[100dvh] bg-back ${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         {children}
       </body>
     </html>
