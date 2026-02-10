@@ -24,7 +24,6 @@ type WeatherInfo = {
   weatherCode: number;
 };
 
-
 export default function Page() {
   const params = useParams();
   const router = useRouter();
@@ -42,6 +41,8 @@ export default function Page() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
+  const [rainBenefitOpen, setRainBenefitOpen] = useState(false);
+
   // areas 読み込み（エリア名正規化用）
   useEffect(() => {
     (async () => {
@@ -52,7 +53,6 @@ export default function Page() {
         const savedSlug = localStorage.getItem("selectedAreaSlug");
         const saved = savedSlug ? data.find((a) => a.slug === savedSlug) : null;
         setCurrentArea(saved ?? data[0] ?? null);
-        
       } catch (e) {
         console.error("loadAreas error", e);
       }
@@ -179,8 +179,8 @@ export default function Page() {
 
     const m = t.match(/^([^:：｜|]+)\s*[:：｜|]\s*(.+)$/);
     if (!m) return { label: "", text: t};
-      return { label: m[1].trim(), text:m[2].trim() };
-    }
+    return { label: m[1].trim(), text: m[2].trim() };
+  }
 
   function normalizeWeatherSuitability(raw: unknown): string[] {
     if (Array.isArray(raw)) {
@@ -230,23 +230,41 @@ export default function Page() {
       if (!raw) return null;
       const parsed = JSON.parse(raw);
       return parsed?.weather ?? null;
-     } catch {
+    } catch {
       return null;
-     }
+    }
   }
-  
-  const [ weather, setWeather ] = useState<WeatherInfo | null>(null);
+
+  const [weather, setWeather] = useState<WeatherInfo | null>(null);
 
   useEffect(() => {
     setWeather(loadCachedWeather());
   }, []);
 
-  const isRain = (weather?.precipitation ?? 0) > 0; 
+  const isRain = (weather?.precipitation ?? 0) > 0;
 
   if (loading) return <div className="bg-back min-h-screen p-6">読み込み中...</div>;
   if (!spot) return <div className="bg-back min-h-screen p-6">スポットが見つかりません</div>;
 
   const images = spot.imageUrls ?? [];
+
+  const modalUi = isRain
+    ? {
+        iconColor: "text-rainy",
+        titleColor: "text-fg",
+        statusText: "利用できます",
+        statusColor: "text-rainy",
+        mainText: "本日来店すると10%オフ！",
+        subText: "この画面を店舗で提示してください",
+      }
+    : {
+        iconColor: "text-sub",
+        titleColor: "text-fg",
+        statusText: "今日は対象外です",
+        statusColor: "text-sub",
+        mainText: "雨の日に来店すると10%オフ！",
+        subText: "雨の日にこの画面が使えるようになります",
+      };
 
   return (
     <div className="bg-back w-full min-h-screen pb-24">
@@ -341,6 +359,7 @@ export default function Page() {
             {spot.is_indoor && (
               <button
                 type="button"
+                onClick={() => setRainBenefitOpen(true)}
                 className={`inline-flex items-center gap-1 rounded-xl px-2 py-1
                   border border-[0.5px] border-fg bg-white text-sm
                   active:scale-[0.98] transition
@@ -353,7 +372,7 @@ export default function Page() {
                 <span>雨の日特典</span>
               </button>
             )}
-            </div>
+          </div>
           <p>{spot.detail}</p>
         </div>
 
@@ -399,18 +418,20 @@ export default function Page() {
                 {(spot.weatherSuitability ?? []).map((w) => {
                   const { label, text } = parseWeatherLine(w);
                   return (
-                    <div 
-                      key={w} className="rounded-xl border border-holder/50 bg-white/70 px-3 py-2">
-                        { label ? (
-                          <div className="flex items-start gap-2">
-                            <span className="shrink-0 rounded-full bg-main px-2 py-0.5 text-xs">
-                              { label }
-                            </span>
-                            <p className="text-sm leading-relaxed">{text}</p>
-                          </div>
-                        ) : (
+                    <div
+                      key={w}
+                      className="rounded-xl border border-holder/50 bg-white/70 px-3 py-2"
+                    >
+                      {label ? (
+                        <div className="flex items-start gap-2">
+                          <span className="shrink-0 rounded-full bg-main px-2 py-0.5 text-xs">
+                            {label}
+                          </span>
                           <p className="text-sm leading-relaxed">{text}</p>
-                        )}
+                        </div>
+                      ) : (
+                        <p className="text-sm leading-relaxed">{text}</p>
+                      )}
                     </div>
                   );
                 })}
@@ -436,7 +457,6 @@ export default function Page() {
             )}
           </div>
 
-          
           {/* 基本情報 */}
           <div className="relative border rounded-2xl p-4 pt-6">
             <div className="absolute -top-3 left-6 bg-back px-3 text-lg flex items-center gap-1">
@@ -473,10 +493,44 @@ export default function Page() {
               );
             })()}
           </div>
-
         </div>
       </div>
 
+      {rainBenefitOpen && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center">
+          <button
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setRainBenefitOpen(false)}
+            aria-label="close"
+          />
+
+          <div className="relative w-[320px] rounded-2xl bg-back p-5 border border-holder">
+            <button
+              onClick={() => setRainBenefitOpen(false)}
+              className="absolute top-3 right-3"
+              aria-label="close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex justify-center items-center gap-3">
+              <RainCouponIcon className={`w-12 h-12 ${modalUi.iconColor}`} />
+              <div>
+                <p className={`text-lg ${modalUi.titleColor}`}>雨の日限定特典</p>
+                <p className={`text-base ${modalUi.statusColor}`}>
+                  {modalUi.statusText}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-center mt-4 text-base">{modalUi.mainText}</p>
+
+            <p className="text-center mt-2 text-xs text-holder">
+              {modalUi.subText}
+            </p>
+          </div>
+        </div>
+      )}
       <NavigationBar />
     </div>
   );
