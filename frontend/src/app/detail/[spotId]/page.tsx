@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeftIcon, MapPinIcon, StarIcon, X, Disc2 } from "lucide-react";
+import { RainCouponIcon } from "@/components/icon/rain-coupon-icon";
 
 import { MapPinSimpleIcon } from "@/components/icon/map-pin-simple-icon";
 import { FavoriteButton } from "@/components/favorite-button";
@@ -295,7 +296,7 @@ export default function Page() {
             <p className="font-bold text-2xl leading-tight pr-16">{spot.name}</p>
             <div className="absolute top-0 right-0">
               <Link href={`/map?lat=${spot.lat}&lon=${spot.lon}&spotId=${spot.id}`}>
-                <div className="border rounded-lg bg-white p-2 flex flex-col items-center gap-0.5">
+                <div className="border border-[0.5px] rounded-xl bg-white p-2 flex flex-col items-center gap-0.5 active:scale-[0.98] transition">
                   <MapPinIcon className="w-6 h-6 text-sub" />
                   <p className="text-sm leading-none">マップ</p>
                 </div>
@@ -303,6 +304,21 @@ export default function Page() {
             </div>
           </div>
           <p className="text-xl">{spot.areaName}エリア</p>
+
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-base text-text">
+              {spot.is_indoor ? "屋内" : "屋外"}
+            </span>
+
+            {spot.is_indoor && (
+              <button type="button" 
+                className="inline-flex items-center gap-1 rounded-xl px-2 py-1 border border-[0.5px] bg-white text-placeholder text-sm
+                 active:scale-[0.98] transition">
+                    <RainCouponIcon className="w-4 h-4 text-sub" />
+                    <span>雨の日特典</span>
+              </button>
+            )}
+          </div>
           <p>{spot.detail}</p>
         </div>
 
