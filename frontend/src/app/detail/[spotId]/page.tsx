@@ -514,7 +514,7 @@ export default function Page() {
             </button>
 
             <div className="flex justify-center items-center gap-3">
-              <RainCouponIcon className={`w-12 h-12 ${modalUi.iconColor}`} />
+              <RainCouponIcon className={`w-16 h-16 ${modalUi.iconColor}`} />
               <div>
                 <p className={`text-lg ${modalUi.titleColor}`}>雨の日限定特典</p>
                 <p className={`text-base ${modalUi.statusColor}`}>
