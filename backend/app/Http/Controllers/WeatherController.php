@@ -37,12 +37,34 @@ class WeatherController extends Controller
 
         $todayPop = $wx0['mrf'][0]['pop'] ?? 0;
 
+        $rainyCodes = [300, 650, 850];
+        $todayIso = $current['date'] ?? null;
+        $today = is_string($todayIso) ? substr($todayIso, 0, 10) : null;
+        $isRainyDay = false;
+
+        if ($today && isset($wx0['srf']) && is_array($wx0['srf'])) {
+            foreach ($wx0['srf'] as $item) {
+                $itemIso = $item['date'] ?? null;
+                $itemDate = is_string($itemIso) ? substr($itemIso, 0, 10) : null;
+                if ($itemDate !== $today) {
+                    continue;
+                }
+
+                $code = (int)($item['wx'] ?? 0);
+                if (in_array($code, $rainyCodes, true)) {
+                    $isRainyDay = true;
+                    break;
+                }
+            }
+        }
+
         return response()->json([
             'precipitation' => is_numeric($todayPop) ? (int)$todayPop : 0,
             'humidity'      => (int)($current['rhum'] ?? 0),
             'windSpeed'     => (float)($current['wndspd'] ?? 0),
             'temperature'   => (float)($current['temp'] ?? 0),
             'weatherCode'   => (int)($current['wx'] ?? 0),
+            'isRainyDay'    => $isRainyDay,
         ]);
     }
 }

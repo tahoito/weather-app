@@ -24,6 +24,7 @@ type WeatherInfo = {
   windSpeed: number;
   temperature: number;
   weatherCode: number;
+  isRainyDay: boolean;
 };
 
 type TopCache = {
@@ -109,7 +110,7 @@ export default function Page() {
   const fmt = (v?: number, suffix = "") =>
     typeof v === "number" ? `${v}${suffix}` : "--";
 
-  const isRain = (weather?.precipitation ?? 0) > 0;
+  const isRain = weather?.isRainyDay ?? [300, 650, 850].includes(Number(weather?.weatherCode ?? 0));
 
   // ----------------------------
   // 1) ログインチェック（cookie反映ズレ対策で軽くリトライ）
