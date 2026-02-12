@@ -4,6 +4,7 @@ export type WeatherInfo = {
   windSpeed: number;
   temperature: number;
   weatherCode: number;
+  isRainyDay: boolean;
 };
 
 export type ForecastHour = {
@@ -154,6 +155,24 @@ export async function fetchWeatherByLatLon(
   if (!current) throw new Error("Weather data is missing");
 
   const todayPop = wx0?.mrf?.[0].pop;
+  const todayIso: string | undefined = current?.date;
+  const today = typeof todayIso === "string" ? todayIso.slice(0, 10) : null;
+  const rainyCodes = new Set([300, 650, 850]);
+
+  let isRainyDay = false;
+  const srf = wx0?.srf;
+  if (today && Array.isArray(srf)) {
+    for (const item of srf) {
+      const itemIso: string | undefined = item?.date;
+      const itemDate = typeof itemIso === "string" ? itemIso.slice(0, 10) : null;
+      if (itemDate !== today) continue;
+      const code = Number(item?.wx ?? 0);
+      if (rainyCodes.has(code)) {
+        isRainyDay = true;
+        break;
+      }
+    }
+  }
 
   const popCandidate =
     current?.pop ??
@@ -168,5 +187,6 @@ export async function fetchWeatherByLatLon(
     windSpeed: current?.wndspd,
     temperature: current?.temp,
     weatherCode: current?.wx,
+    isRainyDay,
   };
 }

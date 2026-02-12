@@ -22,6 +22,7 @@ type WeatherInfo = {
   windSpeed: number;
   temperature: number;
   weatherCode: number;
+  isRainyDay: boolean;
 };
 
 export default function Page() {
@@ -241,7 +242,9 @@ export default function Page() {
     setWeather(loadCachedWeather());
   }, []);
 
-  const isRain = (weather?.precipitation ?? 0) > 0;
+  const isRain =
+    weather?.isRainyDay ??
+    [300, 650, 850].includes(Number(weather?.weatherCode ?? 0));
 
   if (loading) return <div className="bg-back min-h-screen p-6">読み込み中...</div>;
   if (!spot) return <div className="bg-back min-h-screen p-6">スポットが見つかりません</div>;
