@@ -108,4 +108,32 @@ https://weather-app-i2no.vercel.app/
 - スポット・イベント連携の拡張
 
 ---
+
+## 💻 動かし方
+
+1. リポジトリをクローン
+```bash
+git clone <REPO_URL>
+cd weather-app
+```
+2. 環境変数を用意（未作成の場合のみ）
+`backend/.env` が無い場合
+```bash
+cp backend/.env.example backend/.env
+```
+   
+`frontend/.env.local` が無い場合
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api
+``` 
+3. 起動
+```bash
+docker compose up --build
+```
+4. ブラウザで確認:
+   フロント `http://localhost:3001`、API `http://localhost:8000`
+6. 停止: `docker compose down`
+
+
+---
 KADOKAWAドワンゴ情報工科学院2026年　卒展
